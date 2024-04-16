@@ -60,23 +60,22 @@ func GenerateLinuxNamespace(linuxNs map[string]string) []specs.LinuxNamespace {
 	return namespaces
 }
 
-func StopPodContainers(containers []core.Container, namespace string) error {
+func StopPodContainers(containers []core.Container, pConfig *core.Pod) error {
 	var cs = make([]string, len(containers))
-	for i, container := range containers {
-		cs[i] = fmt.Sprintf("%s_%s", container.Name, namespace)
+	for i, cConfig := range containers {
+		cs[i] = GenerateContainerIDByName(cConfig.Name)
 	}
-	_, err := NerdContainerOps(cs, namespace, NerdStop)
+	_, err := NerdContainerOps(cs, pConfig.MetaData.NameSpace, NerdStop)
 	return err
 }
 
-func RmPodContainers(containers []core.Container, namespace string) error {
+func RmPodContainers(containers []core.Container, pConfig *core.Pod) error {
 	var cs = make([]string, len(containers))
-	for i, container := range containers {
-		//cs[i] = fmt.Sprintf("%s_%s", container.Name, namespace)
-		cs[i] = container.Name
+	for i, cConfig := range containers {
+		cs[i] = GenerateContainerIDByName(cConfig.Name)
 	}
-	// rm container
-	_, _ = NerdContainerOps(cs, namespace, NerdRm)
+	// rm cConfig
+	_, _ = NerdContainerOps(cs, pConfig.MetaData.NameSpace, NerdRm)
 	//_ = ctlContainerOps(cs, namespace, CtrSnapshot, CtrRm)
 	return nil
 }
@@ -105,7 +104,7 @@ func NerdContainerOps(containers []string, namespace string, ctlType string, arg
 	for _, c := range containers {
 		output, err := NerdExec(NerdCtl{namespace: namespace, containerName: c, ctlType: ctlType}, args...)
 		if err != nil {
-			logger.Error("stop container %s failed: %s", c, err.Error())
+			logger.Errorf("stop container %s failed: %s", c, err.Error())
 		}
 		retOutput = output
 	}

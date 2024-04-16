@@ -4,26 +4,32 @@ import (
 	"context"
 	"fmt"
 	"github.com/containerd/containerd"
+	"github.com/containerd/containerd/cio"
 	"github.com/containerd/containerd/oci"
 	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/utils"
+	"strings"
 )
 
 type ContainerManager struct {
 	Client *containerd.Client
 }
 
-func (cmg *ContainerManager) CreateContainer(ctx context.Context, config core.ContainerdSpec) (containerd.Container, error) {
+func (cmg *ContainerManager) createClient(namespace string) {
 	if cmg.Client == nil {
-		client, err := utils.CreateClientWithNamespace(config.Namespace)
+		client, err := utils.CreateClientWithNamespace(namespace)
 		if err != nil {
 			logger.Errorf("Create Client Error: %s", err.Error())
-			return nil, err
+			panic(err)
 		}
 		logger.Info("Create Containerd Client Success!")
 		cmg.Client = client
 	}
+}
+
+func (cmg *ContainerManager) CreateContainer(ctx context.Context, config core.ContainerdSpec) (containerd.Container, error) {
+	cmg.createClient(config.Namespace)
 	var imgCtl ImageController
 	img, err := imgCtl.CreateImage(cmg.Client, config.Image, config.PullPolicy) // TODO: safer
 	if err != nil {
@@ -56,15 +62,16 @@ func (cmg *ContainerManager) CreateContainer(ctx context.Context, config core.Co
 		linuxNamespaces := utils.GenerateLinuxNamespace(config.LinuxNamespace)
 		for _, namespace := range linuxNamespaces {
 			specs = append(specs, oci.WithLinuxNamespace(namespace))
+			//logger.Infof("namespace: %v", namespace)
 		}
 	}
-	copts := []containerd.NewContainerOpts{containerd.WithNewSnapshot(config.Name, img), containerd.WithNewSpec(specs...)}
+	copts := []containerd.NewContainerOpts{containerd.WithImageName(config.Name), containerd.WithNewSnapshot(config.Name, img), containerd.WithNewSpec(specs...)}
 	if len(config.Labels) > 0 {
 		copts = append(copts, containerd.WithContainerLabels(config.Labels))
 	}
 
 	// create container
-	container, err := cmg.Client.NewContainer(ctx, config.Name, copts...)
+	container, err := cmg.Client.NewContainer(ctx, config.ID, copts...)
 	if err != nil {
 		logger.Errorf("Create Container Failed: %s", err.Error())
 		return nil, err
@@ -77,15 +84,30 @@ func (cmg *ContainerManager) CreateContainer(ctx context.Context, config core.Co
 //
 //}
 
-func (cmg *ContainerManager) GetContainerInfo(namespace string, containerName string, fields ...string) (string, error) {
+func (cmg *ContainerManager) StartContainer(ctx context.Context, container containerd.Container, pConfig *core.Pod) error {
+	cmg.createClient(pConfig.MetaData.NameSpace)
+	task, err := container.NewTask(ctx, cio.NewCreator())
+	if err != nil {
+		logger.Errorf("create task error: %s", err.Error())
+		return err
+	}
+	err = task.Start(ctx)
+	if err != nil {
+		logger.Errorf("start tast error: %s", err.Error())
+		return err
+	}
+	return nil
+}
+
+func (cmg *ContainerManager) GetContainerInfo(namespace string, containerID string, fields ...string) (string, error) {
 	var str = ""
 	for _, field := range fields {
 		str += "." + field
 	}
 	str = fmt.Sprintf("{{%s}}", str)
-	res, err := utils.NerdContainerOps([]string{containerName}, namespace, utils.NerdInspect, "-f", str)
+	res, err := utils.NerdContainerOps([]string{containerID}, namespace, utils.NerdInspect, "-f", str)
 	if err != nil {
 		logger.Errorf("inspect error: %s", err.Error())
 	}
-	return res, err
+	return strings.Trim(res, "\n "), err
 }

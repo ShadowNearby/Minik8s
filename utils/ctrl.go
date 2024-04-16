@@ -37,6 +37,11 @@ const (
 	CtrRm string = "rm"
 )
 
+func NerdTest(args ...string) (string, error) {
+	res, err := exec.Command(nerdCtl, args...).CombinedOutput()
+	return string(res), err
+}
+
 func NerdExec(ctl NerdCtl, args ...string) (string, error) {
 	namespace := namespaces.Default
 	if ctl.namespace != "" {

@@ -23,6 +23,7 @@ func GenerateContainerSpec(pConfig core.Pod, cConfig core.Container, args ...str
 	var cSpec = core.ContainerdSpec{
 		Namespace:    pConfig.MetaData.NameSpace,
 		Image:        cConfig.Image,
+		ID:           GenerateContainerIDByName(cConfig.Name),
 		Name:         GenerateContainerName(pConfig, cConfig),
 		VolumeMounts: generateVolMountsMap(cConfig.VolumeMounts),
 		Cmd:          cConfig.Cmd,
@@ -35,10 +36,10 @@ func GenerateContainerSpec(pConfig core.Pod, cConfig core.Container, args ...str
 		linuxNamespace := args[0]
 		var (
 			ns = map[string]string{
-				"cgroup": linuxNamespace + "cgroup",
-				"uts":    linuxNamespace + "uts",
-				"net":    linuxNamespace + "net",
-				"ipc":    linuxNamespace + "ipc",
+				"cgroup":  linuxNamespace + "cgroup",
+				"uts":     linuxNamespace + "uts",
+				"network": linuxNamespace + "net",
+				"ipc":     linuxNamespace + "ipc",
 			}
 		)
 		cSpec.LinuxNamespace = ns
@@ -47,5 +48,5 @@ func GenerateContainerSpec(pConfig core.Pod, cConfig core.Container, args ...str
 }
 
 func GenerateContainerName(pConfig core.Pod, cConfig core.Container) string {
-	return fmt.Sprintf("%s_%s", cConfig.Name, pConfig.MetaData.NameSpace)
+	return fmt.Sprintf("%s_%s", cConfig.Name, pConfig.MetaData.UUID)
 }

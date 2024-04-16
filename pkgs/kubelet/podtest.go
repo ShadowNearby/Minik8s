@@ -5,6 +5,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
+	"minik8s/utils"
 )
 
 func PodTest() {
@@ -48,9 +49,14 @@ func PodTest() {
 		},
 		Status: core.Status{},
 	}
-	err := RunPod(&podConfig)
+	err := CreatePod(&podConfig)
 	if err != nil {
 		logger.Errorf("run pod error: %s", err.Error())
 	}
+	res2, err := utils.NerdTest("ps", "-a")
+
+	res1, err := utils.NerdTest("ps")
+	logger.Infof("ps output:\n%s\nps -a output:\n%s\n", res1, res2)
+
 	StopPod(&podConfig)
 }

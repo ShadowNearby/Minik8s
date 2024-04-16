@@ -93,6 +93,7 @@ type ContainerdSpec struct {
 	Namespace      string
 	Image          string
 	Name           string
+	ID             string
 	VolumeMounts   map[string]string
 	Cmd            []string
 	Envs           []string

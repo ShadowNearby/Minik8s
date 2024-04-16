@@ -8,7 +8,7 @@ import (
 	"minik8s/utils"
 )
 
-func RunPod(podConfig *core.Pod) error {
+func CreatePod(podConfig *core.Pod) error {
 	// first create a pause c_config
 	var pauseConfig = core.Container{
 		Name:            "pause_container",
@@ -20,33 +20,48 @@ func RunPod(podConfig *core.Pod) error {
 	ctx := context.Background()
 	var cMng ContainerManager
 	var startedContainer = make([]core.Container, 0)
-	_, err := cMng.CreateContainer(ctx, pauseSpec)
+	pause, err := cMng.CreateContainer(ctx, pauseSpec)
 	if err != nil {
 		logger.Errorf("Create Pause Container Failed: %s", err.Error())
 		return err
 	}
 	startedContainer = append(startedContainer, pauseConfig)
+	err = cMng.StartContainer(ctx, pause, podConfig)
+	if err != nil {
+		logger.Errorf("Start Pause Container Failed: %s", err.Error())
+		_ = utils.RmPodContainers(startedContainer, podConfig)
+		return err
+	}
+	logger.Infof("------CREATE PAUSE CONTAINER OVER--------")
 
 	// get pause container namespace
-	pausePid, err := cMng.GetContainerInfo(podConfig.MetaData.NameSpace, pauseSpec.Name, "State", "Pid")
+	pausePid, err := cMng.GetContainerInfo(podConfig.MetaData.NameSpace, pauseSpec.ID, "State", "Pid")
 	if err != nil {
 		logger.Errorf("cannot get inspect: %s", err.Error())
 	}
 	linuxNamespace := fmt.Sprintf("/proc/%s/ns/", pausePid)
+	logger.Infof("namespace: %s", linuxNamespace)
 
 	// create pod containers
 	for _, cConfig := range podConfig.Spec.Containers {
 		// while create containers, add into pause container's namespace
-		_, err := cMng.CreateContainer(ctx, utils.GenerateContainerSpec(*podConfig, cConfig, linuxNamespace))
+		container, err := cMng.CreateContainer(ctx, utils.GenerateContainerSpec(*podConfig, cConfig, linuxNamespace))
 		if err != nil {
 			logger.Errorf("Create container %s Failed: %s", cConfig.Name, err.Error())
-			_ = utils.StopPodContainers(startedContainer, podConfig.MetaData.NameSpace)
-			_ = utils.RmPodContainers(startedContainer, podConfig.MetaData.NameSpace)
+			_ = utils.StopPodContainers(startedContainer, podConfig)
+			_ = utils.RmPodContainers(startedContainer, podConfig)
 			return err
 		}
 		startedContainer = append(startedContainer, cConfig)
+		err = cMng.StartContainer(ctx, container, podConfig)
+		if err != nil {
+			logger.Errorf("Create container %s Failed: %s", cConfig.Name, err.Error())
+			_ = utils.StopPodContainers(startedContainer, podConfig)
+			_ = utils.RmPodContainers(startedContainer, podConfig)
+			return err
+		}
+		logger.Infof("Start container %s Success", cConfig.Name)
 	}
-
 	// add pause config to pod containers
 	podConfig.Spec.Containers = append(podConfig.Spec.Containers, pauseConfig)
 	return nil
@@ -54,7 +69,7 @@ func RunPod(podConfig *core.Pod) error {
 
 func StopPod(podConfig *core.Pod) error {
 	// stop every containerd in pod
-	_ = utils.StopPodContainers(podConfig.Spec.Containers, podConfig.MetaData.NameSpace)
-	_ = utils.RmPodContainers(podConfig.Spec.Containers, podConfig.MetaData.NameSpace)
+	_ = utils.StopPodContainers(podConfig.Spec.Containers, podConfig)
+	_ = utils.RmPodContainers(podConfig.Spec.Containers, podConfig)
 	return nil
 }
