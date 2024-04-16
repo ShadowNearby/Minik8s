@@ -5,16 +5,18 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
-func GenerateUUID() (string, error) {
+// GenerateUUID generate a random uuid
+func GenerateUUID() string {
 	id, err := uuid.NewUUID()
 	if err != nil {
 		logger.Errorf("generate uuid failed: %s", err.Error())
-		return "", err
+		return ""
 	}
-	return id.String(), err
+	return id.String()
 }
 
-func GenerateContainerIDByName(str string) string {
-	id := uuid.NewMD5(uuid.NameSpaceDNS, []byte(str))
+// GenerateContainerIDByName receive container name + pod name as param
+func GenerateContainerIDByName(containerName string, podName string) string {
+	id := uuid.NewMD5(uuid.NameSpaceDNS, []byte(containerName+podName))
 	return id.String()[:12]
 }

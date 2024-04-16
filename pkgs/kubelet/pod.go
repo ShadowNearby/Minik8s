@@ -8,6 +8,7 @@ import (
 	"minik8s/utils"
 )
 
+// CreatePod create containers and start them
 func CreatePod(podConfig *core.Pod) error {
 	// first create a pause c_config
 	var pauseConfig = core.Container{
@@ -67,6 +68,7 @@ func CreatePod(podConfig *core.Pod) error {
 	return nil
 }
 
+// StopPod stop and remove the containers in pod
 func StopPod(podConfig *core.Pod) error {
 	// stop every containerd in pod
 	_ = utils.StopPodContainers(podConfig.Spec.Containers, podConfig)

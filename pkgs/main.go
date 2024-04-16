@@ -1,7 +1,8 @@
 package main
 
-import "minik8s/pkgs/kubelet"
+import test "minik8s/test/kubelet"
 
 func main() {
-	kubelet.PodTest()
+	//test.PodBasicTest()
+	test.PodLocalhostTest()
 }
