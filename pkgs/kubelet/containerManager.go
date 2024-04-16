@@ -2,6 +2,7 @@ package kubelet
 
 import (
 	"context"
+	"fmt"
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/oci"
 	logger "github.com/sirupsen/logrus"
@@ -50,6 +51,13 @@ func (cmg *ContainerManager) CreateContainer(ctx context.Context, config core.Co
 	if len(config.Envs) > 0 {
 		specs = append(specs, oci.WithEnv(config.Envs))
 	}
+	// add network support
+	if len(config.LinuxNamespace) > 0 {
+		linuxNamespaces := utils.GenerateLinuxNamespace(config.LinuxNamespace)
+		for _, namespace := range linuxNamespaces {
+			specs = append(specs, oci.WithLinuxNamespace(namespace))
+		}
+	}
 	copts := []containerd.NewContainerOpts{containerd.WithNewSnapshot(config.Name, img), containerd.WithNewSpec(specs...)}
 	if len(config.Labels) > 0 {
 		copts = append(copts, containerd.WithContainerLabels(config.Labels))
@@ -57,11 +65,27 @@ func (cmg *ContainerManager) CreateContainer(ctx context.Context, config core.Co
 
 	// create container
 	container, err := cmg.Client.NewContainer(ctx, config.Name, copts...)
-	//container, err := cmg.Client.NewContainer(ctx, config.Name, containerd.WithNewSpec(specs...))
 	if err != nil {
 		logger.Errorf("Create Container Failed: %s", err.Error())
 		return nil, err
 	}
 	logger.Infof("Create Container %s Success", config.Name)
 	return container, nil
+}
+
+//func (cmg ContainerManager) StartContainer(ctx context.Context, container containerd.Container) error {
+//
+//}
+
+func (cmg *ContainerManager) GetContainerInfo(namespace string, containerName string, fields ...string) (string, error) {
+	var str = ""
+	for _, field := range fields {
+		str += "." + field
+	}
+	str = fmt.Sprintf("{{%s}}", str)
+	res, err := utils.NerdContainerOps([]string{containerName}, namespace, utils.NerdInspect, "-f", str)
+	if err != nil {
+		logger.Errorf("inspect error: %s", err.Error())
+	}
+	return res, err
 }

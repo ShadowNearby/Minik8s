@@ -17,7 +17,9 @@ type NerdCtl struct {
 }
 
 const (
-	NerdStop string = "stop"
+	NerdStop    string = "stop"
+	NerdRm      string = "rm"
+	NerdInspect string = "inspect"
 )
 
 type Ctr struct {
@@ -35,7 +37,7 @@ const (
 	CtrRm string = "rm"
 )
 
-func NerdExec(ctl NerdCtl) (string, error) {
+func NerdExec(ctl NerdCtl, args ...string) (string, error) {
 	namespace := namespaces.Default
 	if ctl.namespace != "" {
 		namespace = ctl.namespace
@@ -45,7 +47,9 @@ func NerdExec(ctl NerdCtl) (string, error) {
 	}
 	containerName := ctl.containerName
 	var cmd = make([]string, 0)
-	cmd = append(cmd, "-n", namespace, ctl.ctlType, containerName)
+	cmd = append(cmd, "-n", namespace, ctl.ctlType)
+	cmd = append(cmd, args...)
+	cmd = append(cmd, containerName)
 	res, err := exec.Command(nerdCtl, cmd...).CombinedOutput()
 	return string(res), err
 }

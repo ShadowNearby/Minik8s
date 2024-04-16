@@ -52,4 +52,5 @@ func PodTest() {
 	if err != nil {
 		logger.Errorf("run pod error: %s", err.Error())
 	}
+	StopPod(&podConfig)
 }

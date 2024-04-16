@@ -1,6 +1,8 @@
 package core
 
-import "github.com/docker/go-connections/nat"
+import (
+	"github.com/docker/go-connections/nat"
+)
 
 type Pod struct {
 	ApiVersion string   `json:"api_version"`
@@ -88,15 +90,30 @@ type ResourcesConfig struct {
 }
 
 type ContainerdSpec struct {
-	Namespace    string
-	Image        string
-	Name         string
-	VolumeMounts map[string]string
-	Cmd          []string
-	Envs         []string
-	Resource     Limit
-	Labels       map[string]string
-	PullPolicy   ImagePullPolicy
+	Namespace      string
+	Image          string
+	Name           string
+	VolumeMounts   map[string]string
+	Cmd            []string
+	Envs           []string
+	Resource       Limit
+	Labels         map[string]string
+	LinuxNamespace map[string]string /* support localhost communication */
+	PullPolicy     ImagePullPolicy
+}
+
+// Inspect inspect data structure
+type Inspect struct {
+	State           InspectState
+	ResolveConfPath string
+}
+
+type InspectState struct {
+	Status     phaseLabel
+	Running    bool
+	Paused     bool
+	Restarting bool
+	Pid        uint64
 }
 
 // const values
@@ -106,10 +123,10 @@ const (
 	EmptyMemory uint64 = 0
 )
 const (
-	PhasePending phaseLabel = "Pending"
-	PhaseRunning phaseLabel = "Running"
-	PhaseSucceed phaseLabel = "Succeed"
-	PhaseFailed  phaseLabel = "Failed"
+	PhasePending phaseLabel = "pending"
+	PhaseRunning phaseLabel = "running"
+	PhaseSucceed phaseLabel = "succeed"
+	PhaseFailed  phaseLabel = "failed"
 	PhaseUnknown phaseLabel = "unknown"
 )
 
