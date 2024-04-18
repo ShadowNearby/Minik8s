@@ -5,8 +5,9 @@ go 1.21
 require (
 	github.com/containerd/containerd v1.7.15
 	github.com/docker/go-connections v0.5.0
+	github.com/google/uuid v1.6.0
 	github.com/gin-gonic/gin v1.9.1
-	github.com/opencontainers/runtime-spec v1.1.0
+	github.com/opencontainers/runtime-spec v1.2.0
 	github.com/sirupsen/logrus v1.9.3
 	go.etcd.io/etcd v2.3.8+incompatible
 	github.com/opencontainers/runtime-spec v1.1.0

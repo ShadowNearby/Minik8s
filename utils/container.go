@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	core "minik8s/pkgs/apiobject"
+	"minik8s/pkgs/constants/labels"
 )
 
 //type ContainerWalker struct {
@@ -31,6 +32,7 @@ func GenerateContainerSpec(pConfig core.Pod, cConfig core.Container, args ...str
 		Resource:     cConfig.Resources.Limit,
 		Labels:       pConfig.MetaData.Labels,
 		PullPolicy:   cConfig.ImagePullPolicy,
+		PodName:      pConfig.MetaData.Name,
 	}
 	if len(args) > 0 && len(args[0]) > 0 {
 		linuxNamespace := args[0]
@@ -49,4 +51,8 @@ func GenerateContainerSpec(pConfig core.Pod, cConfig core.Container, args ...str
 
 func GenerateContainerName(pConfig core.Pod, cConfig core.Container) string {
 	return fmt.Sprintf("%s_%s", cConfig.Name, pConfig.MetaData.UUID)
+}
+
+func GenerateContainerLabel(podName string) map[string]string {
+	return map[string]string{labels.MiniK8SPod: podName}
 }

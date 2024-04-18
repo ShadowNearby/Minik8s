@@ -10,9 +10,11 @@ import (
 	"minik8s/pkgs/kubelet"
 	"minik8s/utils"
 	"os"
+	"testing"
+	"time"
 )
 
-func PodBasicTest() {
+func PodBasicTest(t *testing.T) {
 	// create a pod config
 	metadata := core.MetaData{
 		Name:      "test",
@@ -20,8 +22,8 @@ func PodBasicTest() {
 		UUID:      utils.GenerateUUID(),
 	}
 	portMap := nat.PortMap{}
-	portMap[nat.Port(80)] = make([]nat.PortBinding, 0)
-	portMap[nat.Port(80)] = append(portMap[nat.Port(80)], nat.PortBinding{
+	portMap[nat.Port(rune(80))] = make([]nat.PortBinding, 0)
+	portMap[nat.Port(rune(80))] = append(portMap[nat.Port(rune(80))], nat.PortBinding{
 		HostIP:   "0.0.0.0",
 		HostPort: "9898",
 	})
@@ -56,13 +58,17 @@ func PodBasicTest() {
 	err := kubelet.CreatePod(&podConfig)
 	if err != nil {
 		logger.Errorf("run pod error: %s", err.Error())
+		t.Errorf("run pod error: %s", err.Error())
 	}
 	res2, err := utils.NerdTest("ps", "-a")
 
 	res1, err := utils.NerdTest("ps")
 	logger.Infof("ps output:\n%s\nps -a output:\n%s\n", res1, res2)
 
-	kubelet.StopPod(&podConfig)
+	err = kubelet.StopPod(&podConfig)
+	if err != nil {
+		t.Errorf("stop pod error: %s", err.Error())
+	}
 }
 
 func PodLocalhostTest() {
@@ -72,8 +78,8 @@ func PodLocalhostTest() {
 		UUID:      utils.GenerateUUID(),
 	}
 	portMap := nat.PortMap{}
-	portMap[nat.Port(80)] = make([]nat.PortBinding, 0)
-	portMap[nat.Port(80)] = append(portMap[nat.Port(80)], nat.PortBinding{
+	portMap[nat.Port(rune(80))] = make([]nat.PortBinding, 0)
+	portMap[nat.Port(rune(80))] = append(portMap[nat.Port(rune(80))], nat.PortBinding{
 		HostIP:   "0.0.0.0",
 		HostPort: "9898",
 	})
@@ -134,11 +140,13 @@ func PodLocalhostTest() {
 	err := kubelet.CreatePod(&podConfig)
 	if err != nil {
 		logger.Errorf("run pod error: %s", err.Error())
+		//t.Errorf("run pod error: %s", err.Error())
 	}
 	res2, err := utils.NerdTest("ps", "-a")
 	res1, err := utils.NerdTest("ps")
 	logger.Infof("ps output:\n%s\nps -a output:\n%s\n", res1, res2)
 	fmt.Println("input c for terminate")
+	time.Sleep(5 * time.Second)
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		inputText := scanner.Text()
@@ -152,5 +160,8 @@ func PodLocalhostTest() {
 		}
 		fmt.Println("input c for terminate")
 	}
-	kubelet.StopPod(&podConfig)
+	err = kubelet.StopPod(&podConfig)
+	if err != nil {
+		//t.Errorf("stop pod error: %s", err.Error())
+	}
 }
