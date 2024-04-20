@@ -1,36 +1,50 @@
 package core
 
-import "github.com/docker/go-connections/nat"
+import (
+	"github.com/docker/go-connections/nat"
+	"google.golang.org/grpc/resolver"
+)
 
 type Pod struct {
-	ApiVersion string   `json:"api_version"`
-	MetaData   MetaData `json:"meta_data"`
-	Spec       Spec     `json:"Spec"`
-	Status     Status   `json:"Status"`
+	ApiVersion string   `json:"apiVersion" yaml:"apiVersion"`
+	MetaData   MetaData `json:"metadata" yaml:"metadata"`
+	Spec       Spec     `json:"spec" yaml:"spec"`
+	Status     Status   `json:"status" yaml:"status"`
+}
+
+type BasicInfo struct {
+	ApiVersion string   `json:"apiVersion" yaml:"apiVersion"`
+	Kind       string   `json:"kind" yaml:"kind"`
+	MetaData   MetaData `json:"metadata" yaml:"metadata"`
 }
 
 type MetaData struct {
-	Name            string            `json:"name"`
-	NameSpace       string            `json:"name_space"`
-	Labels          map[string]string `json:"labels,omitempty"`
-	ResourceVersion string            `json:"resource_version"`
-	UUID            string
+	Name            string            `json:"name" yaml:"name"`
+	NameSpace       string            `json:"name_space" yaml:"namespace,omitempty"`
+	Labels          map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
+	ResourceVersion string            `json:"resourceVersion" yaml:"resourceVersion,omitempty"`
+	UUID            string            `json:"uuid" yaml:"uuid"`
 }
 
 type Spec struct {
-	Containers    []Container       `json:"containers"`
-	RestartPolicy restartPolicy     `json:"restart_policy"`
-	NodeSelector  map[string]string `json:"node_selector"`
+	Containers      []Container       `json:"containers" yaml:"containers"`
+	RestartPolicy   restartPolicy     `json:"restartPolicy" yaml:"restartPolicy"`
+	DnsPolicy       dnsPolicy         `json:"dnsPolicy,omitempty" yaml:"dnsPolicy,omitempty"`
+	NodeSelector    map[string]string `json:"selector" yaml:"selector"`
+	MinReadySeconds minReadySeconds   `json:"minReadySeconds,omitempty" yaml:"minReadySeconds,omitempty"`
+	Selector        map[string]string `yaml:"selector"`
 }
 
 type Status struct {
-	Phase          phaseLabel     `json:"phase"`
-	HostIP         string         `json:"host_ip"`
-	PodIP          string         `json:"pod_ip"`
-	OwnerReference ownerReference `json:"owner_reference"`
+	Phase          phaseLabel     `json:"phase" yaml:"phase"`
+	HostIP         string         `json:"host_ip" yaml:"hostIP"`
+	PodIP          string         `json:"pod_ip" yaml:"podIP"`
+	OwnerReference ownerReference `json:"owner_reference" yaml:"ownerReference"`
 }
 type restartPolicy string
 type phaseLabel string
+type dnsPolicy string
+type minReadySeconds int
 
 type ownerReference struct {
 	Kind       string `json:"kind"`
@@ -39,17 +53,17 @@ type ownerReference struct {
 }
 
 type Container struct {
-	Name            string              `json:"name"`
-	Image           string              `json:"image"`
-	ImagePullPolicy ImagePullPolicy     `json:"image_pull_policy,omitempty"`
-	Cmd             []string            `json:"cmd,omitempty"`
-	Args            []string            `json:"args,omitempty"`
-	WorkingDir      string              `json:"working_dir,omitempty"`
-	VolumeMounts    []VolumeMountConfig `json:"volume_mounts,omitempty"`
-	PortBindings    nat.PortMap         `json:"ports,omitempty"` /* mapping of port bindings: container port -> []host ip+port */
-	ExposedPorts    []string            `json:"exposed_ports"`   /* container's exposed ports */
-	Env             []EnvConfig         `json:"env,omitempty"`
-	Resources       ResourcesConfig     `json:"resources,omitempty"`
+	Name            string              `json:"name" yaml:"name"`
+	Image           string              `json:"image" yaml:"image"`
+	ImagePullPolicy ImagePullPolicy     `json:"imagePullPolicy,omitempty" yaml:"imagePullPolicy,omitempty"`
+	Cmd             []string            `json:"cmd,omitempty" yaml:"cmd,omitempty"`
+	Args            []string            `json:"args,omitempty" yaml:"args,omitempty"`
+	WorkingDir      string              `json:"workingDir,omitempty" yaml:"workingDir,omitempty"`
+	VolumeMounts    []VolumeMountConfig `json:"volumeMounts,omitempty" yaml:"volumeMounts,omitempty"`
+	PortBindings    nat.PortMap         `json:"ports,omitempty" yaml:"ports,omitempty"` /* mapping of port bindings: container port -> []host ip+port */
+	ExposedPorts    []string            `json:"exposedPorts" yaml:"exposedPorts"`       /* container's exposed ports */
+	Env             []EnvConfig         `json:"env,omitempty" yaml:"env,omitempty"`
+	Resources       ResourcesConfig     `json:"resources,omitempty" yaml:"resources,omitempty"`
 }
 
 type ImagePullPolicy string
@@ -123,3 +137,36 @@ const (
 	RestartAlways    restartPolicy = "Always"
 	RestartOnFailure restartPolicy = "OnFailure"
 )
+
+type ServiceStatus struct {
+	Endpoints []resolver.Endpoint
+	Phase     phaseLabel `json:"phase"`
+}
+
+type ServicePort struct {
+	Name       string `yaml:"name"`
+	Port       int    `yaml:"port"`
+	NodePort   int    `yaml:"node_port"`
+	Protocol   string `yaml:"protocol"`
+	TargetPort int    `yaml:"target_port"`
+}
+
+type ServiceSpec struct {
+	Selector                      map[string]string `yaml:"selector"`
+	Ports                         []ServicePort     `yaml:"ports"`
+	AllocateLoadBalancerNodePorts bool              `yaml:"allocate_load_balancer_node_ports"`
+	Type                          string            `yaml:"type"`
+	ClusterIP                     string            `yaml:"cluster_ip"`
+	ClusterIPs                    []string          `yaml:"cluster_ips"`
+}
+
+type Service struct {
+	BasicInfo `json:",inline" yaml:",inline"`
+	Spec      ServiceSpec `json:"spec" yaml:"spec"`
+}
+
+type ServiceStore struct {
+	BasicInfo `json:",inline" yaml:",inline"`
+	Spec      ServiceSpec   `json:"spec" yaml:"spec"`
+	Status    ServiceStatus `json:"status" yaml:"status"`
+}
