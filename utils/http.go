@@ -8,10 +8,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func SendRequest(method string, url string, body []byte) (string, error) {
+func SendRequest(method string, url string, body []byte) (int, string, error) {
 	request, err := http.NewRequest(method, url, bytes.NewBuffer(body))
 	if err != nil {
-		return "", err
+		return 0, "", err
 	}
 	request.Header.Set("content-type", "application/json")
 	client := &http.Client{}
@@ -32,13 +32,13 @@ func SendRequest(method string, url string, body []byte) (string, error) {
 		log.Debugln("[Http Request] to %s method:%s status:%s receive:%d bytes", url, method, response.Status, length)
 	}
 
-	return buffer.String(), err
+	return response.StatusCode, buffer.String(), err
 }
 
-func SendRequestWithJson(method string, url string, json []byte) (string, error) {
+func SendRequestWithJson(method string, url string, json []byte) (int, string, error) {
 	request, err := http.NewRequest(method, url, bytes.NewBuffer(json))
 	if err != nil {
-		return "", err
+		return 0, "", err
 	}
 	request.Header.Set("content-type", "application/json")
 	client := &http.Client{}
@@ -57,13 +57,13 @@ func SendRequestWithJson(method string, url string, json []byte) (string, error)
 		}
 		log.Debugln("[Http Request] to %s method:%s status:%s receive:%d bytes", url, method, response.Status, length)
 	}
-	return buffer.String(), err
+	return response.StatusCode, buffer.String(), err
 }
 
-func SendRequestWithHost(method string, url string, body []byte) (string, error) {
+func SendRequestWithHost(method string, url string, body []byte) (int, string, error) {
 	request, err := http.NewRequest(method, url, bytes.NewBuffer(body))
 	if err != nil {
-		return "", err
+		return 0, "", err
 	}
 	request.Header.Set("content-type", "application/json")
 	hostname, err := os.Hostname()
@@ -87,5 +87,5 @@ func SendRequestWithHost(method string, url string, body []byte) (string, error)
 		}
 		log.Debugf("[Http Request] to %s method:%s status:%s receive:%d bytes", url, method, response.Status, length)
 	}
-	return buffer.String(), err
+	return response.StatusCode, buffer.String(), err
 }
