@@ -20,6 +20,7 @@ type MetaData struct {
 	NameSpace       string            `json:"name_space" yaml:"namespace,omitempty"`
 	Labels          map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
 	ResourceVersion string            `json:"resourceVersion" yaml:"resourceVersion,omitempty"`
+	Annotations     map[string]string `json:"annotations"`
 	UUID            string            `json:"uuid" yaml:"uuid"`
 }
 
@@ -33,13 +34,13 @@ type Spec struct {
 }
 
 type Status struct {
-	Phase          phaseLabel     `json:"phase" yaml:"phase"`
+	Phase          PhaseLabel     `json:"phase" yaml:"phase"`
 	HostIP         string         `json:"host_ip" yaml:"hostIP"`
 	PodIP          string         `json:"pod_ip" yaml:"podIP"`
 	OwnerReference ownerReference `json:"owner_reference" yaml:"ownerReference"`
 }
 type restartPolicy string
-type phaseLabel string
+type PhaseLabel string
 type dnsPolicy string
 type minReadySeconds int
 
@@ -110,6 +111,7 @@ type ContainerdSpec struct {
 	Labels         map[string]string
 	LinuxNamespace map[string]string /* support localhost communication */
 	PullPolicy     ImagePullPolicy
+	PodName        string
 }
 
 // Inspect inspect data structure
@@ -119,7 +121,7 @@ type Inspect struct {
 }
 
 type InspectState struct {
-	Status     phaseLabel
+	Status     PhaseLabel
 	Running    bool
 	Paused     bool
 	Restarting bool
@@ -128,16 +130,17 @@ type InspectState struct {
 
 // const values
 
+const PauseContainerName string = "pause_container"
 const (
 	EmptyCpu    string = ""
 	EmptyMemory uint64 = 0
 )
 const (
-	PhasePending phaseLabel = "Pending"
-	PhaseRunning phaseLabel = "Running"
-	PhaseSucceed phaseLabel = "Succeed"
-	PhaseFailed  phaseLabel = "Failed"
-	PhaseUnknown phaseLabel = "unknown"
+	PhasePending PhaseLabel = "pending"
+	PhaseRunning PhaseLabel = "running"
+	PhaseSucceed PhaseLabel = "succeed"
+	PhaseFailed  PhaseLabel = "failed"
+	PhaseUnknown PhaseLabel = "unknown"
 )
 
 const (
@@ -149,6 +152,7 @@ const (
 const (
 	RestartAlways    restartPolicy = "Always"
 	RestartOnFailure restartPolicy = "OnFailure"
+	RestartNever     restartPolicy = "Never"
 )
 
 type ServiceStatus struct {

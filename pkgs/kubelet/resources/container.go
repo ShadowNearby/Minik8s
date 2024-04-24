@@ -1,4 +1,4 @@
-package kubelet
+package resources
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"github.com/containerd/containerd/oci"
 	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
+	"minik8s/pkgs/constants"
 	"minik8s/utils"
 	"strings"
 )
@@ -15,6 +16,8 @@ import (
 type ContainerManager struct {
 	Client *containerd.Client
 }
+
+var ContainerManagerInstance ContainerManager
 
 func (cmg *ContainerManager) createClient(namespace string) {
 	if cmg.Client == nil {
@@ -62,14 +65,14 @@ func (cmg *ContainerManager) CreateContainer(ctx context.Context, config core.Co
 		linuxNamespaces := utils.GenerateLinuxNamespace(config.LinuxNamespace)
 		for _, namespace := range linuxNamespaces {
 			specs = append(specs, oci.WithLinuxNamespace(namespace))
-			//logger.Infof("namespace: %v", namespace)
 		}
 	}
 	copts := []containerd.NewContainerOpts{containerd.WithImageName(config.Name), containerd.WithNewSnapshot(config.Name, img), containerd.WithNewSpec(specs...)}
 	if len(config.Labels) > 0 {
 		copts = append(copts, containerd.WithContainerLabels(config.Labels))
 	}
-
+	// add filter labels
+	copts = append(copts, containerd.WithAdditionalContainerLabels(utils.GenerateContainerLabel(config.PodName)))
 	// create container
 	container, err := cmg.Client.NewContainer(ctx, config.ID, copts...)
 	if err != nil {
@@ -110,4 +113,14 @@ func (cmg *ContainerManager) GetContainerInfo(namespace string, containerID stri
 		logger.Errorf("inspect error: %s", err.Error())
 	}
 	return strings.Trim(res, "\n "), err
+}
+
+func (cmg *ContainerManager) GetPodContainers(pConfig *core.Pod) []containerd.Container {
+	cmg.createClient(pConfig.MetaData.NameSpace)
+	cs, err := cmg.Client.Containers(context.Background(), fmt.Sprintf("labels.%q==%s", constants.MiniK8SPod, pConfig.MetaData.Name))
+	if err != nil {
+		logger.Errorf("filter containers failed: %s", err.Error())
+		return nil
+	}
+	return cs
 }
