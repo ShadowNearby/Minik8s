@@ -11,9 +11,9 @@ import (
 )
 
 var applyCmd = &cobra.Command{
-	Use:   "apply",
-	Short: "Kubectl apply can create apiObject in a declarative way",
-	Long:  "Kubectl apply can create apiObject in a declarative way, usage kubectl apply -f [file]",
+	Use:   "create",
+	Short: "Kubectl create can create apiObject in a declarative way",
+	Long:  "Kubectl create can create apiObject in a declarative way, usage kubectl apply -f [file]",
 	Run:   applyHandler,
 }
 

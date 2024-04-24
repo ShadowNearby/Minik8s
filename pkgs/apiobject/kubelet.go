@@ -1,6 +1,9 @@
 package core
 
-import "github.com/docker/go-connections/nat"
+import (
+	"github.com/docker/go-connections/nat"
+	"google.golang.org/grpc/resolver"
+)
 
 type Pod struct {
 	ApiVersion string   `json:"apiVersion" yaml:"apiVersion"`
@@ -73,15 +76,15 @@ type VolumeMountConfig struct {
 }
 
 type PortConfig struct {
-	Name          string `json:"name"`
-	ContainerPort string `json:"container_port"`
-	HostPort      string `json:"host_port"`
-	Protocol      string `json:"protocol"`
+	Name          string `json:"name" yaml:"name"`
+	ContainerPort string `json:"containerPort" yaml:"containerPort"`
+	HostPort      string `json:"hostPort" yaml:"hostPort"`
+	Protocol      string `json:"protocol" yaml:"protocol"`
 }
 
 type EnvConfig struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Name  string `json:"name" yaml:"name"`
+	Value string `json:"value" yaml:"value"`
 }
 
 type Limit struct {

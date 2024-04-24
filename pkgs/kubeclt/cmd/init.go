@@ -5,6 +5,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+/*
+kubectl [command] [TYPE] [NAME] [flags]
+*/
 var commands = &cobra.Command{
 	Use:   "kubectl",
 	Short: "Kubectl is a tool for controlling minik8s cluster.",
@@ -16,6 +19,7 @@ func runRoot(cmd *cobra.Command, args []string) {
 	fmt.Printf("execute %s args:%v \n", cmd.Name(), args)
 	fmt.Println("kubectl is for better control of minik8s")
 	fmt.Println(cmd.UsageString())
+
 }
 func Execute() {
 	if err := commands.Execute(); err != nil {
@@ -24,5 +28,4 @@ func Execute() {
 }
 func init() {
 	commands.AddCommand(applyCmd)
-
 }
