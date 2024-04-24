@@ -130,6 +130,7 @@ type InspectState struct {
 
 // const values
 
+const PauseContainerName string = "pause_container"
 const (
 	EmptyCpu    string = ""
 	EmptyMemory uint64 = 0
@@ -151,6 +152,7 @@ const (
 const (
 	RestartAlways    restartPolicy = "Always"
 	RestartOnFailure restartPolicy = "OnFailure"
+	RestartNever     restartPolicy = "Never"
 )
 
 type ServiceStatus struct {

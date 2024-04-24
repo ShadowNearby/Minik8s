@@ -18,7 +18,7 @@ var EmptyContainerMetrics = ContainerMetrics{
 
 // container status is described in containerd.Status
 
-type portStatus struct {
+type PortStatus struct {
 	PortNum  uint64
 	Protocol string
 }
@@ -32,19 +32,19 @@ type State struct {
 }
 
 type ContainerStatus struct {
-	ContainerID  string            `json:"container_id"`
-	Image        string            `json:"image"`
-	Port         portStatus        `json:"port"`
-	State        State             `json:"state"`
-	LastState    State             `json:"last_state,omitempty"`
-	Ready        bool              `json:"ready"`
-	RestartCount uint64            `json:"restart_count"`
-	Environment  string            `json:"environment"`
-	Mounts       VolumeMountConfig `json:"mounts,omitempty"` // TODO: not sure
+	ContainerID  string              `json:"container_id"`
+	Image        string              `json:"image"`
+	Port         PortStatus          `json:"port"`
+	State        State               `json:"state"`
+	LastState    State               `json:"last_state,omitempty"`
+	Ready        bool                `json:"ready"`
+	RestartCount uint64              `json:"restart_count"`
+	Environment  string              `json:"environment"`
+	Mounts       []VolumeMountConfig `json:"mounts,omitempty"` // TODO: not sure
 }
 
 type Conditions struct {
-	Initialized     bool `json:"initialized"`
+	Initialized     bool `json:"initialized"` // i dont think we should implement this
 	Ready           bool `json:"ready"`
 	ContainersReady bool `json:"containers_ready"`
 	PodScheduled    bool `json:"pod_scheduled"`
@@ -54,8 +54,8 @@ type PodStatus struct {
 	Name         string                     `json:"name"`
 	Namespace    string                     `json:"namespace"`
 	Node         string                     `json:"node"`
-	StartTime    string                     `json:"start_time"`
-	Labels       string                     `json:"labels"`
+	StartTime    time.Time                  `json:"start_time"`
+	Labels       map[string]string          `json:"labels"`
 	Status       PhaseLabel                 `json:"phase"`
 	Containers   map[string]ContainerStatus `json:"containers"`
 	Conditions   Conditions                 `json:"conditions"`

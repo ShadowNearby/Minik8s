@@ -1,4 +1,4 @@
-package labels
+package constants
 
 const (
 	MiniK8SNetwork string = "minik8s/network"

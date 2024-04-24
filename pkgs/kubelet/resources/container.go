@@ -1,4 +1,4 @@
-package kubelet
+package resources
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/containerd/containerd/oci"
 	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
-	"minik8s/pkgs/constants/labels"
+	"minik8s/pkgs/constants"
 	"minik8s/utils"
 	"strings"
 )
@@ -16,6 +16,8 @@ import (
 type ContainerManager struct {
 	Client *containerd.Client
 }
+
+var ContainerManagerInstance ContainerManager
 
 func (cmg *ContainerManager) createClient(namespace string) {
 	if cmg.Client == nil {
@@ -114,9 +116,8 @@ func (cmg *ContainerManager) GetContainerInfo(namespace string, containerID stri
 }
 
 func (cmg *ContainerManager) GetPodContainers(pConfig *core.Pod) []containerd.Container {
-	ctx := context.Background()
 	cmg.createClient(pConfig.MetaData.NameSpace)
-	cs, err := cmg.Client.Containers(ctx, fmt.Sprintf("labels.%q==%s", labels.MiniK8SPod, pConfig.MetaData.Name))
+	cs, err := cmg.Client.Containers(context.Background(), fmt.Sprintf("labels.%q==%s", constants.MiniK8SPod, pConfig.MetaData.Name))
 	if err != nil {
 		logger.Errorf("filter containers failed: %s", err.Error())
 		return nil
