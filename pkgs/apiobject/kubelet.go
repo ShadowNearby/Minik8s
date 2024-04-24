@@ -20,7 +20,7 @@ type MetaData struct {
 	NameSpace       string            `json:"name_space" yaml:"namespace,omitempty"`
 	Labels          map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
 	ResourceVersion string            `json:"resourceVersion" yaml:"resourceVersion,omitempty"`
-	Annotations 	map[string]string `json:"annotations"`
+	Annotations     map[string]string `json:"annotations"`
 	UUID            string            `json:"uuid" yaml:"uuid"`
 }
 
