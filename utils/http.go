@@ -66,7 +66,7 @@ func SendRequestWithJson(method string, url string, json []byte) (int, string, e
 		if err != nil {
 			log.Error(err)
 		}
-		log.Debugln("[Http Request] to %s method:%s status:%s receive:%d bytes", url, method, response.Status, length)
+		log.Debugf("[Http Request] to %s method:%s status:%s receive:%d bytes", url, method, response.Status, length)
 	}
 	return response.StatusCode, buffer.String(), err
 }
