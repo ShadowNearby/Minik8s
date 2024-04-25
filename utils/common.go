@@ -5,7 +5,7 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
-func JSONPrint(item any) string {
+func CreateJson(item any) string {
 	jsonText, err := json.MarshalIndent(item, "", "  ")
 	if err != nil {
 		logger.Errorf("marshal error: %s", err.Error())

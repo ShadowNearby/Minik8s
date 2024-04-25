@@ -13,6 +13,8 @@ type EtcdStorage struct {
 	client *clientv3.Client
 }
 
+var DefaultEndpoints = []string{"localhost:2380"}
+
 func CreateEtcdStorage(endpoints []string) *EtcdStorage {
 	client, err := clientv3.New(clientv3.Config{
 		Endpoints: endpoints,

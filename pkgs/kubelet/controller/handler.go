@@ -87,7 +87,7 @@ func InspectPod(pConfig core.Pod, probeType runtime.ProbeType) string {
 	}
 	// print status
 	pStat := runtime.KubeletInstance.GetPodStat(pConfig.MetaData.Name, pConfig.MetaData.NameSpace)
-	jsonText := utils.JSONPrint(pStat)
+	jsonText := utils.CreateJson(pStat)
 	logger.Infof("live probe:\n%s", jsonText)
 	return jsonText
 }

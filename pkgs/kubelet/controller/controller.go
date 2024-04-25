@@ -66,6 +66,6 @@ func InspectPodController(c *gin.Context) {
 
 func NodeMetricsController(c *gin.Context) {
 	metrics := NodeMetrics()
-	text := utils.JSONPrint(metrics)
+	text := utils.CreateJson(metrics)
 	c.JSON(http.StatusOK, fmt.Sprintf("{\"metrics\":%s}", text))
 }

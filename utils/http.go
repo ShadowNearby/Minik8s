@@ -2,11 +2,22 @@ package utils
 
 import (
 	"bytes"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
 
 	log "github.com/sirupsen/logrus"
 )
+
+func ParseJson(c *gin.Context) map[string]any {
+	json := make(map[string]any)
+	err := c.BindJSON(&json)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, "bad request")
+		return make(map[string]any)
+	}
+	return json
+}
 
 func SendRequest(method string, url string, body []byte) (int, string, error) {
 	request, err := http.NewRequest(method, url, bytes.NewBuffer(body))
