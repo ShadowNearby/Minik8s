@@ -15,7 +15,7 @@ const (
 )
 
 func (k *Kubelet) DoProbe(pType ProbeType, containers map[string]containerd.Container, podConfig core.Pod) error {
-	pStat := k.PodMap[podConfig.MetaData.Name]
+	pStat := k.GetPodStat(podConfig.MetaData.Name, podConfig.MetaData.NameSpace)
 	ready := true
 	for id, container := range containers {
 		//name := k.IDtoName[id]
@@ -26,7 +26,7 @@ func (k *Kubelet) DoProbe(pType ProbeType, containers map[string]containerd.Cont
 			pStat.Containers[id] = cStat
 			if !execOk {
 				pStat.Status = core.PhaseFailed
-				k.PodMap[podConfig.MetaData.Name] = pStat
+				k.WritePodStat(podConfig.MetaData.Name, podConfig.MetaData.NameSpace, &pStat)
 				// return an error
 				return errors.New(constants.ErrorRestartPod)
 			}
@@ -43,7 +43,7 @@ func (k *Kubelet) DoProbe(pType ProbeType, containers map[string]containerd.Cont
 		pStat.Status = core.PhasePending
 		pStat.Conditions.Ready = false
 	}
-	k.PodMap[podConfig.MetaData.Name] = pStat
+	k.WritePodStat(podConfig.MetaData.Name, podConfig.MetaData.NameSpace, &pStat)
 	return nil
 }
 

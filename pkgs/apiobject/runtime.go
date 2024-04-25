@@ -8,6 +8,7 @@ type ContainerMetrics struct {
 	PidCount    uint64
 	CpuUsage    uint64
 	MemoryUsage uint64
+	DiskUsage   uint64
 }
 
 var EmptyContainerMetrics = ContainerMetrics{

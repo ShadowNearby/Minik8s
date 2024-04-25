@@ -7,7 +7,6 @@ import (
 	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/utils"
-	"time"
 )
 
 type NameIdPair struct {
@@ -96,33 +95,29 @@ func StopPod(podConfig core.Pod) error {
 	return nil
 }
 
-func InspectPod(podConfig *core.Pod) error {
+func GetPodMetrics(podConfig *core.Pod) ([]core.ContainerMetrics, error) {
 	containers := ContainerManagerInstance.GetPodContainers(podConfig)
 	if len(containers) == 0 {
 		logger.Errorf("cannot filter pod's containers")
-		return errors.New("cannot filter container")
+		return nil, errors.New("cannot filter container")
 	}
 	logger.Infof("----------------BEGIN TO INSPECT------------------")
-	var ranger []int
-	ranger = append(ranger, 1, 2, 3)
-	for _ = range ranger { // TODO: remove test
-		time.Sleep(3 * time.Second)
-		logger.Infof("wake up")
-		for _, container := range containers {
-			metric, err := utils.GetContainerMetrics(container)
-			if err != nil {
-				logger.Errorf("inspect container %s failed: %s", container.ID(), err.Error())
-				return err
-			}
-			logger.Infof("metric: %v", metric)
-			status, err := utils.GetContainerStatus(container)
-			if err != nil {
-				logger.Errorf("inspect container %s failed: %s", container.ID(), err.Error())
-				return err
-			}
-			//status = status // change type to containerd.Status
-			logger.Infof("status: %v", status)
+	var res = make([]core.ContainerMetrics, 0)
+	for _, container := range containers {
+		metric, err := utils.GetContainerMetrics(container)
+		if err != nil {
+			logger.Errorf("inspect container %s failed: %s", container.ID(), err.Error())
+			continue
 		}
+		res = append(res, metric)
+		//logger.Infof("metric: %v", metric)
+		//status, err := utils.GetContainerStatus(container)
+		//if err != nil {
+		//	logger.Errorf("inspect container %s failed: %s", container.ID(), err.Error())
+		//	return err
+		//}
+		////status = status // change type to containerd.Status
+		//logger.Infof("status: %v", status)
 	}
-	return nil
+	return res, nil
 }
