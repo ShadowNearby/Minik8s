@@ -32,7 +32,7 @@ func GenerateContainerSpec(pConfig core.Pod, cConfig core.Container, args ...str
 	var cSpec = core.ContainerdSpec{
 		Namespace:    pConfig.MetaData.NameSpace,
 		Image:        cConfig.Image,
-		ID:           GenerateContainerIDByName(cConfig.Name, pConfig.MetaData.Name),
+		ID:           GenerateContainerIDByName(cConfig.Name, pConfig.MetaData.UUID),
 		Name:         GenerateContainerName(pConfig, cConfig),
 		VolumeMounts: generateVolMountsMap(cConfig.VolumeMounts),
 		Cmd:          cConfig.Cmd,

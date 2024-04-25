@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"github.com/gin-gonic/gin"
 	core "minik8s/pkgs/apiobject"
 	"time"
 )
@@ -8,6 +9,7 @@ import (
 type Kubelet struct {
 	PodMap   map[string]core.PodStatus
 	IDtoName map[string]string
+	Server   *gin.Engine
 }
 
 var KubeletInstance Kubelet
@@ -25,7 +27,6 @@ func (k *Kubelet) ContainerStart(podStatus *core.PodStatus, containerName string
 		k.IDtoName = make(map[string]string)
 	}
 	k.IDtoName[containerID] = containerName
-
 	//k.PodMap[podConfig.MetaData.Name] = podStatus
 }
 

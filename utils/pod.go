@@ -63,7 +63,7 @@ func GenerateLinuxNamespace(linuxNs map[string]string) []specs.LinuxNamespace {
 func StopPodContainers(containers []core.Container, pConfig core.Pod) error {
 	var cs = make([]string, len(containers))
 	for i, cConfig := range containers {
-		cs[i] = GenerateContainerIDByName(cConfig.Name, pConfig.MetaData.Name)
+		cs[i] = GenerateContainerIDByName(cConfig.Name, pConfig.MetaData.UUID)
 	}
 	_, err := NerdContainerOps(cs, pConfig.MetaData.NameSpace, NerdStop)
 	return err
@@ -72,7 +72,7 @@ func StopPodContainers(containers []core.Container, pConfig core.Pod) error {
 func RmPodContainers(containers []core.Container, pConfig core.Pod) error {
 	var cs = make([]string, len(containers))
 	for i, cConfig := range containers {
-		cs[i] = GenerateContainerIDByName(cConfig.Name, pConfig.MetaData.Name)
+		cs[i] = GenerateContainerIDByName(cConfig.Name, pConfig.MetaData.UUID)
 	}
 	// rm cConfig
 	_, _ = NerdContainerOps(cs, pConfig.MetaData.NameSpace, NerdRm)

@@ -13,6 +13,7 @@ import (
 	"time"
 )
 
+// CreatePod pull and create containers of a pod, and registry the pod to kubelet runtime
 func CreatePod(pConfig *core.Pod) error {
 	cLen := len(pConfig.Spec.Containers)
 	pStatChan := make(chan core.PodStatus, 2)

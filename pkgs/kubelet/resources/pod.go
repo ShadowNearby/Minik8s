@@ -74,7 +74,7 @@ func CreatePod(podConfig *core.Pod, podStatChan chan<- core.PodStatus, ctNameID 
 		if ctNameID != nil {
 			ctNameID <- NameIdPair{
 				Name: cConfig.Name,
-				ID:   utils.GenerateContainerIDByName(cConfig.Name, podConfig.MetaData.Name),
+				ID:   utils.GenerateContainerIDByName(cConfig.Name, podConfig.MetaData.UUID),
 			}
 		}
 		//runtime.KubeletInstance.ContainerStart(podConfig, cConfig.Name)
