@@ -6,6 +6,7 @@ import (
 	"errors"
 	log "github.com/sirupsen/logrus"
 	"go.etcd.io/etcd/clientv3"
+	"reflect"
 )
 
 type EtcdStorage struct {
@@ -45,6 +46,35 @@ func (e *EtcdStorage) Get(ctx context.Context, key string, result interface{}) e
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (e *EtcdStorage) GetList(ctx context.Context, key string, result interface{}) error {
+	response, err := e.client.Get(ctx, key, clientv3.WithPrefix())
+	if err != nil {
+		return err
+	}
+	resultType := reflect.TypeOf(result).Elem().Elem()
+	kvs := response.Kvs
+
+	if kvs == nil || len(kvs) == 0 {
+		items := reflect.MakeSlice(reflect.SliceOf(resultType), 0, 0)
+		reflect.ValueOf(result).Elem().Set(items)
+		return nil
+	}
+
+	items := reflect.MakeSlice(reflect.SliceOf(resultType), len(kvs), len(kvs))
+
+	for i, kv := range kvs {
+		item := reflect.New(resultType).Interface()
+		if err := json.Unmarshal(kv.Value, item); err != nil {
+			return err
+		}
+		items.Index(i).Set(reflect.ValueOf(item).Elem())
+	}
+
+	reflect.ValueOf(result).Elem().Set(items)
+
 	return nil
 }
 
