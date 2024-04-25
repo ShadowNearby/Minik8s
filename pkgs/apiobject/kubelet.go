@@ -1,6 +1,9 @@
 package core
 
-import "github.com/docker/go-connections/nat"
+import (
+	"github.com/docker/go-connections/nat"
+	"google.golang.org/grpc/resolver"
+)
 
 type Pod struct {
 	ApiVersion string   `json:"apiVersion" yaml:"apiVersion"`
@@ -157,7 +160,7 @@ const (
 
 type ServiceStatus struct {
 	Endpoints []resolver.Endpoint
-	Phase     phaseLabel `json:"phase"`
+	Phase     PhaseLabel `json:"phase"`
 }
 
 type ServicePort struct {
@@ -186,4 +189,23 @@ type ServiceStore struct {
 	BasicInfo `json:",inline" yaml:",inline"`
 	Spec      ServiceSpec   `json:"spec" yaml:"spec"`
 	Status    ServiceStatus `json:"status" yaml:"status"`
+}
+
+type Node struct {
+	ApiVersion   string   `json:"api_version,omitempty"`
+	Kind         string   `json:"kind,omitempty"`
+	NodeMetaData MetaData `json:"metadata,omitempty"`
+	Spec         NodeSpec `json:"spec,omitempty"`
+}
+
+type NodeSpec struct {
+	PodCIDR  string   `json:"podCIDR,omitempty"`
+	PodCIDRs []string `json:"podCIDRs,omitempty"`
+	Taints   []Taint  `json:"taints,omitempty"`
+}
+
+type Taint struct {
+	Key    string `json:"key,omitempty"`
+	Value  string `json:"value,omitempty"`
+	Effect string `json:"effect,omitempty"`
 }
