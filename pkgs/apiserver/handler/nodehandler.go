@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/utils"
 	"net/http"
@@ -17,7 +18,14 @@ func CreateNodeHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, "{\"data\": needs node config type}")
 		return
 	}
-	err = etcdClient.Put(context.Background(), fmt.Sprintf("/registry/nodes/%s", nodeConfig.NodeMetaData.Name), nodeConfig)
+	nodeName := fmt.Sprintf("/registry/nodes/%s", nodeConfig.NodeMetaData.Name)
+	var oldNode core.Node
+	err = etcdClient.Get(context.Background(), nodeName, &oldNode)
+	if err == nil {
+		// has old node config
+		logger.Infof("has old node: %v", oldNode)
+	}
+	err = etcdClient.Put(context.Background(), nodeName, nodeConfig)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, "{\"data\": etcd cannot store data")
 		return

@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-// CreatePod pull and create containers of a pod, and registry the pod to kubelet runtime
+// CreatePod pull and create containers of a pod, and register the pod to kubelet runtime
 func CreatePod(pConfig *core.Pod) error {
 	cLen := len(pConfig.Spec.Containers)
 	pStatChan := make(chan core.PodStatus, 2)
@@ -58,15 +58,16 @@ func CreatePod(pConfig *core.Pod) error {
 	return nil
 }
 
+// StopPod stop and remove container
 func StopPod(pConfig core.Pod) error {
 	runtime.KubeletInstance.DelPodConfig(pConfig.MetaData.Name, pConfig.MetaData.NameSpace)
 	runtime.KubeletInstance.DelPodStat(pConfig.MetaData.Name, pConfig.MetaData.NameSpace)
 	return resources.StopPod(pConfig)
 }
 
+// InspectPod exec_probe of the pod, if a pod failed, then stop it
 func InspectPod(pConfig core.Pod, probeType runtime.ProbeType) string {
 	containers := resources.ContainerManagerInstance.GetPodContainers(&pConfig)
-	logger.Infof("container len: %d", len(containers))
 	containerMap := make(map[string]containerd.Container, len(containers))
 	for _, container := range containers {
 		id := container.ID()
@@ -92,7 +93,8 @@ func InspectPod(pConfig core.Pod, probeType runtime.ProbeType) string {
 	return jsonText
 }
 
-func NodeMetrics() core.NodeStat {
+// NodeMetrics return the metrics of a node, including ready, cpu, memory, process_num, disk, network
+func NodeMetrics() core.NodeMetrics {
 	var allPID uint64
 	var allMem uint64
 	var allCPU uint64
@@ -111,7 +113,7 @@ func NodeMetrics() core.NodeStat {
 			allDisk += metric.DiskUsage
 		}
 	}
-	return core.NodeStat{
+	return core.NodeMetrics{
 		Ready:              true,
 		CPUUsage:           allCPU,
 		MemoryUsage:        allMem,

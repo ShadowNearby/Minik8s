@@ -16,8 +16,8 @@ type Kubelet struct {
 	Labels       map[string]string
 	PodStatMap   map[string]core.PodStatus
 	PodConfigMap map[string]core.Pod
-	IDtoName     map[string]string
 	Server       *gin.Engine
+	IDtoName     map[string]string
 }
 
 var KubeletInstance Kubelet

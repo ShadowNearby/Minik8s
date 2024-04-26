@@ -201,7 +201,7 @@ type Taint struct {
 	Effect string `json:"effect,omitempty"`
 }
 
-type NodeStat struct {
+type NodeMetrics struct {
 	Ready              bool   `json:"ready"`
 	CPUUsage           uint64 `json:"cpuUsage"`
 	MemoryUsage        uint64 `json:"memoryUsage"`
