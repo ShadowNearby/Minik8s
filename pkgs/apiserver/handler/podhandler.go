@@ -17,7 +17,9 @@ func GetPodListHandler(c *gin.Context) {}
 func DeletePodHandler(c *gin.Context) {}
 
 // UpdatePodHandler PUT /api/v1/namespaces/:namespace/pods/:name
-func UpdatePodHandler(c *gin.Context) {}
+func UpdatePodHandler(c *gin.Context) {
+
+}
 
 // GetAllPodsHandler GET /api/v1/pods
 func GetAllPodsHandler(c *gin.Context) {}

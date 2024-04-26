@@ -20,7 +20,7 @@ type BasicInfo struct {
 
 type MetaData struct {
 	Name            string            `json:"name" yaml:"name"`
-	NameSpace       string            `json:"name_space" yaml:"namespace,omitempty"`
+	NameSpace       string            `json:"nameSpace" yaml:"namespace,omitempty"`
 	Labels          map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
 	ResourceVersion string            `json:"resourceVersion" yaml:"resourceVersion,omitempty"`
 	Annotations     map[string]string `json:"annotations"`
@@ -38,8 +38,8 @@ type Spec struct {
 
 type Status struct {
 	Phase          PhaseLabel     `json:"phase" yaml:"phase"`
-	HostIP         string         `json:"host_ip" yaml:"hostIP"`
-	PodIP          string         `json:"pod_ip" yaml:"podIP"`
+	HostIP         string         `json:"hostIP" yaml:"hostIP"`
+	PodIP          string         `json:"podIP" yaml:"podIP"`
 	OwnerReference ownerReference `json:"owner_reference" yaml:"ownerReference"`
 }
 type restartPolicy string
@@ -117,6 +117,20 @@ type ContainerdSpec struct {
 	PodName        string
 }
 
+// Inspect inspect data structure
+type Inspect struct {
+	State           InspectState
+	ResolveConfPath string
+}
+
+type InspectState struct {
+	Status     PhaseLabel
+	Running    bool
+	Paused     bool
+	Restarting bool
+	Pid        uint64
+}
+
 // const values
 
 const PauseContainerName string = "pause_container"
@@ -162,23 +176,18 @@ type ServiceSpec struct {
 	Ports                         []ServicePort     `yaml:"ports"`
 	AllocateLoadBalancerNodePorts bool              `yaml:"allocate_load_balancer_node_ports"`
 	Type                          string            `yaml:"type"`
-	ClusterIP                     string            `yaml:"cluster_ip"`
-	ClusterIPs                    []string          `yaml:"cluster_ips"`
+	ClusterIP                     string            `yaml:"clusterIp"`
+	ClusterIPs                    []string          `yaml:"clusterIps"`
 }
 
 type Service struct {
 	BasicInfo `json:",inline" yaml:",inline"`
-	Spec      ServiceSpec `json:"spec" yaml:"spec"`
-}
-
-type ServiceStore struct {
-	BasicInfo `json:",inline" yaml:",inline"`
 	Spec      ServiceSpec   `json:"spec" yaml:"spec"`
-	Status    ServiceStatus `json:"status" yaml:"status"`
+	Status    ServiceStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 type Node struct {
-	ApiVersion   string       `json:"api_version,omitempty"`
+	ApiVersion   string       `json:"apiVersion,omitempty"`
 	Kind         string       `json:"kind,omitempty"`
 	NodeMetaData NodeMetaData `json:"metadata,omitempty"`
 	Spec         NodeSpec     `json:"spec,omitempty"`
@@ -200,6 +209,12 @@ type Taint struct {
 	Value  string `json:"value,omitempty"`
 	Effect string `json:"effect,omitempty"`
 }
+type AutoScale struct {
+	Name        string `yaml:"name"`
+	Workload    Pod    `yaml:"workload"`
+	MinReplicas int    `yaml:"minReplicas"`
+	MaxReplicas int    `yaml:"maxReplicas"`
+}
 
 type NodeMetrics struct {
 	Ready              bool   `json:"ready"`
@@ -214,4 +229,77 @@ type KubeletConfig struct {
 	MasterIP   string            `json:"masterIP"`
 	MasterPort string            `json:"masterPort"`
 	Labels     map[string]string `json:"labels"`
+}
+type WorkflowSpec struct {
+	EntryParams   string         `json:"entryParams" yaml:"entryParams"`
+	EntryNodeName string         `json:"entryNodeName" yaml:"entryNodeName"`
+	WorkflowNodes []WorkflowNode `json:"workflowNodes" yaml:"workflowNodes"`
+}
+
+type Workflow struct {
+	BasicInfo `json:",inline" yaml:",inline"`
+	Spec      WorkflowSpec `json:"spec" yaml:"spec"`
+}
+
+type WorkflowNode struct {
+	Name       string             `json:"name" yaml:"name"`
+	Type       WorkflowNodeType   `json:"type" yaml:"type"`
+	FuncData   WorkflowFuncData   `json:"funcData" yaml:"funcData"`
+	ChoiceData WorkflowChoiceData `json:"choiceData" yaml:"choiceData"`
+}
+
+type WorkflowChoiceData struct {
+	TrueNextNodeName  string `json:"trueNextNodeName" yaml:"trueNextNodeName"`
+	FalseNextNodeName string `json:"falseNextNodeName" yaml:"falseNextNodeName"`
+
+	CheckType    ChoiceCheckType `json:"checkType" yaml:"checkType"`
+	CheckVarName string          `json:"checkVarName" yaml:"checkVarName"`
+	// 需要保证能够从上一个结果中获取到,填写json的key
+
+	CompareValue string `json:"compareValue" yaml:"compareValue"` // 需要比较的值(无论是数字还是字符串，都需要转化为字符串)
+}
+
+type WorkflowNodeType string
+
+const (
+	WorkflowNodeTypeFunc   WorkflowNodeType = "func"
+	WorkflowNodeTypeChoice WorkflowNodeType = "choice"
+
+	WorkflowRunning   string = "running"
+	WorkflowCompleted string = "completed"
+)
+
+type ChoiceCheckType string
+
+const (
+	ChoiceCheckTypeNumEqual               ChoiceCheckType = "numEqual"
+	ChoiceCheckTypeNumNotEqual            ChoiceCheckType = "numNotEqual"
+	ChoiceCheckTypeNumGreaterThan         ChoiceCheckType = "numGreaterThan"
+	ChoiceCheckTypeNumLessThan            ChoiceCheckType = "numLessThan"
+	ChoiceCheckTypeNumGreaterAndEqualThan ChoiceCheckType = "numGreaterAndEqualThan"
+	ChoiceCheckTypeNumLessAndEqualThan    ChoiceCheckType = "numLessAndEqualThan"
+
+	ChoiceCheckTypeStrEqual               ChoiceCheckType = "strEqual"
+	ChoiceCheckTypeStrNotEqual            ChoiceCheckType = "strNotEqual"
+	ChoiceCheckTypeStrGreaterThan         ChoiceCheckType = "strGreaterThan"
+	ChoiceCheckTypeStrLessThan            ChoiceCheckType = "strLessThan"
+	ChoiceCheckTypeStrGreaterAndEqualThan ChoiceCheckType = "strGreaterAndEqualThan"
+	ChoiceCheckTypeStrLessAndEqualThan    ChoiceCheckType = "strLessAndEqualThan"
+)
+
+type WorkflowFuncData struct {
+	FuncName      string `json:"funcName" yaml:"funcName"`
+	FuncNamespace string `json:"funcNamespace" yaml:"funcNamespace"`
+	NextNodeName  string `json:"nextNodeName" yaml:"nextNodeName"`
+}
+
+type WorkflowStatus struct {
+	Phase  string `json:"phase" yaml:"phase"`
+	Result string `json:"result" yaml:"result"`
+}
+
+type WorkflowStore struct {
+	BasicInfo `json:",inline" yaml:",inline"`
+	Spec      WorkflowSpec   `json:"spec" yaml:"spec"`
+	Status    WorkflowStatus `json:"status" yaml:"status"`
 }

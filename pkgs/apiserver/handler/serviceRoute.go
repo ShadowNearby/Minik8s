@@ -32,6 +32,7 @@ func (r *Route) register(engine *gin.Engine) {
 	case "DELETE":
 		engine.DELETE(r.Path, r.Handler)
 	default:
+
 		panic("invalid HTTP method")
 	}
 }

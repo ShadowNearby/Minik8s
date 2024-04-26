@@ -21,11 +21,15 @@ func runRoot(cmd *cobra.Command, args []string) {
 	fmt.Println(cmd.UsageString())
 
 }
-func Execute() {
-	if err := commands.Execute(); err != nil {
-		fmt.Println(err)
-	}
-}
+
+var NameSpace string
+var filePath string
+
 func init() {
+	commands.PersistentFlags().StringVarP(&NameSpace, "nameSpace", "n", "default", "kubectl (-n NAMESPACE)")
+	applyCmd.Flags().StringVarP(&filePath, "filePath", "f", "", "kubectl apply -f <FILENAME>")
+	applyCmd.MarkFlagRequired("filePath")
 	commands.AddCommand(applyCmd)
+	commands.AddCommand(deleteCmd)
+	commands.AddCommand(getCmd)
 }

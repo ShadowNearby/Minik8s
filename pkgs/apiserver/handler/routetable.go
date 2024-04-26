@@ -1,12 +1,12 @@
 package handler
 
 var RouteTable = [...]Route{
-	{Path: "/api/v1/namespaces/:namespace/pod", Method: "POST", Handler: CreatePodHandler},         // POST, create a pod
-	{Path: "/api/v1/namespaces/:namespace/pod/:name", Method: "GET", Handler: GetPodHandler},       // GET, get a pod
-	{Path: "/api/v1/namespaces/:namespace/pod", Method: "GET", Handler: GetPodListHandler},         // GET, list all pods
-	{Path: "/api/v1/namespaces/:namespace/pod/:name", Method: "DELETE", Handler: DeletePodHandler}, // DELETE, delete a pod
-	{Path: "/api/v1/namespaces/:namespace/pod/:name", Method: "PUT", Handler: UpdatePodHandler},    // POST, update a pod
-	{Path: "/api/v1/pod", Method: "GET", Handler: GetAllPodsHandler},                               // GET, get all pods
+	{Path: "/api/v1/namespaces/:namespace/pods", Method: "POST", Handler: CreatePodHandler},         // POST, create a pod
+	{Path: "/api/v1/namespaces/:namespace/pods/:name", Method: "GET", Handler: GetPodHandler},       // GET, get a pod
+	{Path: "/api/v1/namespaces/:namespace/pods", Method: "GET", Handler: GetPodListHandler},         // GET, list all pods
+	{Path: "/api/v1/namespaces/:namespace/pods/:name", Method: "DELETE", Handler: DeletePodHandler}, // DELETE, delete a pod
+	{Path: "/api/v1/namespaces/:namespace/pods/:name", Method: "PUT", Handler: UpdatePodHandler},    // POST, update a pod
+	{Path: "/api/v1/pods", Method: "GET", Handler: GetAllPodsHandler},                               // GET, get all pods
 
 	{Path: "/api/v1/node", Method: "POST", Handler: CreateNodeHandler},   // POST, create a node
 	{Path: "/api/v1/node", Method: "GET", Handler: GetAllNodesHandler},   // GET, list all nodes
