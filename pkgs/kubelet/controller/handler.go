@@ -13,11 +13,13 @@ import (
 	"time"
 )
 
+// CreatePod pull and create containers of a pod, and register the pod to kubelet runtime
 func CreatePod(pConfig *core.Pod) error {
 	cLen := len(pConfig.Spec.Containers)
 	pStatChan := make(chan core.PodStatus, 2)
 	ctNameChan := make(chan resources.NameIdPair, cLen)
 	doneChan := make(chan bool)
+	runtime.KubeletInstance.WritePodConfig(pConfig.MetaData.Name, pConfig.MetaData.NameSpace, pConfig)
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func(wg *sync.WaitGroup, dChan chan<- bool) {
@@ -52,17 +54,20 @@ func CreatePod(pConfig *core.Pod) error {
 	close(ctNameChan)
 	close(doneChan)
 	wg.Wait()
-	runtime.KubeletInstance.InsertMap(pConfig.MetaData.Name, pStat)
+	runtime.KubeletInstance.WritePodStat(pConfig.MetaData.Name, pConfig.MetaData.NameSpace, &pStat)
 	return nil
 }
 
+// StopPod stop and remove container
 func StopPod(pConfig core.Pod) error {
+	runtime.KubeletInstance.DelPodConfig(pConfig.MetaData.Name, pConfig.MetaData.NameSpace)
+	runtime.KubeletInstance.DelPodStat(pConfig.MetaData.Name, pConfig.MetaData.NameSpace)
 	return resources.StopPod(pConfig)
 }
 
-func InspectPod(pConfig core.Pod, probeType runtime.ProbeType) {
+// InspectPod exec_probe of the pod, if a pod failed, then stop it
+func InspectPod(pConfig core.Pod, probeType runtime.ProbeType) string {
 	containers := resources.ContainerManagerInstance.GetPodContainers(&pConfig)
-	logger.Infof("container len: %d", len(containers))
 	containerMap := make(map[string]containerd.Container, len(containers))
 	for _, container := range containers {
 		id := container.ID()
@@ -79,10 +84,41 @@ func InspectPod(pConfig core.Pod, probeType runtime.ProbeType) {
 	//err := runtime.KubeletInstance.LivenessProbe(containerMap, pConfig)
 	if err != nil {
 		logger.Errorf("liveness probe error: %s", err.Error())
-		return
+		return ""
 	}
 	// print status
-	pStat := runtime.KubeletInstance.PodMap[pConfig.MetaData.Name]
-	jsonText := utils.JSONPrint(pStat)
+	pStat := runtime.KubeletInstance.GetPodStat(pConfig.MetaData.Name, pConfig.MetaData.NameSpace)
+	jsonText := utils.CreateJson(pStat)
 	logger.Infof("live probe:\n%s", jsonText)
+	return jsonText
+}
+
+// NodeMetrics return the metrics of a node, including ready, cpu, memory, process_num, disk, network
+func NodeMetrics() core.NodeMetrics {
+	var allPID uint64
+	var allMem uint64
+	var allCPU uint64
+	var allDisk uint64
+	logger.Infof("len:%d", len(runtime.KubeletInstance.PodConfigMap))
+	for name, podConfig := range runtime.KubeletInstance.PodConfigMap {
+		metrics, err := resources.GetPodMetrics(&podConfig)
+		if err != nil {
+			logger.Errorf("get pod %s metrics error: %s", name, err.Error())
+			continue
+		}
+		for _, metric := range metrics {
+			allPID += metric.PidCount
+			allMem += metric.MemoryUsage
+			allCPU += metric.CpuUsage
+			allDisk += metric.DiskUsage
+		}
+	}
+	return core.NodeMetrics{
+		Ready:              true,
+		CPUUsage:           allCPU,
+		MemoryUsage:        allMem,
+		PIDUsage:           allPID,
+		DiskUsage:          allDisk,
+		NetworkUnavailable: false,
+	}
 }

@@ -10,8 +10,8 @@ func InitPodStatus(podConfig *core.Pod, nodeName string, podScheduled bool) core
 	// construct containers status
 	var ctStats = make(map[string]core.ContainerStatus, len(podConfig.Spec.Containers))
 	for _, ctConfig := range podConfig.Spec.Containers {
-		ctStats[GenerateContainerIDByName(ctConfig.Name, podConfig.MetaData.Name)] = core.ContainerStatus{
-			ContainerID: GenerateContainerIDByName(ctConfig.Name, podConfig.MetaData.Name),
+		ctStats[GenerateContainerIDByName(ctConfig.Name, podConfig.MetaData.UUID)] = core.ContainerStatus{
+			ContainerID: GenerateContainerIDByName(ctConfig.Name, podConfig.MetaData.UUID),
 			Image:       ctConfig.Image,
 			Port: core.PortStatus{
 				PortNum:  0,

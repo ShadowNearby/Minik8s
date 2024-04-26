@@ -16,7 +16,7 @@ func GenerateUUID() string {
 }
 
 // GenerateContainerIDByName receive container name + pod name as param
-func GenerateContainerIDByName(containerName string, podName string) string {
-	id := uuid.NewMD5(uuid.NameSpaceDNS, []byte(containerName+podName))
+func GenerateContainerIDByName(containerName string, podUUID string) string {
+	id := uuid.NewMD5(uuid.NameSpaceDNS, []byte(containerName+podUUID))
 	return id.String()[:12]
 }

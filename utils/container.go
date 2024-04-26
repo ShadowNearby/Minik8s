@@ -32,7 +32,7 @@ func GenerateContainerSpec(pConfig core.Pod, cConfig core.Container, args ...str
 	var cSpec = core.ContainerdSpec{
 		Namespace:    pConfig.MetaData.NameSpace,
 		Image:        cConfig.Image,
-		ID:           GenerateContainerIDByName(cConfig.Name, pConfig.MetaData.Name),
+		ID:           GenerateContainerIDByName(cConfig.Name, pConfig.MetaData.UUID),
 		Name:         GenerateContainerName(pConfig, cConfig),
 		VolumeMounts: generateVolMountsMap(cConfig.VolumeMounts),
 		Cmd:          cConfig.Cmd,
@@ -111,9 +111,14 @@ func GetContainerMetrics(container containerd.Container) (core.ContainerMetrics,
 			if err := typeurl.UnmarshalTo(metric.Data, data); err != nil {
 				return core.EmptyContainerMetrics, err
 			}
+			var ioMajor uint64 = 0
+			for _, ioEntry := range data.Io.Usage {
+				ioMajor += ioEntry.Major
+			}
 			containerMetrics.CpuUsage = data.CPU.UsageUsec
 			containerMetrics.PidCount = data.Pids.Current
 			containerMetrics.MemoryUsage = data.Memory.Usage
+			containerMetrics.DiskUsage = ioMajor
 			return containerMetrics, nil
 		}
 	case typeurl.Is(metric.Data, (*v1.Metrics)(nil)):

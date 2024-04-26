@@ -21,6 +21,7 @@ func (c ImageController) CreateImage(client *containerd.Client, imageName string
 		if err != nil {
 			logger.Errorf("pull image error: %s", err.Error())
 		}
+		logger.Infof("pulled image: %v", image)
 		return image, nil
 
 	case core.PullIfNeeds:
@@ -32,6 +33,7 @@ func (c ImageController) CreateImage(client *containerd.Client, imageName string
 		if err != nil {
 			logger.Errorf("pull image error: %s", err.Error())
 		}
+		logger.Infof("pulled image: %v", containerdImage)
 		return containerdImage, nil
 
 	case core.PullNever:

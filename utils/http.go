@@ -2,11 +2,22 @@ package utils
 
 import (
 	"bytes"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
 
 	log "github.com/sirupsen/logrus"
 )
+
+func ParseJson(c *gin.Context) map[string]any {
+	json := make(map[string]any)
+	err := c.BindJSON(&json)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, "bad request")
+		return make(map[string]any)
+	}
+	return json
+}
 
 func SendRequest(method string, url string, body []byte) (int, string, error) {
 	request, err := http.NewRequest(method, url, bytes.NewBuffer(body))
@@ -55,7 +66,7 @@ func SendRequestWithJson(method string, url string, json []byte) (int, string, e
 		if err != nil {
 			log.Error(err)
 		}
-		log.Debugln("[Http Request] to %s method:%s status:%s receive:%d bytes", url, method, response.Status, length)
+		log.Debugf("[Http Request] to %s method:%s status:%s receive:%d bytes", url, method, response.Status, length)
 	}
 	return response.StatusCode, buffer.String(), err
 }

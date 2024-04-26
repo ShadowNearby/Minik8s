@@ -15,7 +15,7 @@ func CreatePodTest() {
 		logger.Errorf("controller create pod error: %s", err.Error())
 		return
 	}
-	pStatus := runtime.KubeletInstance.PodMap[podConfig.MetaData.Name]
+	pStatus := runtime.KubeletInstance.GetPodStat(podConfig.MetaData.Name, podConfig.MetaData.NameSpace)
 	marshaledJSON, err := json.MarshalIndent(pStatus, "", "  ")
 	if err != nil {
 		logger.Errorf("error: %s", err.Error())

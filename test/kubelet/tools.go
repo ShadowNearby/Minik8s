@@ -36,7 +36,7 @@ func GeneratePodConfigPy() core.Pod {
 	}
 	containerConfig := core.Container{
 		Name:            "py1",
-		Image:           "docker.io/library/python:3.7-alpine",
+		Image:           "docker.io/library/python:3.9-alpine",
 		ImagePullPolicy: core.PullIfNeeds,
 		Cmd:             []string{"python3", "/home/python/server.py"},
 		Args:            nil,
@@ -51,7 +51,7 @@ func GeneratePodConfigPy() core.Pod {
 	specs[0] = containerConfig
 	containerConfig2 := core.Container{
 		Name:            "py2",
-		Image:           "docker.io/library/python:3.7-alpine",
+		Image:           "docker.io/library/python:3.9-alpine",
 		ImagePullPolicy: core.PullIfNeeds,
 		Cmd:             []string{"python3", "/home/python/client.py"},
 		Args:            nil,
