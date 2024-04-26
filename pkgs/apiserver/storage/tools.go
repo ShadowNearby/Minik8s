@@ -44,10 +44,29 @@ func Get(key string) (val any) {
 	return
 }
 
+func Del(keys ...string) error {
+	err := RedisInstance.redisDel(keys...)
+	if err != nil {
+		return err
+	}
+	err = TaskQueue.Enqueue(func() {
+		for _, key := range keys {
+			err := etcdClient.Delete(ctx, key)
+			if err != nil {
+				logger.Errorf("etcd del failed: %s", err.Error())
+			}
+		}
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func RangeGet(prefix string, val any) error {
 	// redis first
 	var err error
-	res, err := RedisInstance.RedisRangeOp(prefix, OpGet)
+	res, err := RedisInstance.redisRangeOp(prefix, OpGet)
 	if err != nil {
 		// etcd next
 		res, err = etcdClient.EtcdRangeOp(prefix, OpGet)
@@ -68,7 +87,7 @@ func RangeGet(prefix string, val any) error {
 
 func RangeDel(prefix string) error {
 	// write redis first
-	_, err := RedisInstance.RedisRangeOp(prefix, OpDel)
+	_, err := RedisInstance.redisRangeOp(prefix, OpDel)
 	if err != nil {
 		logger.Errorf("cannot del in redis")
 	}

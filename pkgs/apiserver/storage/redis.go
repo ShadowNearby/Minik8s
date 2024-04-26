@@ -69,11 +69,15 @@ func (r *Redis) RedisGet(key string, bind any) error {
 	return nil
 }
 
-func (r *Redis) RedisDel(keys ...string) {
-	r.Client.Del(ctx, keys...)
+func (r *Redis) redisDel(keys ...string) error {
+	_, err := r.Client.Del(ctx, keys...).Result()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (r *Redis) RedisRangeOp(prefix string, op string) ([]any, error) {
+func (r *Redis) redisRangeOp(prefix string, op string) ([]any, error) {
 	var cursor uint64 = 0
 	var keys []string
 	var vals []any
