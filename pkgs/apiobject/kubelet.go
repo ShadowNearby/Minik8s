@@ -117,20 +117,6 @@ type ContainerdSpec struct {
 	PodName        string
 }
 
-// Inspect inspect data structure
-type Inspect struct {
-	State           InspectState
-	ResolveConfPath string
-}
-
-type InspectState struct {
-	Status     PhaseLabel
-	Running    bool
-	Paused     bool
-	Restarting bool
-	Pid        uint64
-}
-
 // const values
 
 const PauseContainerName string = "pause_container"
@@ -192,10 +178,15 @@ type ServiceStore struct {
 }
 
 type Node struct {
-	ApiVersion   string   `json:"api_version,omitempty"`
-	Kind         string   `json:"kind,omitempty"`
-	NodeMetaData MetaData `json:"metadata,omitempty"`
-	Spec         NodeSpec `json:"spec,omitempty"`
+	ApiVersion   string       `json:"api_version,omitempty"`
+	Kind         string       `json:"kind,omitempty"`
+	NodeMetaData NodeMetaData `json:"metadata,omitempty"`
+	Spec         NodeSpec     `json:"spec,omitempty"`
+}
+
+type NodeMetaData struct {
+	Name   string            `json:"name"`
+	Labels map[string]string `json:"labels"`
 }
 
 type NodeSpec struct {
@@ -208,4 +199,19 @@ type Taint struct {
 	Key    string `json:"key,omitempty"`
 	Value  string `json:"value,omitempty"`
 	Effect string `json:"effect,omitempty"`
+}
+
+type NodeMetrics struct {
+	Ready              bool   `json:"ready"`
+	CPUUsage           uint64 `json:"cpuUsage"`
+	MemoryUsage        uint64 `json:"memoryUsage"`
+	PIDUsage           uint64 `json:"PIDUsage"`
+	DiskUsage          uint64 `json:"diskUsage"`
+	NetworkUnavailable bool   `json:"networkUnavailable"`
+}
+
+type KubeletConfig struct {
+	MasterIP   string            `json:"masterIP"`
+	MasterPort string            `json:"masterPort"`
+	Labels     map[string]string `json:"labels"`
 }
