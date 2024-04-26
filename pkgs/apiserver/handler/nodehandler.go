@@ -27,13 +27,15 @@ func CreateNodeHandler(c *gin.Context) {
 
 // GetNodeHandler GET /api/v1/nodes/:name
 func GetNodeHandler(c *gin.Context) {
+	var node core.Node
 	name := c.Param("name")
 	key := fmt.Sprintf("/nodes/object/%s", name)
-	config := storage.Get(key)
-	if config == nil {
+	err := storage.Get(key, node)
+	if err != nil {
 		c.JSON(http.StatusNotFound, httpData("cannot find resource"))
+		return
 	}
-	c.JSON(http.StatusOK, httpData(utils.JsonMarshal(config)))
+	c.JSON(http.StatusOK, httpData(utils.JsonMarshal(node)))
 }
 
 // GetAllNodesHandler GET /api/v1/nodes
