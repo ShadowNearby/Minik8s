@@ -14,9 +14,9 @@ var RedisInstance = &Redis{
 }
 
 func Put(key string, val any) error {
-	err := RedisInstance.RedisSet(key, val)
+	err := RedisInstance.redisSet(key, val)
 	if err != nil {
-		logger.Errorf("redis cannot put: %s", key)
+		logger.Errorf("redis cannot put: %s, error: %s", key, err.Error())
 		//return err
 	}
 	err = TaskQueue.Enqueue(func() {
@@ -32,16 +32,17 @@ func Put(key string, val any) error {
 	return nil
 }
 
-func Get(key string) (val any) {
-	err := RedisInstance.RedisGet(key, &val)
+func Get(key string, ptr any) error {
+	err := RedisInstance.redisGet(key, ptr)
+	logger.Infof("redis get done")
 	if err == nil {
-		return
+		return err
 	}
-	err = etcdClient.Get(ctx, key, &val)
+	err = etcdClient.Get(ctx, key, ptr)
 	if err != nil {
-		return nil
+		return err
 	}
-	return
+	return nil
 }
 
 func Del(keys ...string) error {
@@ -63,25 +64,22 @@ func Del(keys ...string) error {
 	return nil
 }
 
-func RangeGet(prefix string, val any) error {
-	// redis first
+func RangeGet(prefix string, ptr any) error {
 	var err error
 	res, err := RedisInstance.redisRangeOp(prefix, OpGet)
 	if err != nil {
-		// etcd next
 		res, err = etcdClient.EtcdRangeOp(prefix, OpGet)
 		if err != nil {
 			return err
 		}
 	}
-	valType := reflect.TypeOf(val).Elem().Elem()
-	newVal := reflect.MakeSlice(valType, len(res), len(res))
+	listType := reflect.TypeOf(ptr).Elem()
+	newVal := reflect.MakeSlice(listType, len(res), len(res))
 	for i, item := range res {
 		resValue := reflect.ValueOf(item)
 		newVal.Index(i).Set(resValue)
 	}
-
-	reflect.ValueOf(val).Elem().Set(newVal)
+	reflect.ValueOf(ptr).Elem().Set(newVal)
 	return nil
 }
 
