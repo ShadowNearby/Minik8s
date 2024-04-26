@@ -9,8 +9,9 @@ import (
 )
 
 type APIServer struct {
-	HttpServer  *gin.Engine
-	EtcdStorage *storage.EtcdStorage
+	HttpServer   *gin.Engine
+	EtcdStorage  *storage.EtcdStorage
+	RedisStorage *storage.Redis
 }
 
 func (s *APIServer) Run(addr string) error {
@@ -19,12 +20,14 @@ func (s *APIServer) Run(addr string) error {
 		log.Error(err)
 		return err
 	}
-	return nil
+	s.RedisStorage = storage.RedisInstance
+	go bgTask()
+	select {}
 }
 
 func InitNodes(storage *storage.EtcdStorage) {
 	// delete all nodes' info in etcd
-	key := "/registry/nodes/"
+	key := "/nodes/object"
 	var nodes []core.Node
 	err := storage.GetList(context.Background(), key, &nodes)
 	if err != nil {
@@ -38,7 +41,6 @@ func InitNodes(storage *storage.EtcdStorage) {
 			}
 		}
 	}
-
 }
 
 func CreateAPIServer(endpoints []string) *APIServer {
@@ -47,4 +49,18 @@ func CreateAPIServer(endpoints []string) *APIServer {
 		return nil
 	}
 	return &APIServer{HttpServer: gin.Default(), EtcdStorage: s}
+}
+
+func bgTask() {
+	for {
+		if storage.TaskQueue.GetLen() > 0 {
+			value, err := storage.TaskQueue.Dequeue()
+			if err != nil {
+				log.Errorf("get bg task error: %s", err.Error())
+				continue
+			}
+			task := value.(func())
+			task()
+		}
+	}
 }

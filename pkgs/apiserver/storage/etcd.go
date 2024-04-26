@@ -51,8 +51,8 @@ func (e *EtcdStorage) Get(ctx context.Context, key string, result interface{}) e
 	return nil
 }
 
-func (e *EtcdStorage) GetList(ctx context.Context, key string, result interface{}) error {
-	response, err := e.client.Get(ctx, key, clientv3.WithPrefix())
+func (e *EtcdStorage) GetList(ctx context.Context, prefix string, result interface{}) error {
+	response, err := e.client.Get(ctx, prefix, clientv3.WithPrefix())
 	if err != nil {
 		return err
 	}
@@ -78,6 +78,25 @@ func (e *EtcdStorage) GetList(ctx context.Context, key string, result interface{
 	reflect.ValueOf(result).Elem().Set(items)
 
 	return nil
+}
+
+func (e *EtcdStorage) EtcdRangeOp(prefix string, op string) ([]any, error) {
+	switch op {
+	case OpDel:
+		resp, err := e.client.Delete(ctx, prefix, clientv3.WithPrefix())
+		if err != nil {
+			return nil, err
+		}
+		log.Infof("%d keys were deleted", resp.Deleted)
+	case OpGet:
+		var vals []any
+		err := e.GetList(ctx, prefix, &vals)
+		if err != nil {
+			return nil, err
+		}
+		return vals, nil
+	}
+	return nil, errors.New("unsupported op type")
 }
 
 func (e *EtcdStorage) Put(ctx context.Context, key string, value interface{}) error {

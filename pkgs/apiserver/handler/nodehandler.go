@@ -1,11 +1,10 @@
 package handler
 
 import (
-	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
+	"minik8s/pkgs/apiserver/storage"
 	"minik8s/utils"
 	"net/http"
 )
@@ -15,43 +14,38 @@ func CreateNodeHandler(c *gin.Context) {
 	var nodeConfig core.Node
 	err := c.Bind(&nodeConfig)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, "{\"data\": needs node config type}")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "needs node config type"})
 		return
 	}
-	nodeName := fmt.Sprintf("/registry/nodes/%s", nodeConfig.NodeMetaData.Name)
-	var oldNode core.Node
-	err = etcdClient.Get(context.Background(), nodeName, &oldNode)
-	if err == nil {
-		// has old node config
-		logger.Infof("has old node: %v", oldNode)
-	}
-	err = etcdClient.Put(context.Background(), nodeName, nodeConfig)
+	nodeName := fmt.Sprintf("/nodes/object/%s", nodeConfig.NodeMetaData.Name)
+	err = storage.Put(nodeName, nodeConfig)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, "{\"data\": etcd cannot store data")
-		return
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot store data"})
 	}
+	c.JSON(http.StatusOK, gin.H{})
 }
 
 // GetNodeHandler GET /api/v1/nodes/:name
 func GetNodeHandler(c *gin.Context) {
+	var node core.Node
 	name := c.Param("name")
-	var nodeConfig core.Node
-	err := etcdClient.Get(context.Background(), fmt.Sprintf("/registry/nodes/%s", name), &nodeConfig)
+	key := fmt.Sprintf("/nodes/object/%s", name)
+	err := storage.Get(key, node)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, "{\"data\": etcd cannot read data}")
+		c.JSON(http.StatusNotFound, gin.H{"error": "cannot find resource"})
 		return
 	}
-	c.JSON(http.StatusOK, fmt.Sprintf("{\"data\": %s}", utils.CreateJson(nodeConfig)))
+	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(node)})
 }
 
 // GetAllNodesHandler GET /api/v1/nodes
 func GetAllNodesHandler(c *gin.Context) {
-	key := "/registry/nodes/"
+	key := "/nodes/object"
 	var nodes []core.Node
-	err := etcdClient.GetList(context.Background(), key, &nodes)
+	err := storage.RangeGet(key, &nodes)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, "{\"data\": etcd cannot read data}")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot read data"})
 		return
 	}
-	c.JSON(http.StatusOK, fmt.Sprintf("{\"data\": %s}", utils.CreateJson(nodes)))
+	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(nodes)})
 }

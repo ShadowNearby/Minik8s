@@ -44,7 +44,7 @@ func (k *Kubelet) RegisterNode() {
 	}
 	code, data, err := utils.SendRequest("POST",
 		fmt.Sprintf("%s:%s/api/v1/nodes", k.MasterIP, k.MasterPort),
-		[]byte(utils.CreateJson(nodeInfo)))
+		[]byte(utils.JsonMarshal(nodeInfo)))
 	if err != nil {
 		logger.Errorf("send request error: %s", err.Error())
 		return
