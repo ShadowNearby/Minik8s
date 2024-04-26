@@ -1,5 +1,9 @@
 package handler
 
-import "minik8s/pkgs/apiserver/storage"
+import (
+	"fmt"
+)
 
-var etcdClient = storage.CreateEtcdStorage(storage.DefaultEndpoints)
+func httpData(data string) string {
+	return fmt.Sprintf("{\"data\": %s}", data)
+}

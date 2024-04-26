@@ -18,14 +18,14 @@ func MetricsTest() {
 	}
 	logger.Infof("-------------CREATE POD FINISHED-----------")
 	stat := controller.NodeMetrics()
-	text := utils.CreateJson(stat)
+	text := utils.JsonMarshal(stat)
 	logger.Infof("%s", text)
 	//ms, err := resources.GetPodMetrics(&podConfig)
 	//if err != nil {
 	//	logger.Errorf("cannot inspect pod")
 	//}
 	//for i := range ms {
-	//	text := utils.CreateJson(ms[i])
+	//	text := utils.JsonMarshal(ms[i])
 	//	logger.Infof("%s", text)
 	//}
 	resources.StopPod(podConfig)
