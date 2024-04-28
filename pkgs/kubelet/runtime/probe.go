@@ -1,10 +1,10 @@
 package runtime
 
 import (
-	"errors"
+	"context"
 	"github.com/containerd/containerd"
 	core "minik8s/pkgs/apiobject"
-	"minik8s/pkgs/constants"
+	"minik8s/pkgs/kubelet/resources"
 	"minik8s/utils"
 )
 
@@ -14,67 +14,86 @@ const (
 	ExecProbe ProbeType = "exec"
 )
 
-func (k *Kubelet) DoProbe(pType ProbeType, containers map[string]containerd.Container, podConfig core.Pod) error {
-	pStat := k.GetPodStat(podConfig.MetaData.Name, podConfig.MetaData.NameSpace)
-	ready := true
-	for id, container := range containers {
-		//name := k.IDtoName[id]
-		cStat := pStat.Containers[id]
-		if pType == ExecProbe {
-			// update pod status
-			execOk := k.execProbe(container, podConfig, &cStat)
-			pStat.Containers[id] = cStat
-			if !execOk {
-				pStat.Status = core.PhaseFailed
-				k.WritePodStat(podConfig.MetaData.Name, podConfig.MetaData.NameSpace, &pStat)
-				// return an error
-				return errors.New(constants.ErrorRestartPod)
-			}
-			if cStat.State.State != core.PhaseSucceed && !cStat.Ready {
-				ready = false
-			}
+func findContainerById(pod *core.Pod, ID string) *core.ContainerStatus {
+	for _, status := range pod.Status.ContainersStatus {
+		if status.ID == ID {
+			return &status
 		}
-		// currently do not support other kinds of probe
 	}
-	if ready == true {
-		pStat.Status = core.PhaseRunning
-		pStat.Conditions.Ready = true
-	} else {
-		pStat.Status = core.PhasePending
-		pStat.Conditions.Ready = false
-	}
-	k.WritePodStat(podConfig.MetaData.Name, podConfig.MetaData.NameSpace, &pStat)
 	return nil
 }
 
-// execProbe 更新container status, 返回是否需要处理
-func (k *Kubelet) execProbe(container containerd.Container, pConfig core.Pod, cStat *core.ContainerStatus) bool {
+func restartContainer(pod *core.Pod, container *containerd.Container, cStatus *core.ContainerStatus) (err error) {
+	retryTimes := 5
+	for i := 0; i < retryTimes; i++ {
+		err = resources.ContainerManagerInstance.StartContainer(context.Background(), *container, pod)
+		if err != nil {
+			continue
+		}
+		cStatus.RestartCount += 1
+		cStatus.State = core.ContainerRunning
+		break
+	}
+	return
+}
+
+func (k *Kubelet) DoProbe(pType ProbeType, containers []containerd.Container, pod *core.Pod) error {
+	containerStatusList := make([]core.ContainerStatus, 0)
+	for _, container := range containers {
+		containerStatus := findContainerById(pod, container.ID())
+		if containerStatus == nil {
+			// remove the container
+			list := make([]core.ContainerStatus, 1)
+			list[0] = core.ContainerStatus{ID: container.ID()}
+			_ = utils.StopPodContainers(list, *pod)
+			_ = utils.RmPodContainers(list, *pod)
+			continue
+		}
+		if pType == ExecProbe {
+			execOk := k.execProbe(container, pod, containerStatus)
+			if !execOk {
+				pod.Status.Phase = core.PhasePending
+				// try to restart container
+				err := restartContainer(pod, &container, containerStatus)
+				if err != nil {
+					// cannot restart
+					pod.Status.Phase = core.PhaseFailed
+					return err
+				}
+			}
+		}
+		containerStatusList = append(containerStatusList, *containerStatus)
+	}
+	pod.Status.ContainersStatus = containerStatusList
+	return nil
+}
+
+// execProbe 更新container status, 返回是否ok
+func (k *Kubelet) execProbe(container containerd.Container, pod *core.Pod, cStatus *core.ContainerStatus) bool {
 	retryTime := 5
 	for i := 0; i < retryTime; i++ {
 		status, err := utils.GetContainerStatus(container)
 		if err != nil || status.Status == containerd.Unknown {
 			continue
 		}
-		cStat.State.ExitCode = status.ExitStatus
-		cStat.State.Finished = status.ExitTime
 		if status.Status == containerd.Stopped {
-			if status.ExitStatus == 0 {
-				cStat.State.State = core.PhaseSucceed
-				return true
+			// needs further check
+			cStatus.State = core.ContainerTerminated
+
+			if status.ExitStatus != 0 {
+				return pod.Spec.RestartPolicy == core.RestartNever
 			} else {
-				cStat.State.State = core.PhaseFailed
-				return pConfig.Spec.RestartPolicy == core.RestartNever
+				return true
 			}
 		} else {
 			if status.Status != containerd.Running {
-				cStat.State.State = core.PhasePending
+				cStatus.State = core.ContainerRunning
 			} else {
-				cStat.Ready = true
-				cStat.State.State = core.PhaseRunning
+				cStatus.State = core.ContainerWaiting
 			}
 			return true
 		}
 	}
-	cStat.State.State = core.PhaseUnknown
+	cStatus.State = core.ContainerWaiting
 	return false
 }

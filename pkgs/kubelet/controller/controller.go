@@ -60,7 +60,7 @@ func InspectPodController(c *gin.Context) {
 	name := c.Param("podName")
 	namespace := c.Param("namespace")
 	pConfig := runtime.KubeletInstance.GetPodConfig(name, namespace)
-	inspect := InspectPod(pConfig, runtime.ExecProbe)
+	inspect := InspectPod(&pConfig, runtime.ExecProbe)
 	c.JSON(http.StatusOK, fmt.Sprintf("{\"status\": %s}", inspect))
 }
 

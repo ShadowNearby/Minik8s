@@ -66,12 +66,12 @@ func GeneratePodConfigPy() core.Pod {
 	podConfig := core.Pod{
 		ApiVersion: "v1",
 		MetaData:   metadata,
-		Spec: core.Spec{
+		Spec: core.PodSpec{
 			Containers:    specs,
 			RestartPolicy: core.RestartOnFailure,
-			NodeSelector:  nil,
+			Selector:      core.Selector{},
 		},
-		Status: core.Status{},
+		Status: core.PodStatus{},
 	}
 	return podConfig
 }

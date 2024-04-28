@@ -15,10 +15,10 @@ type NameIdPair struct {
 }
 
 // CreatePod create containers and start them
-func CreatePod(podConfig *core.Pod, podStatChan chan<- core.PodStatus, ctNameID chan<- NameIdPair, done chan<- bool) error {
+func CreatePod(podConfig *core.Pod, pStatusChan chan<- core.PodStatus, cStatusChan chan<- core.ContainerStatus, done chan<- bool) error {
 	// first create a pause c_config
-	if podStatChan != nil {
-		podStatChan <- utils.InitPodStatus(podConfig, "", false) // TODO: nodeName, scheduled
+	if pStatusChan != nil {
+		pStatusChan <- utils.InitPodStatus(podConfig)
 	}
 	var pauseConfig = core.Container{
 		Name:            core.PauseContainerName,
@@ -38,7 +38,7 @@ func CreatePod(podConfig *core.Pod, podStatChan chan<- core.PodStatus, ctNameID 
 	err = ContainerManagerInstance.StartContainer(ctx, pause, podConfig)
 	if err != nil {
 		logger.Errorf("Start Pause Container Failed: %s", err.Error())
-		_ = utils.RmPodContainers(startedContainer, *podConfig)
+		//_ = utils.RmPodContainers(startedContainer, *podConfig)
 		return err
 	}
 	logger.Infof("------CREATE PAUSE CONTAINER OVER--------")
@@ -47,7 +47,9 @@ func CreatePod(podConfig *core.Pod, podStatChan chan<- core.PodStatus, ctNameID 
 	// ns
 	pausePid, err := ContainerManagerInstance.GetContainerInfo(podConfig.MetaData.NameSpace, pauseSpec.ID, "State", "Pid")
 	if err != nil {
-		logger.Errorf("cannot get inspect: %s", err.Error())
+		logger.Errorf("cannot get namespace: %s", err.Error())
+		//_ = utils.RmPodContainers(startedContainer, *podConfig)
+		return err
 	}
 	linuxNamespace := fmt.Sprintf("/proc/%s/ns/", pausePid)
 	logger.Infof("namespace: %s", linuxNamespace)
@@ -58,22 +60,26 @@ func CreatePod(podConfig *core.Pod, podStatChan chan<- core.PodStatus, ctNameID 
 		container, err := ContainerManagerInstance.CreateContainer(ctx, utils.GenerateContainerSpec(*podConfig, cConfig, linuxNamespace))
 		if err != nil {
 			logger.Errorf("Create container %s Failed: %s", cConfig.Name, err.Error())
-			_ = utils.StopPodContainers(startedContainer, *podConfig)
-			_ = utils.RmPodContainers(startedContainer, *podConfig)
+			//_ = utils.StopPodContainers(startedContainer, *podConfig)
+			//_ = utils.RmPodContainers(startedContainer, *podConfig)
 			return err
 		}
 		startedContainer = append(startedContainer, cConfig)
 		err = ContainerManagerInstance.StartContainer(ctx, container, podConfig)
 		if err != nil {
 			logger.Errorf("Create container %s Failed: %s", cConfig.Name, err.Error())
-			_ = utils.StopPodContainers(startedContainer, *podConfig)
-			_ = utils.RmPodContainers(startedContainer, *podConfig)
+			//_ = utils.StopPodContainers(startedContainer, *podConfig)
+			//_ = utils.RmPodContainers(startedContainer, *podConfig)
 			return err
 		}
-		if ctNameID != nil {
-			ctNameID <- NameIdPair{
-				Name: cConfig.Name,
-				ID:   utils.GenerateContainerIDByName(cConfig.Name, podConfig.MetaData.UUID),
+		if cStatusChan != nil {
+			cStatusChan <- core.ContainerStatus{
+				ID:           utils.GenerateContainerIDByName(cConfig.Name, podConfig.MetaData.UUID),
+				Name:         cConfig.Name,
+				Image:        cConfig.Image,
+				State:        core.ContainerRunning,
+				RestartCount: 0,
+				Environment:  cConfig.Env,
 			}
 		}
 		//runtime.KubeletInstance.ContainerStart(podConfig, cConfig.Name)
@@ -90,8 +96,8 @@ func CreatePod(podConfig *core.Pod, podStatChan chan<- core.PodStatus, ctNameID 
 // StopPod stop and remove the containers in pod
 func StopPod(podConfig core.Pod) error {
 	// stop every containerd in pod
-	_ = utils.StopPodContainers(podConfig.Spec.Containers, podConfig)
-	_ = utils.RmPodContainers(podConfig.Spec.Containers, podConfig)
+	_ = utils.StopPodContainers(podConfig.Status.ContainersStatus, podConfig)
+	_ = utils.RmPodContainers(podConfig.Status.ContainersStatus, podConfig)
 	return nil
 }
 
@@ -116,7 +122,7 @@ func GetPodMetrics(podConfig *core.Pod) ([]core.ContainerMetrics, error) {
 		//	logger.Errorf("inspect container %s failed: %s", container.ID(), err.Error())
 		//	return err
 		//}
-		////status = status // change type to containerd.Status
+		////status = status // change type to containerd.PodStatus
 		//logger.Infof("status: %v", status)
 	}
 	return res, nil

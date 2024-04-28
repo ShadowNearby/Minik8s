@@ -1,9 +1,7 @@
 package main
 
-import "minik8s/test/apiserver"
-
 func main() {
-	apiserver.ToolTest()
+	//apiserver.ToolTest()
 	//test.PodBasicTest()
 	//test.PodLocalhostTest()
 	//test.MetricsTest()

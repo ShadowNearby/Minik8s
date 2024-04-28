@@ -1,20 +1,17 @@
 package test
 
 import (
-	"bufio"
-	"fmt"
 	"github.com/containerd/containerd/namespaces"
 	"github.com/docker/go-connections/nat"
 	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
-	"minik8s/pkgs/kubelet/resources"
+	"minik8s/pkgs/kubelet/controller"
 	"minik8s/utils"
-	"os"
 	"testing"
 	"time"
 )
 
-func PodBasicTest(t *testing.T) {
+func TestPodBasicTest(t *testing.T) {
 	// create a pod config
 	metadata := core.MetaData{
 		Name:      "test",
@@ -48,56 +45,35 @@ func PodBasicTest(t *testing.T) {
 	podConfig := core.Pod{
 		ApiVersion: "v1",
 		MetaData:   metadata,
-		Spec: core.Spec{
+		Spec: core.PodSpec{
 			Containers:    specs,
 			RestartPolicy: core.RestartOnFailure,
-			NodeSelector:  nil,
+			Selector:      core.Selector{},
 		},
-		Status: core.Status{},
+		Status: core.PodStatus{},
 	}
-	err := resources.CreatePod(&podConfig, nil, nil, nil)
+	err := controller.CreatePod(&podConfig)
 	if err != nil {
-		logger.Errorf("run pod error: %s", err.Error())
+		_ = controller.StopPod(podConfig)
 		t.Errorf("run pod error: %s", err.Error())
 	}
 	res2, err := utils.NerdTest("ps", "-a")
-
 	res1, err := utils.NerdTest("ps")
 	logger.Infof("ps output:\n%s\nps -a output:\n%s\n", res1, res2)
 
-	err = resources.StopPod(podConfig)
-	if err != nil {
-		t.Errorf("stop pod error: %s", err.Error())
-	}
+	_ = controller.StopPod(podConfig)
 }
 
-func PodLocalhostTest() {
+func TestPodLocalhostTest(t *testing.T) {
 	podConfig := GeneratePodConfigPy()
-	err := resources.CreatePod(&podConfig, nil, nil, nil)
+	err := controller.CreatePod(&podConfig)
 	if err != nil {
-		logger.Errorf("run pod error: %s", err.Error())
+		t.Errorf("run pod error: %s", err.Error())
 		//t.Errorf("run pod error: %s", err.Error())
 	}
 	res2, err := utils.NerdTest("ps", "-a")
 	res1, err := utils.NerdTest("ps")
-	logger.Infof("ps output:\n%s\nps -a output:\n%s\n", res1, res2)
-	fmt.Println("input c for terminate")
-	time.Sleep(5 * time.Second)
-	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
-		inputText := scanner.Text()
-		if len(inputText) > 0 && inputText[0] == 'c' {
-			break
-		}
-		if len(inputText) > 0 && inputText[0] == 'd' {
-			res2, _ := utils.NerdTest("ps", "-a")
-			res1, _ := utils.NerdTest("ps")
-			logger.Infof("ps output:\n%s\nps -a output:\n%s\n", res1, res2)
-		}
-		fmt.Println("input c for terminate")
-	}
-	err = resources.StopPod(podConfig)
-	if err != nil {
-		//t.Errorf("stop pod error: %s", err.Error())
-	}
+	t.Logf("ps output:\n%s\nps -a output:\n%s\n", res1, res2)
+	time.Sleep(2 * time.Second)
+	_ = controller.StopPod(podConfig)
 }
