@@ -31,9 +31,8 @@ type Spec struct {
 	Containers      []Container       `json:"containers" yaml:"containers"`
 	RestartPolicy   restartPolicy     `json:"restartPolicy" yaml:"restartPolicy"`
 	DnsPolicy       dnsPolicy         `json:"dnsPolicy,omitempty" yaml:"dnsPolicy,omitempty"`
-	NodeSelector    map[string]string `json:"selector" yaml:"selector"`
+	NodeSelector    map[string]string `json:"selector,omitempty" yaml:"selector,omitempty"`
 	MinReadySeconds minReadySeconds   `json:"minReadySeconds,omitempty" yaml:"minReadySeconds,omitempty"`
-	Selector        map[string]string `yaml:"selector"`
 }
 
 type Status struct {
