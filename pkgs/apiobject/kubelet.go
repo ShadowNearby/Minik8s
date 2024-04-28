@@ -40,7 +40,7 @@ type Status struct {
 	Phase          PhaseLabel     `json:"phase" yaml:"phase"`
 	HostIP         string         `json:"hostIP" yaml:"hostIP"`
 	PodIP          string         `json:"podIP" yaml:"podIP"`
-	OwnerReference ownerReference `json:"owner_reference" yaml:"ownerReference"`
+	OwnerReference ownerReference `json:"ownerReference" yaml:"ownerReference"`
 }
 type restartPolicy string
 type PhaseLabel string
@@ -70,9 +70,9 @@ type Container struct {
 type ImagePullPolicy string
 
 type VolumeMountConfig struct {
-	ContainerPath string `json:"container_path"`
-	HostPath      string `json:"mount_path"`
-	ReadOnly      bool   `json:"read_only"`
+	ContainerPath string `json:"containerPath" yaml:"containerPath"`
+	HostPath      string `json:"mountPath" yaml:"mountPath"`
+	ReadOnly      bool   `json:"readOnly" yaml:"readOnly"`
 }
 
 type PortConfig struct {
@@ -166,7 +166,7 @@ type ServiceStatus struct {
 type ServicePort struct {
 	Name       string `yaml:"name"`
 	Port       int    `yaml:"port"`
-	NodePort   int    `yaml:"node_port"`
+	NodePort   int    `yaml:"nodePort"`
 	Protocol   string `yaml:"protocol"`
 	TargetPort int    `yaml:"target_port"`
 }
@@ -174,7 +174,7 @@ type ServicePort struct {
 type ServiceSpec struct {
 	Selector                      map[string]string `yaml:"selector"`
 	Ports                         []ServicePort     `yaml:"ports"`
-	AllocateLoadBalancerNodePorts bool              `yaml:"allocate_load_balancer_node_ports"`
+	AllocateLoadBalancerNodePorts bool              `yaml:"allocateLoadBalancerNodePorts"`
 	Type                          string            `yaml:"type"`
 	ClusterIP                     string            `yaml:"clusterIp"`
 	ClusterIPs                    []string          `yaml:"clusterIps"`
