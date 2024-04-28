@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  namespace: rstest
+  name: nginx-deployment
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: nginx_test
+          image: docker.io/library/nginx:latest
+          imagePullPolicy: IfNotPresent
+      restartPolicy: OnFailure
