@@ -7,15 +7,15 @@ type ServiceStatus struct {
 type ServicePort struct {
 	Name       string `yaml:"name"`
 	Port       int    `yaml:"port"`
-	NodePort   int    `yaml:"node_port"`
+	NodePort   int    `yaml:"nodePort"`
 	Protocol   string `yaml:"protocol"`
-	TargetPort int    `yaml:"target_port"`
+	TargetPort int    `yaml:"targetPort"`
 }
 
 type ServiceSpec struct {
 	Selector                      map[string]string `yaml:"selector"`
 	Ports                         []ServicePort     `yaml:"ports"`
-	AllocateLoadBalancerNodePorts bool              `yaml:"allocate_load_balancer_node_ports"`
+	AllocateLoadBalancerNodePorts bool              `yaml:"allocateLoadBalancerNodePorts"`
 	Type                          string            `yaml:"type"`
 	ClusterIP                     string            `yaml:"clusterIp"`
 	ClusterIPs                    []string          `yaml:"clusterIps"`
