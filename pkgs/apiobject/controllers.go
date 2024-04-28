@@ -1,10 +1,7 @@
 package core
 
-import "google.golang.org/grpc/resolver"
-
 type ServiceStatus struct {
-	Endpoints []resolver.Endpoint
-	Phase     PhaseLabel `json:"phase"`
+	Phase PhaseLabel `json:"phase"`
 }
 
 type ServicePort struct {
