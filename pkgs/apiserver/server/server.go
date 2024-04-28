@@ -21,6 +21,7 @@ func (s *APIServer) Run(addr string) error {
 		return err
 	}
 	s.RedisStorage = storage.RedisInstance
+	s.RedisStorage.InitChannels()
 	go bgTask()
 	select {}
 }

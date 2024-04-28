@@ -1,9 +1,7 @@
 package controller
 
 import (
-	"context"
 	"errors"
-	"github.com/containerd/containerd"
 	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/kubelet/resources"
@@ -16,15 +14,15 @@ import (
 // CreatePod pull and create containers of a pod, and register the pod to kubelet runtime
 func CreatePod(pConfig *core.Pod) error {
 	cLen := len(pConfig.Spec.Containers)
-	pStatChan := make(chan core.PodStatus, 2)
-	ctNameChan := make(chan resources.NameIdPair, cLen)
+	pStatusChan := make(chan core.PodStatus)
+	cStatusChan := make(chan core.ContainerStatus, cLen)
 	doneChan := make(chan bool)
 	runtime.KubeletInstance.WritePodConfig(pConfig.MetaData.Name, pConfig.MetaData.NameSpace, pConfig)
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func(wg *sync.WaitGroup, dChan chan<- bool) {
 		defer wg.Done()
-		err := resources.CreatePod(pConfig, pStatChan, ctNameChan, dChan)
+		err := resources.CreatePod(pConfig, pStatusChan, cStatusChan, dChan)
 		if err != nil {
 			doneChan <- false
 			logger.Errorf("create pod error: %s", err.Error())
@@ -34,27 +32,27 @@ func CreatePod(pConfig *core.Pod) error {
 	var pStat core.PodStatus
 	for i := 0; i < cLen+2; i++ {
 		select {
-		case pStat = <-pStatChan:
+		case pStat = <-pStatusChan:
 			logger.Infof("init pod status")
-		case ctNameID := <-ctNameChan:
-			runtime.KubeletInstance.ContainerStart(&pStat, ctNameID.Name, ctNameID.ID)
+		case cStatus := <-cStatusChan:
+			pStat.ContainersStatus = append(pStat.ContainersStatus, cStatus)
 		case done := <-doneChan:
 			if done == true {
-				// pod init done
-				pStat.Status = core.PhaseRunning
+				pStat.StartTime = time.Now()
+				pStat.Condition = core.ConReady
 				break
 			} else {
 				return errors.New("create pod failed")
 			}
-		case <-time.After(10 * time.Second):
+		case <-time.After(30 * time.Second):
+			close(pStatusChan)
+			close(cStatusChan)
+			close(doneChan)
 			return errors.New("create pod time out: 10 secs")
 		}
 	}
-	close(pStatChan)
-	close(ctNameChan)
-	close(doneChan)
 	wg.Wait()
-	runtime.KubeletInstance.WritePodStat(pConfig.MetaData.Name, pConfig.MetaData.NameSpace, &pStat)
+	pConfig.Status = pStat
 	return nil
 }
 
@@ -66,28 +64,16 @@ func StopPod(pConfig core.Pod) error {
 }
 
 // InspectPod exec_probe of the pod, if a pod failed, then stop it
-func InspectPod(pConfig core.Pod, probeType runtime.ProbeType) string {
-	containers := resources.ContainerManagerInstance.GetPodContainers(&pConfig)
-	containerMap := make(map[string]containerd.Container, len(containers))
-	for _, container := range containers {
-		id := container.ID()
-		image, err := container.Image(context.Background())
-		if err != nil {
-			continue
-		}
-		if image.Name() == "registry.cn-hangzhou.aliyuncs.com/google_containers/pause:3.9" {
-			continue
-		}
-		containerMap[id] = container
-	}
-	err := runtime.KubeletInstance.DoProbe(probeType, containerMap, pConfig)
-	//err := runtime.KubeletInstance.LivenessProbe(containerMap, pConfig)
+func InspectPod(pod *core.Pod, probeType runtime.ProbeType) string {
+	containers := resources.ContainerManagerInstance.GetPodContainers(pod)
+	logger.Infof("container len: %d", len(containers))
+	err := runtime.KubeletInstance.DoProbe(probeType, containers, pod)
 	if err != nil {
 		logger.Errorf("liveness probe error: %s", err.Error())
 		return ""
 	}
 	// print status
-	pStat := runtime.KubeletInstance.GetPodStat(pConfig.MetaData.Name, pConfig.MetaData.NameSpace)
+	pStat := pod.Status
 	jsonText := utils.JsonMarshal(pStat)
 	logger.Infof("live probe:\n%s", jsonText)
 	return jsonText

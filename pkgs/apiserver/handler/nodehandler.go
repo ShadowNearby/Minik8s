@@ -30,7 +30,7 @@ func GetNodeHandler(c *gin.Context) {
 	var node core.Node
 	name := c.Param("name")
 	key := fmt.Sprintf("/nodes/object/%s", name)
-	err := storage.Get(key, node)
+	err := storage.Get(key, &node)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "cannot find resource"})
 		return
