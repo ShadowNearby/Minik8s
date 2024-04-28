@@ -2,11 +2,15 @@ package storage
 
 import (
 	logger "github.com/sirupsen/logrus"
+	"sync"
 	"testing"
 )
 
 func TestTools(t *testing.T) {
-	go bgTask()
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	done := false
+	go bgTask(&done, wg)
 	err := Put("test1", "haha")
 	if err != nil {
 		t.Errorf("put error: %s", err.Error())
@@ -30,10 +34,57 @@ func TestTools(t *testing.T) {
 		t.Errorf("range del error: %s", err.Error())
 		return
 	}
+	done = true
+	wg.Wait()
 }
 
-func bgTask() {
+func TestToolsConcurrent(t *testing.T) {
+	wg1 := &sync.WaitGroup{}
+	wg2 := &sync.WaitGroup{}
+	wg1.Add(1)
+	done := false
+	go bgTask(&done, wg1)
+	wg2.Add(2)
+	concurrentTask(100, "test1", "ha", wg2)
+	concurrentTask(100, "test1", "haha", wg2)
+	wg2.Wait()
+	err := Del("test1")
+	if err != nil {
+		logger.Errorf("del error: %s", err.Error())
+		return
+	}
+	done = true
+	wg1.Wait()
+}
+
+func TestWatch(t *testing.T) {
+	wg1 := &sync.WaitGroup{}
+	wg1.Add(2)
+	done := false
+	go bgTask(&done, wg1)
+	RedisInstance.CreateChannel("ch1")
+	go func() {
+		ch := RedisInstance.SubscribeChannel("ch1")
+		for msg := range ch {
+			logger.Infof("recv msg: %s", msg)
+		}
+	}()
+	go func() {
+		RedisInstance.PublishMessage("ch1", "hello world")
+		RedisInstance.PublishMessage("ch1", "hello world")
+		RedisInstance.PublishMessage("ch1", "hello world")
+		RedisInstance.PublishMessage("ch1", "hello world")
+		wg1.Done()
+	}()
+	done = true
+	wg1.Wait()
+}
+
+func bgTask(done *bool, wg *sync.WaitGroup) {
 	for {
+		if *done == true && TaskQueue.GetLen() == 0 {
+			break
+		}
 		if TaskQueue.GetLen() > 0 {
 			value, err := TaskQueue.Dequeue()
 			if err != nil {
@@ -44,4 +95,24 @@ func bgTask() {
 			task()
 		}
 	}
+	wg.Done()
+}
+
+func concurrentTask(times int, key string, val string, wg *sync.WaitGroup) {
+	go func() {
+		for i := 0; i < times; i++ {
+			err := Put(key, val)
+			if err != nil {
+				logger.Fatalf("put error: %s", err.Error())
+			}
+			var newVal string
+			err = Get(key, &newVal)
+			logger.Infof("times %d, key: %s, value: %s", i, key, newVal)
+			if err != nil {
+				logger.Fatalf("get error: %s", err.Error())
+			}
+		}
+		defer wg.Done()
+	}()
+
 }

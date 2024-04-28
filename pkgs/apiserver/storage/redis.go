@@ -129,5 +129,9 @@ func (r *Redis) PublishMessage(channel string, message any) {
 }
 
 func (r *Redis) CloseChannel(channel string) {
-	r.Channels[channel].Close()
+	err := r.Channels[channel].Close()
+	if err != nil {
+		logger.Errorf("close channel error: %s", err.Error())
+		return
+	}
 }
