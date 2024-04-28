@@ -57,6 +57,29 @@ func TestToolsConcurrent(t *testing.T) {
 	wg1.Wait()
 }
 
+func TestWatch(t *testing.T) {
+	wg1 := &sync.WaitGroup{}
+	wg1.Add(2)
+	done := false
+	go bgTask(&done, wg1)
+	RedisInstance.CreateChannel("ch1")
+	go func() {
+		ch := RedisInstance.SubscribeChannel("ch1")
+		for msg := range ch {
+			logger.Infof("recv msg: %s", msg)
+		}
+	}()
+	go func() {
+		RedisInstance.PublishMessage("ch1", "hello world")
+		RedisInstance.PublishMessage("ch1", "hello world")
+		RedisInstance.PublishMessage("ch1", "hello world")
+		RedisInstance.PublishMessage("ch1", "hello world")
+		wg1.Done()
+	}()
+	done = true
+	wg1.Wait()
+}
+
 func bgTask(done *bool, wg *sync.WaitGroup) {
 	for {
 		if *done == true && TaskQueue.GetLen() == 0 {
