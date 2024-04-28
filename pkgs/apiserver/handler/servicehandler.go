@@ -10,11 +10,11 @@ import (
 )
 
 func ServiceKeyPrefix(namespace string, name string) string {
-	return fmt.Sprintf("/services/%s/object/%s", namespace, name)
+	return fmt.Sprintf("/services/object/%s/%s", namespace, name)
 }
 
 func ServiceListKeyPrefix(namespace string) string {
-	return fmt.Sprintf("/services/%s/object", namespace)
+	return fmt.Sprintf("/services/object/%s", namespace)
 }
 
 // CreateServiceHandler POST /api/v1/namespaces/:namespace/services
@@ -57,8 +57,8 @@ func GetServiceHandler(c *gin.Context) {
 		return
 	}
 	key := ServiceKeyPrefix(namespace, name)
-	serviceConfig := core.Service{}
-	if err := storage.Get(key, &serviceConfig); err == nil {
+	serviceConfig := &core.Service{}
+	if err := storage.Get(key, serviceConfig); err == nil {
 		log.Errorf("service %s:%s not found", namespace, name)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "service not found"})
 		return
@@ -84,7 +84,48 @@ func GetServiceListHandler(c *gin.Context) {
 }
 
 // DeleteServiceHandler DELETE /api/v1/namespaces/:namespace/services/:name
-func DeleteServiceHandler(c *gin.Context) {}
+func DeleteServiceHandler(c *gin.Context) {
+	namespace := c.Param("namespace")
+	if namespace == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "need namespace"})
+		return
+	}
+	name := c.Param("name")
+	if name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "need name"})
+		return
+	}
+	key := ServiceKeyPrefix(namespace, name)
+	if err := storage.Del(key); err == nil {
+		log.Errorf("service %s:%s not found", namespace, name)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "service not found"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{})
+}
 
 // UpdateServiceHandler PUT /api/v1/namespaces/:namespace/services/:name
-func UpdateServiceHandler(c *gin.Context) {}
+func UpdateServiceHandler(c *gin.Context) {
+	namespace := c.Param("namespace")
+	if namespace == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "need namespace"})
+		return
+	}
+	name := c.Param("name")
+	if name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "need name"})
+		return
+	}
+	serviceConfig := core.Service{}
+	if err := c.Bind(&serviceConfig); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	key := ServiceKeyPrefix(namespace, name)
+	if err := storage.Put(key, serviceConfig); err == nil {
+		log.Errorf("service %s:%s not found", namespace, name)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "service put error"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{})
+}

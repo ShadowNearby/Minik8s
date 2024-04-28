@@ -10,11 +10,11 @@ import (
 )
 
 func EndpointKeyPrefix(namespace string, name string) string {
-	return fmt.Sprintf("/endpoints/%s/object/%s", namespace, name)
+	return fmt.Sprintf("/endpoints/object/%s/%s", namespace, name)
 }
 
 func EndpointListKeyPrefix(namespace string) string {
-	return fmt.Sprintf("/endpoints/%s/object", namespace)
+	return fmt.Sprintf("/endpoints/object/%s", namespace)
 }
 
 // CreateEndpointHandler POST /api/v1/namespaces/:namespace/endpoints
@@ -84,7 +84,48 @@ func GetEndpointListHandler(c *gin.Context) {
 }
 
 // DeleteEndpointHandler DELETE /api/v1/namespaces/:namespace/endpoints/:name
-func DeleteEndpointHandler(c *gin.Context) {}
+func DeleteEndpointHandler(c *gin.Context) {
+	namespace := c.Param("namespace")
+	if namespace == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "need namespace"})
+		return
+	}
+	name := c.Param("name")
+	if name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "need name"})
+		return
+	}
+	key := EndpointKeyPrefix(namespace, name)
+	if err := storage.Del(key); err == nil {
+		log.Errorf("endpoint %s:%s not found", namespace, name)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "endpoint not found"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{})
+}
 
 // UpdateEndpointHandler PUT /api/v1/namespaces/:namespace/endpoints/:name
-func UpdateEndpointHandler(c *gin.Context) {}
+func UpdateEndpointHandler(c *gin.Context) {
+	namespace := c.Param("namespace")
+	if namespace == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "need namespace"})
+		return
+	}
+	name := c.Param("name")
+	if name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "need name"})
+		return
+	}
+	endpointConfig := core.Endpoint{}
+	if err := c.Bind(&endpointConfig); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	key := EndpointKeyPrefix(namespace, name)
+	if err := storage.Put(key, endpointConfig); err == nil {
+		log.Errorf("endpoint %s:%s not found", namespace, name)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "endpoint not found"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{})
+}
