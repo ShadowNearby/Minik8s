@@ -20,7 +20,6 @@ const (
 	ChannelNewPod        string = "NEW_POD"
 	ChannelUpdatePod     string = "UPDATE_POD"
 	ChannelNode          string = "NODE"
-	ChannelPod           string = "POD"
 	ChannelService       string = "SERVICE"
 	ChannelNewReplica    string = "NEW_REPLICA"
 	ChannelUpdateReplica string = "UPDATE_REPLICA"
