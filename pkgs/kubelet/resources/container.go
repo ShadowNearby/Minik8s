@@ -79,7 +79,7 @@ func (cmg *ContainerManager) CreateContainer(ctx context.Context, config core.Co
 		logger.Errorf("Create Container Failed: %s", err.Error())
 		return nil, err
 	}
-	logger.Infof("Create Container %s Success", config.Name)
+	logger.Infof("Create Container %s Success", config.ID)
 	return container, nil
 }
 

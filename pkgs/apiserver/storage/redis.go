@@ -17,16 +17,17 @@ type Redis struct {
 var ctx = context.Background()
 
 const (
-	ChannelNode    string = "NODE"
-	ChannelPod     string = "POD"
-	ChannelService string = "SERVICE"
-	ChannelReplica string = "REPLICASET"
+	ChannelNewPod    string = "NEW_POD"
+	ChannelUpdatePod string = "UPDATE_POD"
+	ChannelNode      string = "NODE"
+	ChannelPod       string = "POD"
+	ChannelService   string = "SERVICE"
+	ChannelReplica   string = "REPLICASET"
 )
 
 const (
 	OpDel string = "delete"
 	OpGet string = "get"
-	OpSet string = "set"
 )
 
 func createRedisClient() *redis.Client {
@@ -35,6 +36,13 @@ func createRedisClient() *redis.Client {
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
+}
+
+func (r *Redis) InitChannels() {
+	channels := []string{ChannelNewPod, ChannelUpdatePod, ChannelNode, ChannelReplica, ChannelService}
+	for _, channel := range channels {
+		r.CreateChannel(channel)
+	}
 }
 
 func (r *Redis) redisSet(key string, value any) error {

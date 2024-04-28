@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/containerd/containerd/namespaces"
+	logger "github.com/sirupsen/logrus"
 	"os/exec"
 )
 
@@ -55,6 +56,7 @@ func NerdExec(ctl NerdCtl, args ...string) (string, error) {
 	cmd = append(cmd, "-n", namespace, ctl.ctlType)
 	cmd = append(cmd, args...)
 	cmd = append(cmd, containerName)
+	logger.Printf("exec: %s", cmd)
 	res, err := exec.Command(nerdCtl, cmd...).CombinedOutput()
 	return string(res), err
 }

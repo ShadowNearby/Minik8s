@@ -60,39 +60,21 @@ func GenerateLinuxNamespace(linuxNs map[string]string) []specs.LinuxNamespace {
 	return namespaces
 }
 
-func StopPodContainers(containers []core.Container, pConfig core.Pod) error {
-	var cs = make([]string, len(containers))
-	for i, cConfig := range containers {
-		cs[i] = GenerateContainerIDByName(cConfig.Name, pConfig.MetaData.UUID)
+func StopPodContainers(cStatus []core.ContainerStatus, pConfig core.Pod) error {
+	var cs = make([]string, len(cStatus))
+	for i, status := range cStatus {
+		cs[i] = status.ID
 	}
 	_, err := NerdContainerOps(cs, pConfig.MetaData.NameSpace, NerdStop)
 	return err
 }
 
-func RmPodContainers(containers []core.Container, pConfig core.Pod) error {
-	var cs = make([]string, len(containers))
-	for i, cConfig := range containers {
-		cs[i] = GenerateContainerIDByName(cConfig.Name, pConfig.MetaData.UUID)
+func RmPodContainers(cStatus []core.ContainerStatus, pod core.Pod) error {
+	var cs = make([]string, len(cStatus))
+	for i, status := range cStatus {
+		cs[i] = status.ID
 	}
-	// rm cConfig
-	_, _ = NerdContainerOps(cs, pConfig.MetaData.NameSpace, NerdRm)
-	//_ = ctlContainerOps(cs, namespace, CtrSnapshot, CtrRm)
-	return nil
-}
-
-func ctlContainerOps(containers []string, namespace string, ctrObject string, ctrType string) error {
-	for _, c := range containers {
-		output, err := CtrExec(Ctr{
-			ctrType:       ctrObject,
-			ctrOp:         ctrType,
-			containerName: c,
-			namespace:     namespace,
-		})
-		if err != nil {
-			logger.Errorf("rm snapshot error: %s", err.Error())
-		}
-		logger.Infof("rm snapshot info: %s", string(output))
-	}
+	_, _ = NerdContainerOps(cs, pod.MetaData.NameSpace, NerdRm)
 	return nil
 }
 

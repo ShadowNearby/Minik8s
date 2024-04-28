@@ -7,7 +7,6 @@ import (
 	core "minik8s/pkgs/apiobject"
 	"minik8s/utils"
 	"os"
-	"time"
 )
 
 type Kubelet struct {
@@ -36,7 +35,7 @@ func (k *Kubelet) RegisterNode() {
 	nodeInfo := core.Node{
 		ApiVersion: "v1",
 		Kind:       "Node",
-		NodeMetaData: core.NodeMetaData{
+		NodeMetaData: core.MetaData{
 			Name:   name,
 			Labels: k.Labels,
 		},
@@ -52,22 +51,6 @@ func (k *Kubelet) RegisterNode() {
 	if code != 200 {
 		logger.Errorf("server error: %d, info: %s", code, data)
 	}
-}
-
-func (k *Kubelet) ContainerStart(podStatus *core.PodStatus, containerName string, containerID string) {
-	//podStatus := k.PodStatMap[podConfig.MetaData.Name]
-	ctStat := podStatus.Containers[containerID]
-	ctStat.Ready = true
-	ctStat.State.State = core.PhaseRunning
-	ctStat.State.Started = time.Now()
-	// write back
-	podStatus.Containers[containerID] = ctStat
-	// create IDtoName mapping
-	if k.IDtoName == nil {
-		k.IDtoName = make(map[string]string)
-	}
-	k.IDtoName[containerID] = containerName
-	//k.PodStatMap[podConfig.MetaData.Name] = podStatus
 }
 
 func (k *Kubelet) GetPodStat(podName string, podNamespace string) (status core.PodStatus) {
