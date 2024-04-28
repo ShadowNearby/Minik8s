@@ -30,13 +30,13 @@ type PhaseLabel string
 type dnsPolicy string
 type minReadySeconds int
 
-type OwnerReference struct {
-	ApiVersion string  `json:"apiVersion"`
-	Kind       ObjType `json:"kind"`
-	Name       string  `json:"name"`
-	UID        string  `json:"UID"`
-	Controller bool    `json:"controller,omitempty"` /* true means under control, use *bool? */
-}
+//type OwnerReference struct {
+//	ApiVersion string  `json:"apiVersion"`
+//	Kind       ObjType `json:"kind"`
+//	Name       string  `json:"name"`
+//	UID        string  `json:"UID"`
+//	Controller bool    `json:"controller,omitempty"` /* true means under control, use *bool? */
+//}
 
 type Container struct {
 	Name            string              `json:"name" yaml:"name"`

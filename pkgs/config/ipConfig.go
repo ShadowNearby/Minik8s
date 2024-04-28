@@ -1,10 +1,10 @@
 package config
 
 const (
-	localServerIp   = "127.0.0.1"
+	LocalServerIp   = "127.0.0.1"
 	clusterMasterIP = "0.0.0.0"
 
-	apiServerPort  = "8090"
+	ApiServerPort  = "8090"
 	etcdServerPort = "2380"
 	clusterMode    = true
 )
@@ -15,7 +15,7 @@ func GetMasterIp() string {
 	if clusterMode {
 		return clusterMasterIP
 	} else {
-		return localServerIp
+		return LocalServerIp
 	}
 
 }

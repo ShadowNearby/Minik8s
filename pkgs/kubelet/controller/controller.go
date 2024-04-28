@@ -1,4 +1,4 @@
-package controller
+package kubeletcontroller
 
 import (
 	"fmt"
@@ -31,6 +31,7 @@ func CreatePodController(c *gin.Context) {
 	podConfig := podConfigText.(core.Pod)
 	err = CreatePod(&podConfig)
 	if err != nil {
+		StopPod(podConfig)
 		c.JSON(http.StatusInternalServerError, "cannot create pod")
 		return
 	}

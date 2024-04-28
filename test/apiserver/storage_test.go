@@ -39,7 +39,7 @@ func TestToolTest(t *testing.T) {
 		t.Errorf("range get error: %s", err.Error())
 		return
 	}
-	if strs[0] == "hahaha" {
+	if "hahaha" == strs[0] {
 		if strs[1] != "haha" {
 			t.Errorf("range get error")
 		}
