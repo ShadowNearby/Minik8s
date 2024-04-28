@@ -25,6 +25,14 @@ func runRoot(cmd *cobra.Command, args []string) {
 var NameSpace string
 var filePath string
 
+func Execute() {
+	if err := commands.Execute(); err != nil {
+
+		fmt.Println(err.Error())
+	} else {
+		fmt.Println("kubectl is for better control of minik8s")
+	}
+}
 func init() {
 	commands.PersistentFlags().StringVarP(&NameSpace, "nameSpace", "n", "default", "kubectl (-n NAMESPACE)")
 	applyCmd.Flags().StringVarP(&filePath, "filePath", "f", "", "kubectl apply -f <FILENAME>")

@@ -1,4 +1,4 @@
-package kubeclt
+package kubectl
 
 import (
 	"encoding/json"
