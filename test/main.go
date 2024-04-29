@@ -1,6 +1,8 @@
 package main
 
-import "minik8s/test/apiserver"
+import (
+	test "minik8s/test/apiserver"
+)
 
 func main() {
 	//apiserver.ToolTest()
@@ -9,5 +11,5 @@ func main() {
 	//test.MetricsTest()
 	//test.CreatePodTest()
 	//test.InspectPod()
-	apiserver.ServerRun()
+	test.ServerRun()
 }

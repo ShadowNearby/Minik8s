@@ -1,14 +1,15 @@
-package controller
+package run
 
 import (
+	"minik8s/pkgs/controller"
 	"minik8s/pkgs/controller/replicaset"
 	"minik8s/pkgs/controller/service"
 )
 
 func Run() {
 	var serviceController service.ServiceController
-	go StartController(&serviceController)
+	go controller.StartController(&serviceController)
 	var replicaController rsc.ReplicaSetController
-	go StartController(&replicaController)
+	go controller.StartController(&replicaController)
 	select {}
 }

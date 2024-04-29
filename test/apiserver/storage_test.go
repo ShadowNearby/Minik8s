@@ -1,4 +1,4 @@
-package apiserver
+package test
 
 import (
 	logger "github.com/sirupsen/logrus"
@@ -56,6 +56,7 @@ func TestToolTest(t *testing.T) {
 		return
 	}
 }
+
 func bgTask() {
 	for {
 		if storage.TaskQueue.GetLen() > 0 {
