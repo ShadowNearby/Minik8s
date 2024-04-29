@@ -17,5 +17,6 @@ type Selector struct {
 type OwnerReference struct {
 	ObjType    config.ObjType `json:"objType"`
 	Name       string         `json:"name"`
+	NameSpace  string         `json:"nameSpace"`
 	Controller bool           `yaml:"controller"`
 }

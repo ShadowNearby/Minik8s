@@ -1,5 +1,7 @@
 package constants
 
+import "fmt"
+
 const (
 	ChannelNode    string = "NODE"
 	ChannelPod     string = "POD"
@@ -12,3 +14,7 @@ const (
 	ChannelUpdate string = "UPDATE"
 	ChannelDelete string = "DELETE"
 )
+
+func GenerateChannelName(object string, chanType string) string {
+	return fmt.Sprintf("%s-%s", object, chanType)
+}
