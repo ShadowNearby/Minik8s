@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/apiserver/storage"
+	"minik8s/pkgs/constants"
 	"minik8s/utils"
 	"net/http"
 )
@@ -12,6 +13,7 @@ import (
 // CreateReplicaHandler POST /api/v1/namespaces/:namespace/replicas
 func CreateReplicaHandler(c *gin.Context) {
 	var replica core.ReplicaSet
+	var replicaOld core.ReplicaSet
 	err := c.Bind(&replica)
 	namespace := c.Param("namespace")
 	if err != nil {
@@ -19,11 +21,17 @@ func CreateReplicaHandler(c *gin.Context) {
 		return
 	}
 	rsName := fmt.Sprintf("/replicas/object/%s/%s", namespace, replica.MetaData.Name)
+	if err = storage.Get(rsName, &replicaOld); err == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "replica has existed"})
+		return
+	}
 	err = storage.Put(rsName, utils.JsonMarshal(replica))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot put data"})
 		return
 	}
+	// channel
+	storage.RedisInstance.PublishMessage(storage.ChannelNewReplica, fmt.Sprintf("%s/%s", namespace, replica.MetaData.Name))
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }
 
@@ -74,6 +82,9 @@ func DeleteReplicaHandler(c *gin.Context) {
 		return
 	}
 	err := storage.Del(fmt.Sprintf("/replicas/object/%s/%s", namespace, name))
+	storage.RedisInstance.PublishMessage(
+		constants.GenerateChannelName(constants.ChannelReplica, constants.ChannelDelete),
+		fmt.Sprintf("%s/%s", namespace, name))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot del data"})
 		return
@@ -105,5 +116,7 @@ func UpdateReplicaHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot put data"})
 		return
 	}
+	// channel
+	storage.RedisInstance.PublishMessage(storage.ChannelUpdateReplica, fmt.Sprintf("%s/%s", namespace, name))
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }

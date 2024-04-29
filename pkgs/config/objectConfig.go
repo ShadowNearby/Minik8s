@@ -6,4 +6,5 @@ const (
 	ObjPod        ObjType = "pods"
 	ObjNode       ObjType = "nodes"
 	ObjReplicaSet ObjType = "replicas"
+	ObjService    ObjType = "services"
 )

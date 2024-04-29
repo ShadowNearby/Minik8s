@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"errors"
 	"fmt"
 	logger "github.com/sirupsen/logrus"
 	"minik8s/pkgs/config"
@@ -41,7 +40,22 @@ func CreateObject(objType config.ObjType, namespace string, object any) error {
 		config.LocalServerIp, config.ApiServerPort, namespace, objType)
 	if code, info, err := utils.SendRequest("POST", url, []byte(objectTxt)); err != nil || code != http.StatusOK {
 		logger.Errorf("[create obj error]: %s", info)
-		return errors.New("create object error")
+		return err
+	} else {
+		return nil
+	}
+}
+
+func DeleteObject(objType config.ObjType, namespace string, name string) error {
+	if namespace == "" {
+		namespace = "default"
+	}
+	var url string
+	url = fmt.Sprintf("http://%s:%s/api/v1/%s/%s/%s",
+		config.LocalServerIp, config.ApiServerPort, namespace, objType, name)
+	if code, info, err := utils.SendRequest("DELETE", url, make([]byte, 0)); err != nil || code != http.StatusOK {
+		logger.Errorf("[delete object error]: %s", info)
+		return err
 	} else {
 		return nil
 	}

@@ -30,10 +30,11 @@ type Service struct {
 /*---------------------------------ReplicaSet Types--------------------------------*/
 
 type ReplicaSet struct {
-	ApiVersion string         `yaml:"apiVersion" json:"apiVersion"`
-	Kind       string         `yaml:"kind" json:"kind"`
-	MetaData   MetaData       `yaml:"metaData" json:"metaData"`
-	Spec       ReplicaSetSpec `yaml:"spec" json:"spec"`
+	ApiVersion string           `yaml:"apiVersion" json:"apiVersion"`
+	Kind       string           `yaml:"kind" json:"kind"`
+	MetaData   MetaData         `yaml:"metaData" json:"metaData"`
+	Spec       ReplicaSetSpec   `yaml:"spec" json:"spec"`
+	Status     ReplicaSetStatus `yaml:"status" json:"status"`
 }
 
 type ReplicaSetSpec struct {
@@ -48,6 +49,5 @@ type ReplicaSetTemplate struct {
 }
 
 type ReplicaSetStatus struct {
-	Replicas     int `json:"replicas" yaml:"replicas"`
 	RealReplicas int `json:"realReplicas" yaml:"realReplicas"`
 }
