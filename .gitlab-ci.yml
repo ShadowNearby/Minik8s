@@ -1,0 +1,28 @@
+stages:
+  - build
+  - test
+
+build:
+  stage: build
+  script:
+    - go mod tidy
+    - echo "Compiling the code..."
+    - echo "Compile complete."
+
+test-apiserver:
+  stage: test
+  script:
+    - echo "Running unit tests for apiserver..."
+    - go test minik8s/test/apiserver -cover
+
+test-kubelet:
+  stage: test
+  script:
+    - echo "Running unit tests for kubelet..."
+    - go test minik8s/test/kubelet -cover
+
+test-kubectl:
+  stage: test
+  script:
+    - echo "Running unit tests for kubectl..."
+    - go test minik8s/test/kubectl -cover
