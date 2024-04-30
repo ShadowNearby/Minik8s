@@ -11,7 +11,7 @@ func InitPodStatus(podConfig *core.Pod) core.PodStatus {
 	var podStat = core.PodStatus{
 		Phase:            core.PhasePending,
 		HostIP:           host,
-		PodIPs:           nil,
+		PodIP:            "",
 		StartTime:        time.Now(),
 		OldStatus:        make([]core.Status, 0),
 		ContainersStatus: make([]core.ContainerStatus, 0),

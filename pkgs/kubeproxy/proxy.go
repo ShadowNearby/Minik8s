@@ -2,6 +2,7 @@ package kubeproxy
 
 import (
 	"fmt"
+	core "minik8s/pkgs/apiobject"
 	"os/exec"
 	"strconv"
 
@@ -54,12 +55,45 @@ func DeleteService(serviceIP string, servicePort uint32) error {
 
 // CreateEndpoint serviceIP 和 servicePort 代表虚拟节点的 IP 和端口，destIP 和 destPort 是真实节点的 IP 和端口，backend 是真实节点的 IP 地址。
 // 在 IPVS 中添加服务的虚拟节点和真实节点的连接
-func CreateEndpoint(serviceIP string, servicePort uint32, destIP string, destPort uint32) error {
+func BindEndpoint(serviceIP string, servicePort uint32, destIP string, destPort uint32) error {
 	addEndpointArgs := []string{"-a", "-t", fmt.Sprintf("%s:%d", serviceIP, servicePort), "-r", fmt.Sprintf("%s:%d", destIP, destPort), "-m"}
 	output, err := exec.Command("ipvsadm", addEndpointArgs...).CombinedOutput()
 	if err != nil {
-		log.Fatalf("failed to create endpoint: %s output: %s", err.Error(), output)
+		log.Fatalf("failed to bind endpoint: %s output: %s", err.Error(), output)
 		return err
 	}
 	return nil
+}
+
+func UnbindEndpoint(serviceIP string, servicePort uint32, destIP string, destPort uint32) error {
+	rmEndpointArgs := []string{"-d", "-t", fmt.Sprintf("%s:%d", serviceIP, servicePort), "-r", fmt.Sprintf("%s:%d", destIP, destPort)}
+	output, err := exec.Command("ipvsadm", rmEndpointArgs...).CombinedOutput()
+	if err != nil {
+		log.Fatalf("failed to unbind endpoint: %s output: %s", err.Error(), output)
+		return err
+	}
+	return nil
+}
+
+func CreateEndpointObject(service *core.Service, servicePort uint32) core.Endpoint {
+	return core.Endpoint{
+		MetaData: core.MetaData{
+			Name:      fmt.Sprintf("%s-%d", service.MetaData.Name, servicePort),
+			NameSpace: service.MetaData.NameSpace,
+		},
+		Subsets: []core.EndpointSubset{
+			{
+				Addresses: []core.EndpointAddress{
+					{
+						IP: service.Spec.ClusterIP,
+					},
+				},
+				Ports: []core.EndpointPort{
+					{
+						Port: servicePort,
+					},
+				},
+			},
+		},
+	}
 }

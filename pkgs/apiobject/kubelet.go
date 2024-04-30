@@ -46,8 +46,9 @@ type Container struct {
 	Args            []string            `json:"args,omitempty" yaml:"args,omitempty"`
 	WorkingDir      string              `json:"workingDir,omitempty" yaml:"workingDir,omitempty"`
 	VolumeMounts    []VolumeMountConfig `json:"volumeMounts,omitempty" yaml:"volumeMounts,omitempty"`
-	PortBindings    nat.PortMap         `json:"ports,omitempty" yaml:"ports,omitempty"` /* mapping of port bindings: container port -> []host ip+port */
-	ExposedPorts    []string            `json:"exposedPorts" yaml:"exposedPorts"`       /* container's exposed ports */
+	PortBindings    nat.PortMap         `json:"portsBindings,omitempty" yaml:"portsBindings,omitempty"` /* mapping of port bindings: container port -> []host ip+port */
+	Ports           []PortConfig        `json:"ports,omitempty" yaml:"ports,omitempty"`
+	ExposedPorts    []string            `json:"exposedPorts" yaml:"exposedPorts"` /* container's exposed ports */
 	Env             []EnvConfig         `json:"env,omitempty" yaml:"env,omitempty"`
 	Resources       ResourcesConfig     `json:"resources,omitempty" yaml:"resources,omitempty"`
 }
@@ -62,7 +63,7 @@ type VolumeMountConfig struct {
 
 type PortConfig struct {
 	Name          string `json:"name" yaml:"name"`
-	ContainerPort string `json:"containerPort" yaml:"containerPort"`
+	ContainerPort uint32 `json:"containerPort" yaml:"containerPort"`
 	HostPort      string `json:"hostPort" yaml:"hostPort"`
 	Protocol      string `json:"protocol" yaml:"protocol"`
 }
