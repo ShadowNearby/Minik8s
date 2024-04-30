@@ -9,6 +9,12 @@ build:
     - echo "Compiling the code..."
     - echo "Compile complete."
 
+test-static-analysis:
+  stage: test
+  script:
+    - echo "Running go vet..."
+    - go vet ./...
+
 test-apiserver:
   stage: test
   script:
