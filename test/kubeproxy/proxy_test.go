@@ -12,8 +12,8 @@ func TestDocker(t *testing.T) {
 	serverPorts := []uint32{20000, 20001, 20002}
 	for i, serverPort := range serverPorts {
 		createArgs := []string{"run", "-itd", "--name", fmt.Sprintf("hello-server%d", i), "-p",
-		 fmt.Sprintf("%d:%d", serverPort, serverPort),
-		  "hashicorp/http-echo", "-listen=:" + strconv.Itoa(int(serverPort)), fmt.Sprintf("-text=hello server%d", i)}
+			fmt.Sprintf("%d:%d", serverPort, serverPort),
+			"hashicorp/http-echo", "-listen=:" + strconv.Itoa(int(serverPort)), fmt.Sprintf("-text=hello server%d", i)}
 		output, err := exec.Command("docker", createArgs...).CombinedOutput()
 		if err != nil {
 			t.Fatalf("can not create image error: %s output: %s", err.Error(), output)
