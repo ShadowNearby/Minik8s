@@ -1,60 +1,48 @@
 package kubectl
 
 import (
-	"encoding/json"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/wxnacy/wgo/arrays"
 	"gopkg.in/yaml.v3"
-	netrequest "minik8s/utils"
+	core "minik8s/pkgs/apiobject"
+	"strings"
 )
 
-func GetApiKindFromYamlFile(fileContent []byte) (string, error) {
+func GetObjTypeFromYamlFile(fileContent []byte) (core.ObjType, error) {
 	var result map[string]interface{}
-
 	err := yaml.Unmarshal(fileContent, &result)
 	if err != nil {
 		log.Debug("Kubectl", "GetApiKindFromYamlFile: Unmarshal object failed "+err.Error())
 		return "", err
 	}
-
 	if result["kind"] == nil {
 		log.Error("no kind found in file")
 		return "", err
 	}
-	log.Infoln(result)
-	return result["kind"].(string), nil
+	if idx := arrays.ContainsString(core.ObjTypeAll, strings.ToLower(result["kind"].(string))); idx == -1 {
+		return "", errors.New("Error kind: " + result["kind"].(string))
+	} else {
+		if result["kind"].(string) == "ReplicaSet" {
+			return core.ObjReplicaSet, err
+		}
+
+		return core.ObjType(strings.ToLower(result["kind"].(string)) + "s"), err
+	}
 }
+
+func GetCoreObjFromObjType(objType core.ObjType) (interface{}, bool) {
+	obj, exists := core.ObjTypeToCoreObjMap[objType]
+	return obj, exists
+}
+
 func ParseApiObjectFromYamlFile(fileContent []byte, obj interface{}) error {
 	log.Debugln(fileContent)
-	err := yaml.Unmarshal(fileContent, obj)
-
+	err := yaml.Unmarshal(fileContent, &obj)
 	if err != nil {
 		log.Debug("Kubectl", "GetApiKindObjectFromYamlFile: Unmarshal object failed "+err.Error())
 		return err
 	}
-
 	log.Debugln(obj)
 	return err
-}
-
-func PostApiObjectToServer(URL string, obj interface{}) (int, error, string) {
-	code, res, err := netrequest.PostRequestByTarget(URL, obj)
-	if err != nil {
-		log.Error("Kubectl", "PostApiObjectToServe: Post failed "+err.Error())
-		return code, err, ""
-	}
-	bodyBytes, err := json.Marshal(res)
-	if err != nil {
-		return code, err, ""
-	}
-	return code, nil, string(bodyBytes)
-}
-func DeleteAPIObjectToServer(URL string) (int, error) {
-	log.Debug("DeleteAPIObjectToServer", "URL: "+URL)
-	code, err := netrequest.DelRequest(URL)
-	if err != nil {
-		log.Error("Kubectl", "DeleteAPIObjectToServer: Delete object failed "+err.Error())
-		return code, err
-	}
-	log.Infoln("code: ", code)
-	return code, nil
 }

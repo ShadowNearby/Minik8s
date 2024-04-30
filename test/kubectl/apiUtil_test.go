@@ -1,59 +1,59 @@
 package test
 
 import (
-	"fmt"
+	log "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/kubectl"
 	"minik8s/utils"
-	"os"
-	"strings"
 	"testing"
 )
 
 func TestGetApiKindFromYamlFile(t *testing.T) {
-	rootpath, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	if !strings.HasSuffix(rootpath, "/test/kubectl") {
-		t.Fatal("must in project root")
-		return
-	}
-	content, err := utils.ReadFile(fmt.Sprintf("%s%s", rootpath, "/service.yaml"))
+	content, err := utils.ReadFile("../files/service.yaml")
 	if err != nil {
 		t.Fatal(err)
 	}
 	// 把文件内容转换成API对象
-	kind, err := kubectl.GetApiKindFromYamlFile(content)
-
+	kind, err := kubectl.GetObjTypeFromYamlFile(content)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if kind != "Service" {
+	if kind != core.ObjService {
 		t.Fatal("kind should be Service")
 	}
-	t.Log(kind)
+	content, err = utils.ReadFile("../files/createPod.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// 把文件内容转换成API对象
+	kind, err = kubectl.GetObjTypeFromYamlFile(content)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if kind != core.ObjPod {
+		t.Fatal("kind should be Pod")
+	}
+	content, err = utils.ReadFile("../files/service.yaml")
+	// 把文件内容转换成API对象
+	kind, err = kubectl.GetObjTypeFromYamlFile(content)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if kind != core.ObjService {
+		t.Fatal("kind should be Pod")
+	}
 }
 func TestGetObjectFromYamlFile(t *testing.T) {
-	rootpath, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	if !strings.HasSuffix(rootpath, "/test/kubectl") {
-		t.Fatal("file path error")
-		return
-	}
-	content, err := utils.ReadFile(fmt.Sprintf("%s%s", rootpath, "/simple_deployment.yaml"))
+	content, err := utils.ReadFile("../files/createPod.yaml")
 	if err != nil {
 		t.Fatal(err)
 	}
-	var pod core.Pod
+	// 把文件内容转换成API对象
+	kind, err := kubectl.GetObjTypeFromYamlFile(content)
+	if err != nil {
+		t.Fatal(err)
+	}
+	obj := kubectl.ParseApiObjectFromYamlFile(content, kind)
+	log.Println(obj)
 
-	err = kubectl.ParseApiObjectFromYamlFile(content, &pod)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(pod)
 }

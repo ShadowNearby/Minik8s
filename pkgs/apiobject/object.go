@@ -1,7 +1,5 @@
 package core
 
-import "minik8s/pkgs/config"
-
 type MetaData struct {
 	Name            string            `json:"name" yaml:"name"`
 	NameSpace       string            `json:"nameSpace" yaml:"namespace,omitempty"`
@@ -15,8 +13,8 @@ type Selector struct {
 	MatchLabels map[string]string `yaml:"matchLabels" json:"matchLabels"`
 }
 type OwnerReference struct {
-	ObjType    config.ObjType `json:"objType"`
-	Name       string         `json:"name"`
-	NameSpace  string         `json:"nameSpace"`
-	Controller bool           `yaml:"controller"`
+	ObjType    ObjType `json:"objType"`
+	Name       string  `json:"name"`
+	NameSpace  string  `json:"nameSpace"`
+	Controller bool    `yaml:"controller"`
 }
