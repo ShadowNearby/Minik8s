@@ -1,8 +1,9 @@
-package storage
+package test
 
 import (
 	"context"
 	"errors"
+	"minik8s/pkgs/apiserver/storage"
 	"testing"
 )
 
@@ -13,7 +14,7 @@ type MyStruct struct {
 
 func TestStorage(t *testing.T) {
 	// test create
-	etcdStorage := CreateEtcdStorage([]string{"localhost:2380"})
+	etcdStorage := storage.CreateEtcdStorage([]string{"localhost:2380"})
 	var key1 = "key1"
 	var key2 = "key2"
 

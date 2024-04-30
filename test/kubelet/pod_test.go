@@ -52,21 +52,21 @@ func TestPodBasicTest(t *testing.T) {
 		},
 		Status: core.PodStatus{},
 	}
-	err := controller.CreatePod(&podConfig)
+	err := kubeletcontroller.CreatePod(&podConfig)
 	if err != nil {
-		_ = controller.StopPod(podConfig)
+		_ = kubeletcontroller.StopPod(podConfig)
 		t.Errorf("run pod error: %s", err.Error())
 	}
 	res2, err := utils.NerdTest("ps", "-a")
 	res1, err := utils.NerdTest("ps")
 	logger.Infof("ps output:\n%s\nps -a output:\n%s\n", res1, res2)
 
-	_ = controller.StopPod(podConfig)
+	_ = kubeletcontroller.StopPod(podConfig)
 }
 
 func TestPodLocalhostTest(t *testing.T) {
 	podConfig := GeneratePodConfigPy()
-	err := controller.CreatePod(&podConfig)
+	err := kubeletcontroller.CreatePod(&podConfig)
 	if err != nil {
 		t.Errorf("run pod error: %s", err.Error())
 		//t.Errorf("run pod error: %s", err.Error())
@@ -75,5 +75,5 @@ func TestPodLocalhostTest(t *testing.T) {
 	res1, err := utils.NerdTest("ps")
 	t.Logf("ps output:\n%s\nps -a output:\n%s\n", res1, res2)
 	time.Sleep(2 * time.Second)
-	_ = controller.StopPod(podConfig)
+	_ = kubeletcontroller.StopPod(podConfig)
 }

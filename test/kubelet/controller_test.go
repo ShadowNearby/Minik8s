@@ -9,31 +9,31 @@ import (
 
 func TestInspectPod(t *testing.T) {
 	podConfig := GeneratePodConfigPy()
-	err := controller.CreatePod(&podConfig)
+	err := kubeletcontroller.CreatePod(&podConfig)
 	if err != nil {
-		_ = controller.StopPod(podConfig)
+		_ = kubeletcontroller.StopPod(podConfig)
 		t.Errorf("cannot create pod")
 		return
 	}
-	controller.InspectPod(&podConfig, runtime.ExecProbe)
+	kubeletcontroller.InspectPod(&podConfig, runtime.ExecProbe)
 
 	time.Sleep(6 * time.Second)
 
-	controller.InspectPod(&podConfig, runtime.ExecProbe)
+	kubeletcontroller.InspectPod(&podConfig, runtime.ExecProbe)
 
-	_ = controller.StopPod(podConfig)
+	_ = kubeletcontroller.StopPod(podConfig)
 }
 
 func TestMetricsTest(t *testing.T) {
 	podConfig := GeneratePodConfigPy()
-	err := controller.CreatePod(&podConfig)
+	err := kubeletcontroller.CreatePod(&podConfig)
 	//err := resources.CreatePod(&podConfig, nil, nil, nil)
 	if err != nil {
 		t.Errorf("cannot create pod")
-		controller.StopPod(podConfig)
+		kubeletcontroller.StopPod(podConfig)
 		return
 	}
-	_ = controller.NodeMetrics()
+	_ = kubeletcontroller.NodeMetrics()
 	//text := utils.JsonMarshal(stat)
-	controller.StopPod(podConfig)
+	kubeletcontroller.StopPod(podConfig)
 }

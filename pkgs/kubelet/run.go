@@ -24,7 +24,7 @@ func Run(config core.KubeletConfig, addr string) {
 	go func() {
 		for {
 			for _, podConfig := range runtime.KubeletInstance.PodConfigMap {
-				controller.InspectPod(podConfig, runtime.ExecProbe)
+				kubeletcontroller.InspectPod(&podConfig, runtime.ExecProbe)
 			}
 			time.Sleep(5 * time.Second)
 		}

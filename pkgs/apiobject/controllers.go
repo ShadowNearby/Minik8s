@@ -26,3 +26,28 @@ type Service struct {
 	Spec      ServiceSpec   `json:"spec" yaml:"spec"`
 	Status    ServiceStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
+
+/*---------------------------------ReplicaSet Types--------------------------------*/
+
+type ReplicaSet struct {
+	ApiVersion string           `yaml:"apiVersion" json:"apiVersion"`
+	Kind       string           `yaml:"kind" json:"kind"`
+	MetaData   MetaData         `yaml:"metaData" json:"metaData"`
+	Spec       ReplicaSetSpec   `yaml:"spec" json:"spec"`
+	Status     ReplicaSetStatus `yaml:"status" json:"status"`
+}
+
+type ReplicaSetSpec struct {
+	Replicas int                `yaml:"replicas" json:"replicas"`
+	Selector Selector           `yaml:"selector" json:"selector"`
+	Template ReplicaSetTemplate `yaml:"template" json:"template"`
+}
+
+type ReplicaSetTemplate struct {
+	MetaData MetaData `yaml:"metaData" json:"metaData"`
+	Spec     PodSpec  `yaml:"spec" json:"spec"`
+}
+
+type ReplicaSetStatus struct {
+	RealReplicas int `json:"realReplicas" yaml:"realReplicas"`
+}

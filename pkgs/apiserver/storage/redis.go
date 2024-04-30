@@ -17,12 +17,12 @@ type Redis struct {
 var ctx = context.Background()
 
 const (
-	ChannelNewPod    string = "NEW_POD"
-	ChannelUpdatePod string = "UPDATE_POD"
-	ChannelNode      string = "NODE"
-	ChannelPod       string = "POD"
-	ChannelService   string = "SERVICE"
-	ChannelReplica   string = "REPLICASET"
+	ChannelNewPod        string = "NEW_POD"
+	ChannelUpdatePod     string = "UPDATE_POD"
+	ChannelNode          string = "NODE"
+	ChannelService       string = "SERVICE"
+	ChannelNewReplica    string = "NEW_REPLICA"
+	ChannelUpdateReplica string = "UPDATE_REPLICA"
 )
 
 const (
@@ -39,7 +39,7 @@ func createRedisClient() *redis.Client {
 }
 
 func (r *Redis) InitChannels() {
-	channels := []string{ChannelNewPod, ChannelUpdatePod, ChannelNode, ChannelReplica, ChannelService}
+	channels := []string{ChannelNewPod, ChannelUpdatePod, ChannelNode, ChannelNewReplica, ChannelService, ChannelUpdateReplica}
 	for _, channel := range channels {
 		r.CreateChannel(channel)
 	}

@@ -1,12 +1,6 @@
 package core
 
-type ObjType string
-
-const (
-	ObjPod        ObjType = "pod"
-	ObjNode       ObjType = "node"
-	ObjReplicaSet ObjType = "replicaSet"
-)
+import "minik8s/pkgs/config"
 
 type MetaData struct {
 	Name            string            `json:"name" yaml:"name"`
@@ -19,4 +13,10 @@ type MetaData struct {
 }
 type Selector struct {
 	MatchLabels map[string]string `yaml:"matchLabels" json:"matchLabels"`
+}
+type OwnerReference struct {
+	ObjType    config.ObjType `json:"objType"`
+	Name       string         `json:"name"`
+	NameSpace  string         `json:"nameSpace"`
+	Controller bool           `yaml:"controller"`
 }

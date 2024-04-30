@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 	core "minik8s/pkgs/apiobject"
 
-	"minik8s/pkgs/kubeclt"
+	"minik8s/pkgs/kubectl"
 	"minik8s/utils"
 	"os"
 )
@@ -41,7 +41,7 @@ func applyHandler(cmd *cobra.Command, args []string) {
 		return
 	}
 	// 解析API对象的种类
-	kind, err := kubeclt.GetApiKindFromYamlFile(fileContent)
+	kind, err := kubectl.GetApiKindFromYamlFile(fileContent)
 
 	if err != nil {
 		log.Fatal(err)
@@ -65,7 +65,7 @@ func applyHandler(cmd *cobra.Command, args []string) {
 }
 func applyPodHandler(fileContent []byte) {
 	var pod core.Pod
-	err := kubeclt.ParseApiObjectFromYamlFile(fileContent, &pod)
+	err := kubectl.ParseApiObjectFromYamlFile(fileContent, &pod)
 	log.Debug(pod)
 	if err != nil {
 		log.Error("apply Pod", "parse yaml failed", err.Error())
@@ -85,7 +85,7 @@ func applyPodHandler(fileContent []byte) {
 }
 func applyServiceHandler(fileContent []byte) {
 	var service core.Service
-	err := kubeclt.ParseApiObjectFromYamlFile(fileContent, &service)
+	err := kubectl.ParseApiObjectFromYamlFile(fileContent, &service)
 	log.Debug(service)
 	if err != nil {
 		log.Error("apply Pod", "parse yaml failed", err.Error())

@@ -49,7 +49,11 @@ func CreateAPIServer(endpoints []string) *APIServer {
 	if s == nil {
 		return nil
 	}
-	return &APIServer{HttpServer: gin.Default(), EtcdStorage: s}
+	return &APIServer{
+		HttpServer:   gin.Default(),
+		EtcdStorage:  s,
+		RedisStorage: storage.RedisInstance,
+	}
 }
 
 func bgTask() {
