@@ -22,9 +22,11 @@ type ServiceSpec struct {
 }
 
 type Service struct {
-	BasicInfo `json:",inline" yaml:",inline"`
-	Spec      ServiceSpec   `json:"spec" yaml:"spec"`
-	Status    ServiceStatus `json:"status,omitempty" yaml:"status,omitempty"`
+	BasicInfo  `json:",inline" yaml:",inline"`
+	ApiVersion string        `yaml:"apiVersion,omitempty"`
+	MetaData   MetaData      `yaml:"metadata,omitempty"`
+	Spec       ServiceSpec   `json:"spec" yaml:"spec"`
+	Status     ServiceStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 /*---------------------------------ReplicaSet Types--------------------------------*/

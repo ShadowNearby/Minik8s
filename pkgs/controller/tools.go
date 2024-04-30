@@ -3,13 +3,14 @@ package controller
 import (
 	"fmt"
 	logger "github.com/sirupsen/logrus"
+	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/config"
 	"minik8s/utils"
 	"net/http"
 	"strings"
 )
 
-func GetObject(objType config.ObjType, namespace string, name string) string {
+func GetObject(objType core.ObjType, namespace string, name string) string {
 	if namespace == "" {
 		namespace = "default"
 	}
@@ -30,12 +31,13 @@ func GetObject(objType config.ObjType, namespace string, name string) string {
 	}
 }
 
-func CreateObject(objType config.ObjType, namespace string, object any) error {
+func CreateObject(objType core.ObjType, namespace string, object any) error {
 	if namespace == "" {
 		namespace = "default"
 	}
 	var url string
 	objectTxt := utils.JsonMarshal(object)
+	logger.Debugln(objectTxt)
 	url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s",
 		config.LocalServerIp, config.ApiServerPort, namespace, objType)
 	if code, info, err := utils.SendRequest("POST", url, []byte(objectTxt)); err != nil || code != http.StatusOK {
@@ -46,7 +48,7 @@ func CreateObject(objType config.ObjType, namespace string, object any) error {
 	}
 }
 
-func DeleteObject(objType config.ObjType, namespace string, name string) error {
+func DeleteObject(objType core.ObjType, namespace string, name string) error {
 	if namespace == "" {
 		namespace = "default"
 	}
