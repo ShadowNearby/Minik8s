@@ -1,44 +1,44 @@
 package cmd
 
 import (
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/wxnacy/wgo/arrays"
 	core "minik8s/pkgs/apiobject"
-	"minik8s/utils"
+	"minik8s/pkgs/controller"
+	"strings"
 )
 
 var getCmd = &cobra.Command{
-	Use:   "get",
+	Use:   "get <resource> <name>/ get <resource>s",
 	Short: "Display one or many resources",
 	Long:  "Display one or many resources",
+	Args:  cobra.RangeArgs(1, 2),
 	Run:   getHandler,
 }
 
 func getHandler(cmd *cobra.Command, args []string) {
-	if len(args) == 0 {
-		log.Fatal("resource name is required")
-		cmd.Usage()
-		return
-	}
-	kind := args[0]
-	if len(args) == 1 {
-		if kind == core.NodeKind {
-			getNodes()
-			return
+	var kind string
+	if len(args) == 2 {
+		kind = strings.ToLower(args[0])
+		name := strings.ToLower(args[1])
+		/* validate if `kind` is in the resource list */
+		if idx := arrays.ContainsString(core.ObjTypeAll, kind); idx != -1 {
+			objType := core.ObjType(kind + "s")
+			res := controller.GetObject(objType, "", name)
+			log.Infoln(res)
+		} else if len(args) == 1 {
+			kind = strings.ToLower(args[0])
+			kind = kind[0 : len(kind)-1]
+			/* validate if `kind` is in the resource list */
+			if idx := arrays.ContainsString(core.ObjTypeAll, kind); idx != -1 {
+				objType := core.ObjType(kind)
+				res := controller.GetObject(objType, "", "")
+				log.Infoln(res)
+			}
+		} else {
+			fmt.Printf("error: the server doesn't have a resource type \"%s\"", kind)
 		}
 	}
-}
-
-func getNodes() {
-	url := utils.ParseUrlMany(core.NodeKind, "nil")
-	statusCode, bodyJson, err := utils.GetByTarget(url)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if statusCode != 200 {
-		log.Fatal("status code is :", statusCode)
-	} else {
-		log.Infoln(bodyJson)
-	}
-
 }

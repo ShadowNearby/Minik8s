@@ -4,6 +4,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	core "minik8s/pkgs/apiobject"
+	"minik8s/pkgs/controller"
 	"minik8s/pkgs/kubectl"
 	"minik8s/utils"
 	"os"
@@ -36,14 +37,14 @@ func deleteHandler(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 		return
 	}
-	kind, err := kubectl.GetApiKindFromYamlFile(fileContent)
+	objType, err := kubectl.GetObjTypeFromYamlFile(fileContent)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
-	structType, res := core.KindToStructType[kind]
+	structType, res := core.ObjTypeToCoreObjMap[objType]
 	if !res {
-		log.Error("Unsupported kind", kind)
+		log.Error("Unsupported struct", objType)
 		return
 	}
 	object := reflect.New(structType).Interface().(core.ApiObjectKind)
@@ -51,14 +52,6 @@ func deleteHandler(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	_url := utils.ParseUrlOne(kind, object.GetObjectName(), object.GetObjectNamespace())
-	statusCode, err := utils.DelRequest(_url)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if statusCode != 200 {
-		log.Error("delete Pod", "create task request failed")
-	} else {
-		log.Info("delete Pod", "create task request success")
-	}
+	err = controller.DeleteObject(objType, object.GetNameSpace(), object.GetNameSpace())
+
 }

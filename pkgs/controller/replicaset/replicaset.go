@@ -6,7 +6,6 @@ import (
 	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/apiserver/storage"
-	"minik8s/pkgs/config"
 	"minik8s/pkgs/constants"
 	"minik8s/pkgs/controller"
 	"minik8s/utils"
@@ -40,7 +39,7 @@ func (rsc *ReplicaSetController) deleteReplicas(key string) error {
 	if err != nil {
 		return err
 	}
-	replicaTxt := controller.GetObject(config.ObjReplicaSet, namespace, name)
+	replicaTxt := controller.GetObject(core.ObjReplicaSet, namespace, name)
 	if replicaTxt == "" {
 		return errors.New("cannot get replica")
 	} /* delete in storage after clear pods*/
@@ -58,7 +57,7 @@ func (rsc *ReplicaSetController) syncReplicas(key string) error {
 	if err != nil {
 		return err
 	}
-	replicaTxt := controller.GetObject(config.ObjReplicaSet, namespace, name)
+	replicaTxt := controller.GetObject(core.ObjReplicaSet, namespace, name)
 	if replicaTxt == "" {
 		return errors.New("cannot get replica")
 	} /* redis and etcd has store the replica */
@@ -76,7 +75,7 @@ func (rsc *ReplicaSetController) syncReplicas(key string) error {
 
 func (rsc *ReplicaSetController) manageDelReplicas(rs *core.ReplicaSet) error {
 	var pods = make([]core.Pod, 0)
-	podListTxt := controller.GetObject(config.ObjPod, rs.MetaData.NameSpace, "")
+	podListTxt := controller.GetObject(core.ObjPod, rs.MetaData.NameSpace, "")
 	if podListTxt == "" {
 		return errors.New("cannot get pods")
 	}
@@ -86,7 +85,7 @@ func (rsc *ReplicaSetController) manageDelReplicas(rs *core.ReplicaSet) error {
 	}
 	targets := rsc.filterOwners(&pods, rs)
 	for _, target := range targets {
-		err = controller.DeleteObject(config.ObjPod, target.MetaData.NameSpace, target.MetaData.Name)
+		err = controller.DeleteObject(core.ObjPod, target.MetaData.NameSpace, target.MetaData.Name)
 		if err != nil {
 			logger.Errorf("delete object error: %s", err.Error())
 			return err
@@ -98,7 +97,7 @@ func (rsc *ReplicaSetController) manageDelReplicas(rs *core.ReplicaSet) error {
 func (rsc *ReplicaSetController) manageReplicas(rs *core.ReplicaSet) error {
 	// first get pods within the rsc namespace
 	var pods = make([]core.Pod, 0)
-	podsListTxt := controller.GetObject(config.ObjPod, rs.MetaData.NameSpace, "")
+	podsListTxt := controller.GetObject(core.ObjPod, rs.MetaData.NameSpace, "")
 	if podsListTxt == "" {
 		return errors.New("cannot get pods")
 	}
@@ -119,7 +118,7 @@ func (rsc *ReplicaSetController) manageReplicas(rs *core.ReplicaSet) error {
 		setController(&pod, rs)
 		ops := rs.Spec.Replicas - len(targets)
 		for i := 0; i < ops; i++ {
-			err = controller.CreateObject(config.ObjPod, rs.MetaData.NameSpace, pod)
+			err = controller.CreateObject(core.ObjPod, rs.MetaData.NameSpace, pod)
 			if err != nil {
 				return err
 			}
@@ -134,7 +133,7 @@ func (rsc *ReplicaSetController) filterOwners(origin *[]core.Pod, rs *core.Repli
 	for _, pod := range *origin {
 		or := pod.MetaData.OwnerReference
 		if or.Controller == true &&
-			or.ObjType == config.ObjReplicaSet &&
+			or.ObjType == core.ObjReplicaSet &&
 			or.NameSpace == rs.MetaData.NameSpace &&
 			or.Name == rs.MetaData.Name {
 			result = append(result, pod)
@@ -169,7 +168,7 @@ func (rsc *ReplicaSetController) selectPods(origin *[]core.Pod, rs *core.Replica
 
 func setController(pod *core.Pod, rs *core.ReplicaSet) {
 	pod.MetaData.OwnerReference.Controller = true
-	pod.MetaData.OwnerReference.ObjType = config.ObjReplicaSet
+	pod.MetaData.OwnerReference.ObjType = core.ObjReplicaSet
 	pod.MetaData.OwnerReference.Name = rs.MetaData.Name
 	pod.MetaData.OwnerReference.NameSpace = rs.MetaData.NameSpace
 }
