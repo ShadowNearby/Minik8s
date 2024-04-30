@@ -27,7 +27,6 @@ var filePath string
 
 func Execute() {
 	if err := commands.Execute(); err != nil {
-
 		fmt.Println(err.Error())
 	} else {
 		fmt.Println("kubectl is for better control of minik8s")
