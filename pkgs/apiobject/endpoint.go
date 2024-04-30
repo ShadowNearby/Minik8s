@@ -17,7 +17,7 @@ type EndpointAddress struct {
 }
 
 type EndpointPort struct {
-	Port     int32  `json:"port" yaml:"port"`
+	Port     uint32 `json:"port" yaml:"port"`
 	Protocol string `json:"protocol" yaml:"protocol"`
 	Name     string `json:"name" yaml:"name"`
 }

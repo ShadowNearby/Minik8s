@@ -30,7 +30,7 @@ var EmptyContainerMetrics = ContainerMetrics{
 type PodStatus struct {
 	Phase            PhaseLabel        `json:"phase" yaml:"phase"`
 	HostIP           string            `json:"hostIP" yaml:"hostIP"` /* node name */
-	PodIPs           []string          `json:"podIPs" yaml:"podIPs"`
+	PodIP            string            `json:"podIP" yaml:"podIP"`
 	StartTime        time.Time         `yaml:"startTime"`
 	OldStatus        []Status          `json:"oldStatus"`
 	ContainersStatus []ContainerStatus `json:"containersStatus"`

@@ -66,7 +66,7 @@ func TestIPVS(t *testing.T) {
 			t.Fatalf("can not create image error: %s output: %s", err.Error(), output)
 			return
 		}
-		err = kubeproxy.CreateEndpoint(serviceIP, servicePort, serverIP, serverPort)
+		err = kubeproxy.BindEndpoint(serviceIP, servicePort, serverIP, serverPort)
 		if err != nil {
 			t.Fatalf("can not create endpoint error: %s", err.Error())
 			return
