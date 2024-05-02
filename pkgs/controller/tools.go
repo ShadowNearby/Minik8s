@@ -10,6 +10,25 @@ import (
 	"strings"
 )
 
+func SetObject(objType core.ObjType, namespace string, name string, obj any) error {
+	if namespace == "" {
+		namespace = "default"
+	}
+	var url string
+	objTxt := utils.JsonMarshal(obj)
+	if name == "" {
+		url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s", config.LocalServerIp, config.ApiServerPort, namespace, string(objType))
+
+	} else {
+		url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s/%s", config.LocalServerIp, config.ApiServerPort, namespace, string(objType), name)
+	}
+	if code, info, err := utils.SendRequest("POST", url, []byte(objTxt)); err != nil || code != http.StatusOK {
+		logger.Errorf("[set obj error]: %s", info)
+		return err
+	}
+	return nil
+}
+
 func GetObject(objType core.ObjType, namespace string, name string) string {
 	if namespace == "" {
 		namespace = "default"
@@ -37,7 +56,6 @@ func CreateObject(objType core.ObjType, namespace string, object any) error {
 	}
 	var url string
 	objectTxt := utils.JsonMarshal(object)
-	logger.Debugln(objectTxt)
 	url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s",
 		config.LocalServerIp, config.ApiServerPort, namespace, objType)
 	if code, info, err := utils.SendRequest("POST", url, []byte(objectTxt)); err != nil || code != http.StatusOK {
