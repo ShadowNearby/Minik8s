@@ -31,7 +31,7 @@ func CreateReplicaHandler(c *gin.Context) {
 		return
 	}
 	// channel
-	storage.RedisInstance.PublishMessage(storage.ChannelNewReplica, fmt.Sprintf("%s/%s", namespace, replica.MetaData.Name))
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelReplica, constants.ChannelCreate), utils.JsonMarshal(replica))
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }
 
@@ -81,23 +81,28 @@ func DeleteReplicaHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "expect replica set name in path"})
 		return
 	}
-	err := storage.Del(fmt.Sprintf("/replicas/object/%s/%s", namespace, name))
-	storage.RedisInstance.PublishMessage(
-		constants.GenerateChannelName(constants.ChannelReplica, constants.ChannelDelete),
-		fmt.Sprintf("%s/%s", namespace, name))
+	var replicaset core.ReplicaSet
+	err := storage.Get(fmt.Sprintf("/replicas/object/%s/%s", namespace, name), &replicaset)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no such replica set"})
+		return
+	}
+	err = storage.Del(fmt.Sprintf("/replicas/object/%s/%s", namespace, name))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot del data"})
 		return
 	}
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelReplica, constants.ChannelDelete), utils.JsonMarshal(replicaset))
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }
 
 // UpdateReplicaHandler PUT /api/v1/namespaces/:namespace/replicas/:name
 func UpdateReplicaHandler(c *gin.Context) {
-	var replica core.ReplicaSet
+	var newReplica core.ReplicaSet
+	var oldReplica core.ReplicaSet
 	namespace := c.Param("namespace")
 	name := c.Param("name")
-	err := c.Bind(&replica)
+	err := c.Bind(&newReplica)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "expect replica set type"})
 		return
@@ -106,17 +111,25 @@ func UpdateReplicaHandler(c *gin.Context) {
 		namespace = "default"
 	}
 	// check
-	if namespace != replica.MetaData.NameSpace || name != replica.MetaData.Name {
+	if namespace != newReplica.MetaData.NameSpace || name != newReplica.MetaData.Name {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "path info should same as replica info"})
 		return
 	}
 	rsName := fmt.Sprintf("/replicas/object/%s/%s", namespace, name)
-	err = storage.Put(rsName, utils.JsonMarshal(replica))
+	err = storage.Get(rsName, &oldReplica)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "not old replicaset"})
+		return
+	}
+	err = storage.Put(rsName, utils.JsonMarshal(newReplica))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot put data"})
 		return
 	}
 	// channel
-	storage.RedisInstance.PublishMessage(storage.ChannelUpdateReplica, fmt.Sprintf("%s/%s", namespace, name))
+	replicas := make([]core.ReplicaSet, 2)
+	replicas[0] = oldReplica
+	replicas[1] = newReplica
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelReplica, constants.ChannelUpdate), utils.JsonMarshal(replicas))
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }
