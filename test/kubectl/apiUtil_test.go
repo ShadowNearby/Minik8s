@@ -3,7 +3,7 @@ package test
 import (
 	log "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
-	"minik8s/pkgs/kubectl"
+	"minik8s/pkgs/kubectl/api"
 	"minik8s/utils"
 	"testing"
 )
@@ -14,7 +14,7 @@ func TestGetApiKindFromYamlFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	// 把文件内容转换成API对象
-	kind, err := kubectl.GetObjTypeFromYamlFile(content)
+	kind, err := api.GetObjTypeFromYamlFile(content)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -26,7 +26,7 @@ func TestGetApiKindFromYamlFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	// 把文件内容转换成API对象
-	kind, err = kubectl.GetObjTypeFromYamlFile(content)
+	kind, err = api.GetObjTypeFromYamlFile(content)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,7 +35,7 @@ func TestGetApiKindFromYamlFile(t *testing.T) {
 	}
 	content, err = utils.ReadFile("../files/service.yaml")
 	// 把文件内容转换成API对象
-	kind, err = kubectl.GetObjTypeFromYamlFile(content)
+	kind, err = api.GetObjTypeFromYamlFile(content)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,11 +49,11 @@ func TestGetObjectFromYamlFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	// 把文件内容转换成API对象
-	kind, err := kubectl.GetObjTypeFromYamlFile(content)
+	kind, err := api.GetObjTypeFromYamlFile(content)
 	if err != nil {
 		t.Fatal(err)
 	}
-	obj := kubectl.ParseApiObjectFromYamlFile(content, kind)
+	obj := api.ParseApiObjectFromYamlFile(content, kind)
 	log.Println(obj)
 
 }

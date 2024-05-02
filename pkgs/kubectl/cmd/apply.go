@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/controller"
-	"minik8s/pkgs/kubectl"
+	"minik8s/pkgs/kubectl/api"
 	"minik8s/utils"
 	"os"
 	"reflect"
@@ -40,7 +40,7 @@ func applyHandler(cmd *cobra.Command, args []string) {
 		return
 	}
 	// 解析API对象的种类
-	objType, err := kubectl.GetObjTypeFromYamlFile(fileContent)
+	objType, err := api.GetObjTypeFromYamlFile(fileContent)
 	if err != nil {
 		log.Fatal(err)
 		return

@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/controller"
-	"minik8s/pkgs/kubectl"
+	"minik8s/pkgs/kubectl/api"
 	"minik8s/utils"
 	"os"
 	"reflect"
@@ -37,7 +37,7 @@ func deleteHandler(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 		return
 	}
-	objType, err := kubectl.GetObjTypeFromYamlFile(fileContent)
+	objType, err := api.GetObjTypeFromYamlFile(fileContent)
 	if err != nil {
 		log.Fatal(err)
 		return
@@ -48,7 +48,7 @@ func deleteHandler(cmd *cobra.Command, args []string) {
 		return
 	}
 	object := reflect.New(structType).Interface().(core.ApiObjectKind)
-	err = kubectl.ParseApiObjectFromYamlFile(fileContent, object)
+	err = api.ParseApiObjectFromYamlFile(fileContent, object)
 	if err != nil {
 		log.Fatal(err)
 	}
