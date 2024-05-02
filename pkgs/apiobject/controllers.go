@@ -6,10 +6,10 @@ type ServiceStatus struct {
 
 type ServicePort struct {
 	Name       string `yaml:"name"`
-	Port       int    `yaml:"port"`
-	NodePort   int    `yaml:"nodePort"`
+	Port       uint32 `yaml:"port"`
+	NodePort   uint32 `yaml:"nodePort"`
 	Protocol   string `yaml:"protocol"`
-	TargetPort int    `yaml:"targetPort"`
+	TargetPort string `yaml:"targetPort"`
 }
 
 type ServiceSpec struct {
@@ -18,15 +18,12 @@ type ServiceSpec struct {
 	AllocateLoadBalancerNodePorts bool              `yaml:"allocateLoadBalancerNodePorts"`
 	Type                          string            `yaml:"type"`
 	ClusterIP                     string            `yaml:"clusterIp"`
-	ClusterIPs                    []string          `yaml:"clusterIps"`
 }
 
 type Service struct {
-	BasicInfo  `json:",inline" yaml:",inline"`
-	ApiVersion string        `yaml:"apiVersion,omitempty"`
-	MetaData   MetaData      `yaml:"metadata,omitempty"`
-	Spec       ServiceSpec   `json:"spec" yaml:"spec"`
-	Status     ServiceStatus `json:"status,omitempty" yaml:"status,omitempty"`
+	BasicInfo `json:",inline" yaml:",inline"`
+	Spec      ServiceSpec   `json:"spec" yaml:"spec"`
+	Status    ServiceStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 /*---------------------------------ReplicaSet Types--------------------------------*/

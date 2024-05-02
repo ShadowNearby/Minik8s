@@ -16,6 +16,7 @@ const (
 	ObjFunction   ObjType = "function"
 	ObjWorkflow   ObjType = "workflow"
 	ObjDeployment ObjType = "deployment"
+	ObjEndPoint   ObjType = "endpoint"
 )
 
 var ObjTypeAll = []string{
