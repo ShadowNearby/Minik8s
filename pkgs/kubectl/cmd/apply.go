@@ -19,22 +19,18 @@ var applyCmd = &cobra.Command{
 }
 
 func applyHandler(cmd *cobra.Command, args []string) {
-	if len(args) != 1 {
-		log.Fatal("kubectl apply f [file] is required")
-		return
-	}
 	// 检查参数是否是文件 读取文件
-	fileInfo, err := os.Stat(args[0])
+	fileInfo, err := os.Stat(filePath)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 	if fileInfo.IsDir() {
-		log.Errorf("%s is not a file", args[0])
+		log.Errorf("%s is not a file", filePath)
 		return
 	}
 	// 读取文件的内容
-	fileContent, err := utils.ReadFile(args[0])
+	fileContent, err := utils.ReadFile(filePath)
 	if err != nil {
 		log.Fatal(err)
 		return
