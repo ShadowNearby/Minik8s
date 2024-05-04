@@ -5,7 +5,6 @@ import (
 	"fmt"
 	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
-	"minik8s/pkgs/apiserver/storage"
 	"minik8s/pkgs/constants"
 	"minik8s/pkgs/controller"
 	"minik8s/utils"
@@ -19,14 +18,14 @@ func (rsc *ReplicaSetController) GetChannel() string {
 }
 
 func (rsc *ReplicaSetController) HandleCreate(key string) error {
-	err := rsc.syncReplicas(key)
+	err := rsc.createReplicas(key)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 func (rsc *ReplicaSetController) HandleUpdate(key string) error {
-	err := rsc.syncReplicas(key)
+	err := rsc.updateReplicas(key)
 	return err
 }
 func (rsc *ReplicaSetController) HandleDelete(key string) error {
@@ -34,42 +33,102 @@ func (rsc *ReplicaSetController) HandleDelete(key string) error {
 	return err
 }
 
-func (rsc *ReplicaSetController) deleteReplicas(key string) error {
-	namespace, name, err := controller.SplitChannelInfo(key)
-	if err != nil {
-		return err
-	}
-	replicaTxt := controller.GetObject(core.ObjReplicaSet, namespace, name)
-	if replicaTxt == "" {
-		return errors.New("cannot get replica")
-	} /* delete in storage after clear pods*/
+func (rsc *ReplicaSetController) deleteReplicas(info string) error {
 	var replica core.ReplicaSet
-	err = utils.JsonUnMarshal(replicaTxt, &replica)
+	err := utils.JsonUnMarshal(info, &replica)
 	if err != nil {
 		return err
 	}
-	err = storage.Del(fmt.Sprintf("/replicas/object/%s/%s", namespace, name))
+	err = rsc.manageDelReplicas(&replica)
+	return err
+	//err = storage.Del(fmt.Sprintf("/replicas/object/%s/%s", replica.MetaData.NameSpace, replica.MetaData.Name))
+}
+
+func (rsc *ReplicaSetController) createReplicas(info string) error {
+	var replica core.ReplicaSet
+	err := utils.JsonUnMarshal(info, &replica)
+	if err != nil {
+		return err
+	}
+	err = rsc.manageCreateReplicas(&replica)
+	if err != nil {
+		return err
+	}
+	// update the replicaset status
+	err = controller.SetObject(core.ObjReplicaSet, replica.MetaData.NameSpace, replica.MetaData.Name, replica)
 	return err
 }
 
-func (rsc *ReplicaSetController) syncReplicas(key string) error {
-	namespace, name, err := controller.SplitChannelInfo(key)
+func (rsc *ReplicaSetController) updateReplicas(info string) error {
+	var replicas []core.ReplicaSet
+	err := utils.JsonUnMarshal(info, &replicas)
+
 	if err != nil {
 		return err
 	}
-	replicaTxt := controller.GetObject(core.ObjReplicaSet, namespace, name)
-	if replicaTxt == "" {
-		return errors.New("cannot get replica")
-	} /* redis and etcd has store the replica */
-	var replica core.ReplicaSet
-	err = utils.JsonUnMarshal(replicaTxt, &replica)
+	if len(replicas) < 2 {
+		return fmt.Errorf("not enough replica info")
+	}
+	err = rsc.manageUpdateReplicas(&replicas[0], &replicas[1])
 	if err != nil {
 		return err
 	}
-	err = rsc.manageReplicas(&replica)
-	if err != nil {
-		return err
+	err = controller.SetObject(core.ObjReplicaSet, replicas[1].MetaData.NameSpace, replicas[1].MetaData.Name, replicas[1])
+	return err
+}
+
+func (rsc *ReplicaSetController) manageUpdateReplicas(oldRs *core.ReplicaSet, newRs *core.ReplicaSet) error {
+	if oldRs.MetaData.NameSpace != newRs.MetaData.NameSpace {
+		err := rsc.manageDelReplicas(oldRs)
+		if err != nil {
+			return err
+		}
+		err = rsc.manageCreateReplicas(newRs)
+		if err != nil {
+			return err
+		}
+	} else {
+		var pods = make([]core.Pod, 0)
+		podsListTxt := controller.GetObject(core.ObjPod, newRs.MetaData.NameSpace, "")
+		if podsListTxt == "" {
+			return errors.New("cannot get pods")
+		}
+		err := utils.JsonUnMarshal(podsListTxt, &pods)
+		if err != nil {
+			return err
+		}
+		targets := rsc.filterOwners(&pods, newRs)
+		newRs.Status.RealReplicas = len(targets)
+		if len(targets) > newRs.Spec.Replicas {
+			// delete pods
+			for _, pod := range targets[newRs.Spec.Replicas:] {
+				err := controller.DeleteObject(core.ObjPod, pod.MetaData.NameSpace, pod.MetaData.Name)
+				if err != nil {
+					logger.Errorf("delete pod error: %s", err.Error())
+				}
+				newRs.Status.RealReplicas--
+			}
+		} else if len(targets) < newRs.Spec.Replicas {
+			// create pods
+			pod := core.Pod{
+				ApiVersion: newRs.ApiVersion,
+				MetaData:   newRs.MetaData,
+				Spec:       newRs.Spec.Template.Spec,
+				Status:     core.PodStatus{},
+			}
+			setController(&pod, newRs)
+			ops := newRs.Spec.Replicas - len(targets)
+			for i := 0; i < ops; i++ {
+				err = controller.CreateObject(core.ObjPod, newRs.MetaData.NameSpace, pod)
+				if err != nil {
+					return err
+				}
+				newRs.Status.RealReplicas++
+			}
+		}
 	}
+	logger.Infof("updated replicas, real replica: %d, spec replica: %d", newRs.Status.RealReplicas, newRs.Spec.Replicas)
+
 	return nil
 }
 
@@ -84,17 +143,19 @@ func (rsc *ReplicaSetController) manageDelReplicas(rs *core.ReplicaSet) error {
 		return err
 	}
 	targets := rsc.filterOwners(&pods, rs)
+	rs.Status.RealReplicas = len(targets)
 	for _, target := range targets {
 		err = controller.DeleteObject(core.ObjPod, target.MetaData.NameSpace, target.MetaData.Name)
 		if err != nil {
 			logger.Errorf("delete object error: %s", err.Error())
 			return err
 		}
+		rs.Status.RealReplicas--
 	}
 	return nil
 }
 
-func (rsc *ReplicaSetController) manageReplicas(rs *core.ReplicaSet) error {
+func (rsc *ReplicaSetController) manageCreateReplicas(rs *core.ReplicaSet) error {
 	// first get pods within the rsc namespace
 	var pods = make([]core.Pod, 0)
 	podsListTxt := controller.GetObject(core.ObjPod, rs.MetaData.NameSpace, "")
@@ -107,6 +168,7 @@ func (rsc *ReplicaSetController) manageReplicas(rs *core.ReplicaSet) error {
 	}
 	// second filter the pods meets selector and don't have controller
 	targets := rsc.selectPods(&pods, rs)
+	rs.Status.RealReplicas = len(targets)
 	// if not enough, create new pods
 	if len(targets) < rs.Spec.Replicas {
 		pod := core.Pod{
@@ -122,7 +184,7 @@ func (rsc *ReplicaSetController) manageReplicas(rs *core.ReplicaSet) error {
 			if err != nil {
 				return err
 			}
-			targets = append(targets, pod)
+			rs.Status.RealReplicas++
 		}
 	}
 	return nil

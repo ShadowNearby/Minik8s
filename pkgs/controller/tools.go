@@ -57,7 +57,6 @@ func CreateObject(objType core.ObjType, namespace string, object any) error {
 	}
 	var url string
 	objectTxt := utils.JsonMarshal(object)
-	logger.Debugln(objectTxt)
 	url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s",
 		config.LocalServerIp, config.ApiServerPort, namespace, objType)
 	if code, info, err := utils.SendRequest("POST", url, []byte(objectTxt)); err != nil || code != http.StatusOK {

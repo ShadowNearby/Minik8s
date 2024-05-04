@@ -15,6 +15,9 @@ const (
 	ChannelDelete string = "DELETE"
 )
 
+var Channels = []string{ChannelNode, ChannelPod, ChannelService, ChannelReplica}
+var Operations = []string{ChannelCreate, ChannelUpdate, ChannelDelete}
+
 func GenerateChannelName(object string, chanType string) string {
 	return fmt.Sprintf("%s-%s", object, chanType)
 }

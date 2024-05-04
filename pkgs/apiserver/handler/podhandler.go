@@ -6,26 +6,27 @@ import (
 	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/apiserver/storage"
+	"minik8s/pkgs/constants"
 	"minik8s/utils"
 	"net/http"
 )
 
 // CreatePodHandler POST /api/v1/namespaces/:namespace/pods
 func CreatePodHandler(c *gin.Context) {
-	var podConfig core.Pod
-	err := c.Bind(&podConfig)
+	var pod core.Pod
+	err := c.Bind(&pod)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "needs pod config type"})
 		return
 	}
-	podName := fmt.Sprintf("/pods/object/%s/%s", podConfig.MetaData.NameSpace, podConfig.MetaData.Name)
-	err = storage.Put(podName, podConfig)
+	podName := fmt.Sprintf("/pods/object/%s/%s", pod.MetaData.NameSpace, pod.MetaData.Name)
+	err = storage.Put(podName, pod)
 	if err != nil {
 		logger.Errorf("put error: %s", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot store data"})
 		return
 	}
-	storage.RedisInstance.PublishMessage(storage.ChannelNewPod, podName)
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelPod, constants.ChannelCreate), pod)
 	c.JSON(http.StatusOK, gin.H{})
 }
 
@@ -86,20 +87,35 @@ func DeletePodHandler(c *gin.Context) {
 
 // UpdatePodHandler PUT /api/v1/namespaces/:namespace/pods/:name
 func UpdatePodHandler(c *gin.Context) {
-	var podConfig core.Pod
-	err := c.Bind(&podConfig)
+	var pod core.Pod
+	var oldPod core.Pod
+	namespace := c.Param("namespace")
+	name := c.Param("name")
+	err := c.Bind(&pod)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "needs pod config type"})
 		return
 	}
-	podName := fmt.Sprintf("/pods/object/%s/%s", podConfig.MetaData.NameSpace, podConfig.MetaData.Name)
-	err = storage.Put(podName, podConfig)
+	if namespace != pod.MetaData.NameSpace || name != pod.MetaData.Name {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "namespace and name should same as path"})
+		return
+	}
+	path := fmt.Sprintf("/pods/object/%s/%s", pod.MetaData.NameSpace, pod.MetaData.Name)
+	err = storage.Get(path, &oldPod)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get old pod"})
+		return
+	}
+	err = storage.Put(path, pod)
 	if err != nil {
 		logger.Errorf("put error: %s", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot store data"})
 		return
 	}
-	storage.RedisInstance.PublishMessage(storage.ChannelUpdatePod, podName)
+	pods := make([]core.Pod, 2)
+	pods[0] = oldPod
+	pods[1] = pod
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelPod, constants.ChannelUpdate), pods)
 	c.JSON(http.StatusOK, gin.H{})
 }
 
