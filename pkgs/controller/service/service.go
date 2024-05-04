@@ -2,7 +2,6 @@ package service
 
 import (
 	"encoding/json"
-	"errors"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/constants"
 	"minik8s/pkgs/controller"
@@ -14,6 +13,7 @@ import (
 const TotalIP = (1 << 8)
 
 var UsedIP = [TotalIP]bool{}
+var ServiceSelector = map[string]*core.Selector{}
 
 const IPPrefix = "10.10.0."
 
@@ -34,55 +34,62 @@ func (sc *ServiceController) HandleCreate(message string) error {
 	// creaete service and alloc ip
 	clusterIP := FindUnusedIP()
 	service.Spec.ClusterIP = clusterIP
+	controller.SetObject(core.ObjService, service.MetaData.NameSpace, service.MetaData.Name, service)
 	for _, port := range service.Spec.Ports {
 		kubeproxy.CreateService(clusterIP, uint32(port.Port))
 	}
+	PutSelector(service)
 
-	// get all pods
-	response := controller.GetObject(core.ObjPod, service.MetaData.NameSpace, "")
-	if response == "" {
-		err = errors.New("cannot get pods")
-		log.Errorf("get pod error: %s", err.Error())
-		return err
-	}
-	pods := []core.Pod{}
-	err = json.Unmarshal([]byte(response), &pods)
+	err = CreateEndpointObject(service)
 	if err != nil {
-		log.Errorf("unmarshal pods error: %s", err.Error())
+		log.Errorf("error in CreateEndpointObject")
 		return err
-	}
-
-	// select matched pods
-	selectedPods := []core.Pod{}
-	for _, pod := range pods {
-		if MatchLabel(service.Spec.Selector, pod.MetaData.Labels) {
-			selectedPods = append(selectedPods, pod)
-		}
-	}
-
-	for _, port := range service.Spec.Ports {
-		endpoint := kubeproxy.CreateEndpointObject(service, port.Port)
-		err := controller.CreateObject(core.ObjEndPoint, endpoint.MetaData.Name, endpoint)
-		if err != nil {
-			log.Errorf("create endpoint error: %s", err.Error())
-			return err
-		}
-		for _, pod := range selectedPods {
-			destPort := FindDestPort(port.TargetPort, pod.Spec.Containers)
-			kubeproxy.BindEndpoint(clusterIP, port.Port, pod.Status.PodIP, destPort)
-			log.Infof("create endpoint: %s:%d -> %s:%d", clusterIP, port.Port, pod.Status.PodIP, destPort)
-		}
-
 	}
 	return nil
 }
 
 func (sc *ServiceController) HandleUpdate(message string) error {
-	//TODO implement me
-	panic("implement me")
+	service := &core.Service{}
+	err := json.Unmarshal([]byte(message), service)
+	if err != nil {
+		log.Errorf("unmarshal service error: %s", err.Error())
+		return err
+	}
+	previousSelector := GetSelector(service)
+	if MatchLabel(previousSelector.MatchLabels, service.Spec.Selector.MatchLabels) {
+		return nil
+	}
+
+	err = DeleteEndpointObject(service)
+	if err != nil {
+		log.Errorf("error in UpdateEndpointObject")
+		return err
+	}
+	err = CreateEndpointObject(service)
+	if err != nil {
+		log.Errorf("error in UpdateEndpointObject")
+		return err
+	}
+
+	PutSelector(service)
+	return nil
 }
 
 func (sc *ServiceController) HandleDelete(message string) error {
-	//TODO implement me
-	panic("implement me")
+	service := &core.Service{}
+	err := json.Unmarshal([]byte(message), service)
+	if err != nil {
+		log.Errorf("unmarshal service error: %s", err.Error())
+		return err
+	}
+
+	DelSelector(service)
+
+	FreeUsedIP(service.Spec.ClusterIP)
+	err = DeleteEndpointObject(service)
+	if err != nil {
+		log.Errorf("error in DeleteEndpointObject")
+		return err
+	}
+	return nil
 }
