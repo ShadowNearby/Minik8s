@@ -2,7 +2,6 @@ package kubeproxy
 
 import (
 	"fmt"
-	core "minik8s/pkgs/apiobject"
 	"os/exec"
 	"strconv"
 
@@ -73,27 +72,4 @@ func UnbindEndpoint(serviceIP string, servicePort uint32, destIP string, destPor
 		return err
 	}
 	return nil
-}
-
-func CreateEndpointObject(service *core.Service, servicePort uint32) core.Endpoint {
-	return core.Endpoint{
-		MetaData: core.MetaData{
-			Name:      fmt.Sprintf("%s-%d", service.MetaData.Name, servicePort),
-			NameSpace: service.MetaData.NameSpace,
-		},
-		Subsets: []core.EndpointSubset{
-			{
-				Addresses: []core.EndpointAddress{
-					{
-						IP: service.Spec.ClusterIP,
-					},
-				},
-				Ports: []core.EndpointPort{
-					{
-						Port: servicePort,
-					},
-				},
-			},
-		},
-	}
 }

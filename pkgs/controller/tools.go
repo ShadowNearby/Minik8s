@@ -2,13 +2,33 @@ package controller
 
 import (
 	"fmt"
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/config"
 	"minik8s/utils"
 	"net/http"
 	"strings"
+
+	logger "github.com/sirupsen/logrus"
 )
+
+func SetObject(objType core.ObjType, namespace string, name string, obj any) error {
+	if namespace == "" {
+		namespace = "default"
+	}
+	var url string
+	objTxt := utils.JsonMarshal(obj)
+	if name == "" {
+		url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s", config.LocalServerIp, config.ApiServerPort, namespace, string(objType))
+
+	} else {
+		url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s/%s", config.LocalServerIp, config.ApiServerPort, namespace, string(objType), name)
+	}
+	if code, info, err := utils.SendRequest("PUT", url, []byte(objTxt)); err != nil || code != http.StatusOK {
+		logger.Errorf("[set obj error]: %s", info)
+		return err
+	}
+	return nil
+}
 
 func GetObject(objType core.ObjType, namespace string, name string) string {
 	if namespace == "" {
@@ -52,8 +72,7 @@ func DeleteObject(objType core.ObjType, namespace string, name string) error {
 	if namespace == "" {
 		namespace = "default"
 	}
-	var url string
-	url = fmt.Sprintf("http://%s:%s/api/v1/%s/%s/%s",
+	var url = fmt.Sprintf("http://%s:%s/api/v1/%s/%s/%s",
 		config.LocalServerIp, config.ApiServerPort, namespace, objType, name)
 	if code, info, err := utils.SendRequest("DELETE", url, make([]byte, 0)); err != nil || code != http.StatusOK {
 		logger.Errorf("[delete object error]: %s", info)
