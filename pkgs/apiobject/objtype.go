@@ -38,7 +38,6 @@ var ObjTypeToCoreObjMap = map[ObjType]reflect.Type{
 
 type ApiObjectKind interface {
 	GetNameSpace() string
-	GetObjectNamespace() string
 }
 
 func (p *Pod) GetNameSpace() string {
