@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/wxnacy/wgo/arrays"
 	core "minik8s/pkgs/apiobject"
-	"minik8s/pkgs/controller"
+	"minik8s/utils"
 	"strings"
 )
 
@@ -26,7 +26,7 @@ func describeHandler(cmd *cobra.Command, args []string) {
 		/* validate if `kind` is in the resource list */
 		if idx := arrays.ContainsString(core.ObjTypeAll, kind); idx != -1 {
 			objType := core.ObjType(kind + "s")
-			res := controller.GetObject(objType, "", name)
+			res := utils.GetObject(objType, "", name)
 			log.Infoln(res)
 		} else if len(args) == 1 {
 			kind = strings.ToLower(args[0])
@@ -34,7 +34,7 @@ func describeHandler(cmd *cobra.Command, args []string) {
 			/* validate if `kind` is in the resource list */
 			if idx := arrays.ContainsString(core.ObjTypeAll, kind); idx != -1 {
 				objType := core.ObjType(kind)
-				res := controller.GetObject(objType, "", "")
+				res := utils.GetObject(objType, "", "")
 				log.Infoln(res)
 			}
 		} else {

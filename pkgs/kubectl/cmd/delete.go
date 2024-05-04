@@ -4,7 +4,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	core "minik8s/pkgs/apiobject"
-	"minik8s/pkgs/controller"
 	"minik8s/pkgs/kubectl/api"
 	"minik8s/utils"
 	"os"
@@ -52,6 +51,6 @@ func deleteHandler(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = controller.DeleteObject(objType, object.GetNameSpace(), object.GetNameSpace())
+	err = utils.DeleteObject(objType, object.GetNameSpace(), object.GetNameSpace())
 
 }

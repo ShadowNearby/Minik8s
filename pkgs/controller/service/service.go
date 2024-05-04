@@ -5,8 +5,8 @@ import (
 	"errors"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/constants"
-	"minik8s/pkgs/controller"
 	"minik8s/pkgs/kubeproxy"
+	"minik8s/utils"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -39,7 +39,7 @@ func (sc *ServiceController) HandleCreate(message string) error {
 	}
 
 	// get all pods
-	response := controller.GetObject(core.ObjPod, service.MetaData.NameSpace, "")
+	response := utils.GetObject(core.ObjPod, service.MetaData.NameSpace, "")
 	if response == "" {
 		err = errors.New("cannot get pods")
 		log.Errorf("get pod error: %s", err.Error())
@@ -62,7 +62,7 @@ func (sc *ServiceController) HandleCreate(message string) error {
 
 	for _, port := range service.Spec.Ports {
 		endpoint := kubeproxy.CreateEndpointObject(service, port.Port)
-		err := controller.CreateObject(core.ObjEndPoint, endpoint.MetaData.Name, endpoint)
+		err := utils.CreateObject(core.ObjEndPoint, endpoint.MetaData.Name, endpoint)
 		if err != nil {
 			log.Errorf("create endpoint error: %s", err.Error())
 			return err

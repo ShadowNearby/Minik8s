@@ -5,7 +5,6 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 	core "minik8s/pkgs/apiobject"
-	"minik8s/pkgs/controller"
 	"minik8s/pkgs/kubectl/api"
 	"minik8s/utils"
 	"os"
@@ -51,7 +50,7 @@ func applyHandler(cmd *cobra.Command, args []string) {
 	err = yaml.Unmarshal(fileContent, object)
 	nameSpace := object.GetNameSpace()
 	log.Debugln(object)
-	err = controller.CreateObject(objType, nameSpace, object)
+	err = utils.CreateObject(objType, nameSpace, object)
 	if err != nil {
 		log.Fatal(err)
 	}
