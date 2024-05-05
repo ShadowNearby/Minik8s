@@ -30,10 +30,10 @@ type Service struct {
 
 type ReplicaSet struct {
 	ApiVersion string           `yaml:"apiVersion" json:"apiVersion"`
-	Kind       string           `yaml:"kind" json:"kind"`
-	MetaData   MetaData         `yaml:"metaData" json:"metaData"`
-	Spec       ReplicaSetSpec   `yaml:"spec" json:"spec"`
-	Status     ReplicaSetStatus `yaml:"status" json:"status"`
+	Kind       string           `yaml:"kind,omitempty" json:"kind"`
+	MetaData   MetaData         `yaml:"metaData,omitempty" json:"metaData"`
+	Spec       ReplicaSetSpec   `yaml:"spec,omitempty" json:"spec"`
+	Status     ReplicaSetStatus `yaml:"status,omitempty" json:"status"`
 }
 
 type ReplicaSetSpec struct {

@@ -130,13 +130,6 @@ type Taint struct {
 	Value  string `json:"value,omitempty"`
 	Effect string `json:"effect,omitempty"`
 }
-type AutoScale struct {
-	Name        string `yaml:"name"`
-	Workload    Pod    `yaml:"workload"`
-	MinReplicas int    `yaml:"minReplicas"`
-	MaxReplicas int    `yaml:"maxReplicas"`
-}
-
 type KubeletConfig struct {
 	MasterIP   string            `json:"masterIP"`
 	MasterPort string            `json:"masterPort"`

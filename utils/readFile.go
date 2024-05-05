@@ -11,7 +11,6 @@ func ReadFile(filePath string) ([]byte, error) {
 		return nil, err
 	}
 	defer fd.Close()
-
 	content, err := io.ReadAll(fd)
 
 	if err != nil {

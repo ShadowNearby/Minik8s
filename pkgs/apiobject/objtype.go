@@ -24,6 +24,7 @@ var ObjTypeAll = []string{
 	"node",
 	"replicaset",
 	"service",
+	"deployment",
 	"job",
 	"hpa",
 	"function",
@@ -34,6 +35,7 @@ var ObjTypeToCoreObjMap = map[ObjType]reflect.Type{
 	ObjNode:       reflect.TypeOf(&Node{}).Elem(),
 	ObjReplicaSet: reflect.TypeOf(&ReplicaSet{}).Elem(),
 	ObjService:    reflect.TypeOf(&Service{}).Elem(),
+	ObjDeployment: reflect.TypeOf(&ReplicaSet{}).Elem(),
 }
 
 type ApiObjectKind interface {
