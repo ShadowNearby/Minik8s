@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	logger "github.com/sirupsen/logrus"
+	"minik8s/pkgs/constants"
 	"reflect"
 )
 
@@ -15,15 +16,6 @@ type Redis struct {
 }
 
 var ctx = context.Background()
-
-const (
-	ChannelNewPod        string = "NEW_POD"
-	ChannelUpdatePod     string = "UPDATE_POD"
-	ChannelNode          string = "NODE"
-	ChannelService       string = "SERVICE"
-	ChannelNewReplica    string = "NEW_REPLICA"
-	ChannelUpdateReplica string = "UPDATE_REPLICA"
-)
 
 const (
 	OpDel string = "delete"
@@ -39,9 +31,10 @@ func createRedisClient() *redis.Client {
 }
 
 func (r *Redis) InitChannels() {
-	channels := []string{ChannelNewPod, ChannelUpdatePod, ChannelNode, ChannelNewReplica, ChannelService, ChannelUpdateReplica}
-	for _, channel := range channels {
-		r.CreateChannel(channel)
+	for _, channel := range constants.Channels {
+		for _, operation := range constants.Operations {
+			r.CreateChannel(constants.GenerateChannelName(channel, operation))
+		}
 	}
 }
 

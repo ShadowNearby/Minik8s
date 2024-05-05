@@ -13,11 +13,11 @@ type ServicePort struct {
 }
 
 type ServiceSpec struct {
-	Selector                      map[string]string `yaml:"selector"`
-	Ports                         []ServicePort     `yaml:"ports"`
-	AllocateLoadBalancerNodePorts bool              `yaml:"allocateLoadBalancerNodePorts"`
-	Type                          string            `yaml:"type"`
-	ClusterIP                     string            `yaml:"clusterIp"`
+	Selector                      Selector      `yaml:"selector"`
+	Ports                         []ServicePort `yaml:"ports"`
+	AllocateLoadBalancerNodePorts bool          `yaml:"allocateLoadBalancerNodePorts"`
+	Type                          string        `yaml:"type"`
+	ClusterIP                     string        `yaml:"clusterIp"`
 }
 
 type Service struct {
