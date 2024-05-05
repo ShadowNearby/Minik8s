@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/redis/go-redis/v9"
-	logger "github.com/sirupsen/logrus"
 	"minik8s/pkgs/constants"
 	"reflect"
+
+	"github.com/redis/go-redis/v9"
+	logger "github.com/sirupsen/logrus"
 )
 
 type Redis struct {
@@ -74,12 +75,12 @@ func (r *Redis) redisDel(keys ...string) error {
 }
 
 func (r *Redis) redisRangeOp(prefix string, op string) ([]any, error) {
-	logger.Printf("in redis range op")
+	logger.Debugf("in redis range op")
 	var cursor uint64 = 0
 	var keys []string
 	var vals []any
 	var err error
-	keys, cursor, err = r.Client.Scan(ctx, cursor, prefix+"*", 0).Result()
+	keys, _, err = r.Client.Scan(ctx, cursor, prefix+"*", 0).Result()
 	if err != nil {
 		logger.Fatalf("Error scanning keys: %s", err)
 		return nil, errors.New("cannot scanning keys")
@@ -96,9 +97,9 @@ func (r *Redis) redisRangeOp(prefix string, op string) ([]any, error) {
 	}
 	if err != nil {
 		logger.Fatalf("Error %s keys: %s", op, err)
-		return nil, errors.New(fmt.Sprintf("cannot %s", op))
+		return nil, fmt.Errorf("cannot %s", op)
 	}
-	logger.Printf("val len: %d", len(vals))
+	logger.Debugf("val len: %d", len(vals))
 	return vals, nil
 }
 
