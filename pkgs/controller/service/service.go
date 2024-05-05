@@ -60,7 +60,7 @@ func (sc *ServiceController) HandleUpdate(message string) error {
 		return nil
 	}
 
-	err = DeleteEndpointObject(service)
+	err = DeleteEndpointObject(service, nil)
 	if err != nil {
 		log.Errorf("error in UpdateEndpointObject")
 		return err
@@ -86,7 +86,7 @@ func (sc *ServiceController) HandleDelete(message string) error {
 	DelSelector(service)
 
 	FreeUsedIP(service.Spec.ClusterIP)
-	err = DeleteEndpointObject(service)
+	err = DeleteEndpointObject(service, nil)
 	if err != nil {
 		log.Errorf("error in DeleteEndpointObject")
 		return err

@@ -125,10 +125,20 @@ func CreateEndpointObject(service *core.Service) error {
 	return nil
 }
 
-func DeleteEndpointObject(service *core.Service) error {
+func DeleteEndpointObject(service *core.Service, pod *core.Pod) error {
 	for _, port := range service.Spec.Ports {
 		name := fmt.Sprintf("%s-%d", service.MetaData.Name, port.Port)
 		namespace := service.MetaData.NameSpace
+		if pod != nil {
+			response := controller.GetObject(core.ObjEndPoint, namespace, name)
+			if response == "" {
+				err := errors.New("cannot get endpoint")
+				log.Errorf("get endpoint error: %s", err.Error())
+				return err
+			}
+			// endpoint := core.Endpoint{}
+			// err := json.Unmarshal([]byte(response), &endpoint)
+		}
 		err := controller.DeleteObject(core.ObjEndPoint, namespace, name)
 		if err != nil {
 			log.Errorf("error in delete endpoint %s:%s", namespace, name)
@@ -136,4 +146,20 @@ func DeleteEndpointObject(service *core.Service) error {
 		}
 	}
 	return nil
+}
+
+func GetAllServiceObject(namespace string) ([]core.Service, error) {
+	response := controller.GetObject(core.ObjService, namespace, "")
+	if response == "" {
+		err := errors.New("cannot get services")
+		log.Errorf("get services error: %s", err.Error())
+		return nil, err
+	}
+	services := []core.Service{}
+	err := json.Unmarshal([]byte(response), &services)
+	if err != nil {
+		log.Errorf("unmarshal services error: %s", err.Error())
+		return nil, err
+	}
+	return services, nil
 }
