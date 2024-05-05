@@ -2,10 +2,11 @@ package server
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/apiserver/storage"
+
+	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 )
 
 type APIServer struct {
@@ -15,14 +16,14 @@ type APIServer struct {
 }
 
 func (s *APIServer) Run(addr string) error {
-	err := s.HttpServer.Run(addr)
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-	s.RedisStorage = storage.RedisInstance
-	s.RedisStorage.InitChannels()
-	go bgTask()
+	// err := s.HttpServer.Run(addr)
+	// if err != nil {
+	// 	log.Error(err)
+	// 	return err
+	// }
+	// s.RedisStorage = storage.RedisInstance
+	// s.RedisStorage.InitChannels()
+	// go bgTask()
 	select {}
 }
 
@@ -50,8 +51,8 @@ func CreateAPIServer(endpoints []string) *APIServer {
 		return nil
 	}
 	return &APIServer{
-		HttpServer:   gin.Default(),
-		EtcdStorage:  s,
+		// HttpServer: gin.Default(),
+		// EtcdStorage:  s,
 		RedisStorage: storage.RedisInstance,
 	}
 }
