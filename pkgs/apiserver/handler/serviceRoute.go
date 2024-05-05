@@ -2,18 +2,13 @@ package handler
 
 import "github.com/gin-gonic/gin"
 
-type ServiceRoutes struct {
-	ServiceName string
-	Routes      []Route
-}
-
 type Route struct {
 	Path    string
 	Method  string
 	Handler gin.HandlerFunc
 }
 
-func (r *Route) register(engine *gin.Engine) {
+func (r *Route) Register(engine *gin.Engine) {
 	switch r.Method {
 	case "get":
 		engine.GET(r.Path, r.Handler)
@@ -34,11 +29,5 @@ func (r *Route) register(engine *gin.Engine) {
 	default:
 
 		panic("invalid HTTP method")
-	}
-}
-
-func (service *ServiceRoutes) registerRoutes(engine *gin.Engine) {
-	for i := range service.Routes {
-		service.Routes[i].register(engine)
 	}
 }

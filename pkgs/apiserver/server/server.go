@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	core "minik8s/pkgs/apiobject"
+	"minik8s/pkgs/apiserver/handler"
 	"minik8s/pkgs/apiserver/storage"
 
 	"github.com/gin-gonic/gin"
@@ -16,14 +17,15 @@ type APIServer struct {
 }
 
 func (s *APIServer) Run(addr string) error {
-	// err := s.HttpServer.Run(addr)
+	for _, route := range handler.RouteTable {
+		route.Register(s.HttpServer)
+	}
+	go s.HttpServer.Run(addr)
 	// if err != nil {
 	// 	log.Error(err)
 	// 	return err
 	// }
-	// s.RedisStorage = storage.RedisInstance
-	// s.RedisStorage.InitChannels()
-	// go bgTask()
+	go bgTask()
 	select {}
 }
 
@@ -50,9 +52,10 @@ func CreateAPIServer(endpoints []string) *APIServer {
 	if s == nil {
 		return nil
 	}
+	storage.RedisInstance.InitChannels()
 	return &APIServer{
-		// HttpServer: gin.Default(),
-		// EtcdStorage:  s,
+		HttpServer:   gin.Default(),
+		EtcdStorage:  s,
 		RedisStorage: storage.RedisInstance,
 	}
 }
