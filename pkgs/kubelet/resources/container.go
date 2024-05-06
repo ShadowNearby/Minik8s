@@ -88,7 +88,7 @@ func (cmg *ContainerManager) CreateContainer(ctx context.Context, config core.Co
 //}
 
 func (cmg *ContainerManager) StartContainer(ctx context.Context, container containerd.Container, pConfig *core.Pod) error {
-	cmg.createClient(pConfig.MetaData.NameSpace)
+	cmg.createClient(pConfig.MetaData.Namespace)
 	task, err := container.NewTask(ctx, cio.NewCreator())
 	if err != nil {
 		logger.Errorf("create task error: %s", err.Error())
@@ -116,7 +116,7 @@ func (cmg *ContainerManager) GetContainerInfo(namespace string, containerID stri
 }
 
 func (cmg *ContainerManager) GetPodContainers(pConfig *core.Pod) []containerd.Container {
-	cmg.createClient(pConfig.MetaData.NameSpace)
+	cmg.createClient(pConfig.MetaData.Namespace)
 	cs, err := cmg.Client.Containers(context.Background(), fmt.Sprintf("labels.%q==%s", constants.MiniK8SPod, pConfig.MetaData.Name))
 	if err != nil {
 		logger.Errorf("filter containers failed: %s", err.Error())

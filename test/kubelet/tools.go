@@ -10,7 +10,7 @@ import (
 func GeneratePodConfigPy() core.Pod {
 	metadata := core.MetaData{
 		Name:      "test",
-		NameSpace: namespaces.Default,
+		Namespace: namespaces.Default,
 		UUID:      utils.GenerateUUID(),
 	}
 	portMap := nat.PortMap{}

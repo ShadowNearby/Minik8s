@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
@@ -34,7 +35,7 @@ func Execute() {
 	}
 }
 func init() {
-	commands.PersistentFlags().StringVarP(&NameSpace, "nameSpace", "n", "default", "kubectl (-n NAMESPACE)")
+	commands.PersistentFlags().StringVarP(&NameSpace, "namespace", "n", "default", "kubectl (-n NAMESPACE)")
 	applyCmd.Flags().StringVarP(&filePath, "filePath", "f", "", "kubectl apply -f <FILENAME>")
 	applyCmd.MarkFlagRequired("filePath")
 	commands.AddCommand(applyCmd)

@@ -25,7 +25,7 @@ func (sc *EndpointController) HandleCreate(message string) error {
 		return err
 	}
 
-	services, err := GetAllServiceObject(pod.MetaData.NameSpace)
+	services, err := GetAllServiceObject(pod.MetaData.Namespace)
 	if err != nil {
 		log.Errorf("get all service error: %s", err.Error())
 		return err
@@ -49,7 +49,7 @@ func (sc *EndpointController) HandleUpdate(message string) error {
 	prePod := pods[0]
 	pod := pods[1]
 
-	services, err := GetAllServiceObject(pod.MetaData.NameSpace)
+	services, err := GetAllServiceObject(pod.MetaData.Namespace)
 	if err != nil {
 		log.Errorf("get all service error: %s", err.Error())
 		return err
@@ -69,7 +69,7 @@ func (sc *EndpointController) HandleDelete(message string) error {
 		return err
 	}
 
-	services, err := GetAllServiceObject(pod.MetaData.NameSpace)
+	services, err := GetAllServiceObject(pod.MetaData.Namespace)
 	if err != nil {
 		log.Errorf("get all service error: %s", err.Error())
 		return err

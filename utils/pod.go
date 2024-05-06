@@ -65,7 +65,7 @@ func StopPodContainers(cStatus []core.ContainerStatus, pConfig core.Pod) error {
 	for i, status := range cStatus {
 		cs[i] = status.ID
 	}
-	_, err := NerdContainerOps(cs, pConfig.MetaData.NameSpace, NerdStop)
+	_, err := NerdContainerOps(cs, pConfig.MetaData.Namespace, NerdStop)
 	return err
 }
 
@@ -74,7 +74,7 @@ func RmPodContainers(cStatus []core.ContainerStatus, pod core.Pod) error {
 	for i, status := range cStatus {
 		cs[i] = status.ID
 	}
-	_, _ = NerdContainerOps(cs, pod.MetaData.NameSpace, NerdRm)
+	_, _ = NerdContainerOps(cs, pod.MetaData.Namespace, NerdRm)
 	return nil
 }
 

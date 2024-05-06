@@ -2,13 +2,14 @@ package handler
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/apiserver/storage"
 	"minik8s/pkgs/constants"
 	"minik8s/utils"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	logger "github.com/sirupsen/logrus"
 )
 
 // CreatePodHandler POST /api/v1/namespaces/:namespace/pods
@@ -19,7 +20,10 @@ func CreatePodHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "needs pod config type"})
 		return
 	}
-	podName := fmt.Sprintf("/pods/object/%s/%s", pod.MetaData.NameSpace, pod.MetaData.Name)
+	if pod.MetaData.Namespace == "" {
+		pod.MetaData.Namespace = "default"
+	}
+	podName := fmt.Sprintf("/pods/object/%s/%s", pod.MetaData.Namespace, pod.MetaData.Name)
 	err = storage.Put(podName, pod)
 	if err != nil {
 		logger.Errorf("put error: %s", err.Error())
@@ -96,11 +100,11 @@ func UpdatePodHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "needs pod config type"})
 		return
 	}
-	if namespace != pod.MetaData.NameSpace || name != pod.MetaData.Name {
+	if namespace != pod.MetaData.Namespace || name != pod.MetaData.Name {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "namespace and name should same as path"})
 		return
 	}
-	path := fmt.Sprintf("/pods/object/%s/%s", pod.MetaData.NameSpace, pod.MetaData.Name)
+	path := fmt.Sprintf("/pods/object/%s/%s", pod.MetaData.Namespace, pod.MetaData.Name)
 	err = storage.Get(path, &oldPod)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get old pod"})

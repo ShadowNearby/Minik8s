@@ -42,14 +42,14 @@ type ApiObjectKind interface {
 }
 
 func (p *Pod) GetNameSpace() string {
-	return p.MetaData.NameSpace
+	return p.MetaData.Namespace
 }
 func (n *Node) GetNameSpace() string {
-	return n.NodeMetaData.NameSpace
+	return n.NodeMetaData.Namespace
 }
 func (w *WorkflowStore) GetNameSpace() string {
-	return w.MetaData.NameSpace
+	return w.MetaData.Namespace
 }
 func (f *ReplicaSet) GetNameSpace() string {
-	return f.MetaData.NameSpace
+	return f.MetaData.Namespace
 }

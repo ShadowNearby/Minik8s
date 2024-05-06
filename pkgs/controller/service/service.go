@@ -34,7 +34,7 @@ func (sc *ServiceController) HandleCreate(message string) error {
 	// creaete service and alloc ip
 	clusterIP := FindUnusedIP()
 	service.Spec.ClusterIP = clusterIP
-	controller.SetObject(core.ObjService, service.MetaData.NameSpace, service.MetaData.Name, service)
+	controller.SetObject(core.ObjService, service.MetaData.Namespace, service.MetaData.Name, service)
 	for _, port := range service.Spec.Ports {
 		kubeproxy.CreateService(clusterIP, uint32(port.Port))
 	}
