@@ -1,6 +1,8 @@
 package core
 
 import (
+	"encoding/json"
+
 	"github.com/docker/go-connections/nat"
 )
 
@@ -9,6 +11,10 @@ type Pod struct {
 	MetaData   MetaData  `json:"metadata" yaml:"metadata"`
 	Spec       PodSpec   `json:"spec" yaml:"spec"`
 	Status     PodStatus `json:"podStatus" yaml:"podStatus"`
+}
+
+func (p Pod) MarshalBinary() ([]byte, error) {
+	return json.Marshal(p)
 }
 
 type BasicInfo struct {
@@ -117,6 +123,10 @@ type Node struct {
 	Kind         string   `json:"kind,omitempty"`
 	NodeMetaData MetaData `json:"metadata,omitempty"`
 	Spec         NodeSpec `json:"spec,omitempty"`
+}
+
+func (p Node) MarshalBinary() ([]byte, error) {
+	return json.Marshal(p)
 }
 
 type NodeSpec struct {

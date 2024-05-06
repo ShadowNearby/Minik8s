@@ -17,7 +17,7 @@ func CreatePod(pConfig *core.Pod) error {
 	pStatusChan := make(chan core.PodStatus)
 	cStatusChan := make(chan core.ContainerStatus, cLen)
 	doneChan := make(chan bool)
-	runtime.KubeletInstance.WritePodConfig(pConfig.MetaData.Name, pConfig.MetaData.NameSpace, pConfig)
+	runtime.KubeletInstance.WritePodConfig(pConfig.MetaData.Name, pConfig.MetaData.Namespace, pConfig)
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func(wg *sync.WaitGroup, dChan chan<- bool) {
@@ -58,8 +58,8 @@ func CreatePod(pConfig *core.Pod) error {
 
 // StopPod stop and remove container
 func StopPod(pConfig core.Pod) error {
-	runtime.KubeletInstance.DelPodConfig(pConfig.MetaData.Name, pConfig.MetaData.NameSpace)
-	runtime.KubeletInstance.DelPodStat(pConfig.MetaData.Name, pConfig.MetaData.NameSpace)
+	runtime.KubeletInstance.DelPodConfig(pConfig.MetaData.Name, pConfig.MetaData.Namespace)
+	runtime.KubeletInstance.DelPodStat(pConfig.MetaData.Name, pConfig.MetaData.Namespace)
 	return resources.StopPod(pConfig)
 }
 

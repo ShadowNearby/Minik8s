@@ -1,21 +1,22 @@
 package test
 
 import (
-	"github.com/containerd/containerd/namespaces"
-	"github.com/docker/go-connections/nat"
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
-	"minik8s/pkgs/kubelet/controller"
+	kubeletcontroller "minik8s/pkgs/kubelet/controller"
 	"minik8s/utils"
 	"testing"
 	"time"
+
+	"github.com/containerd/containerd/namespaces"
+	"github.com/docker/go-connections/nat"
+	logger "github.com/sirupsen/logrus"
 )
 
 func TestPodBasicTest(t *testing.T) {
 	// create a pod config
 	metadata := core.MetaData{
 		Name:      "test",
-		NameSpace: namespaces.Default,
+		Namespace: namespaces.Default,
 		UUID:      utils.GenerateUUID(),
 	}
 	portMap := nat.PortMap{}
