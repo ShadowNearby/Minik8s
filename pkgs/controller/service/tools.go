@@ -89,61 +89,44 @@ func CreateEndpointObject(service *core.Service) error {
 			selectedPods = append(selectedPods, pod)
 		}
 	}
-
+	endpoint := core.Endpoint{
+		MetaData: core.MetaData{
+			Name:      service.MetaData.Name,
+			NameSpace: service.MetaData.NameSpace,
+		},
+		ServiceClusterIP: service.Spec.ClusterIP,
+	}
 	for _, port := range service.Spec.Ports {
-		endpoint := core.Endpoint{
-			MetaData: core.MetaData{
-				Name:      fmt.Sprintf("%s-%d", service.MetaData.Name, port.Port),
-				NameSpace: service.MetaData.NameSpace,
-			},
-			Subsets: []core.EndpointSubset{
-				{
-					Addresses: []core.EndpointAddress{
-						{
-							IP: service.Spec.ClusterIP,
-						},
-					},
-					Ports: []core.EndpointPort{
-						{
-							Port: port.Port,
-						},
-					},
-				},
-			},
-		}
-		err := controller.CreateObject(core.ObjEndPoint, endpoint.MetaData.Name, endpoint)
-		if err != nil {
-			log.Errorf("create endpoint error: %s", err.Error())
-			return err
-		}
+		Destinations := []core.EndpointDestination{}
 		for _, pod := range selectedPods {
 			destPort := FindDestPort(port.TargetPort, pod.Spec.Containers)
+			Destinations = append(Destinations, core.EndpointDestination{
+				IP:   pod.Status.PodIP,
+				Port: destPort,
+			})
 			kubeproxy.BindEndpoint(service.Spec.ClusterIP, port.Port, pod.Status.PodIP, destPort)
 			log.Infof("create endpoint: %s:%d -> %s:%d", service.Spec.ClusterIP, port.Port, pod.Status.PodIP, destPort)
 		}
+		endpoint.Binds = append(endpoint.Binds, core.EndpointBind{
+			ServicePort:  port.Port,
+			Destinations: Destinations,
+		})
+	}
+	err = controller.CreateObject(core.ObjEndPoint, endpoint.MetaData.Name, endpoint)
+	if err != nil {
+		log.Errorf("create endpoint error: %s", err.Error())
+		return err
 	}
 	return nil
 }
 
-func DeleteEndpointObject(service *core.Service, pod *core.Pod) error {
-	for _, port := range service.Spec.Ports {
-		name := fmt.Sprintf("%s-%d", service.MetaData.Name, port.Port)
-		namespace := service.MetaData.NameSpace
-		if pod != nil {
-			response := controller.GetObject(core.ObjEndPoint, namespace, name)
-			if response == "" {
-				err := errors.New("cannot get endpoint")
-				log.Errorf("get endpoint error: %s", err.Error())
-				return err
-			}
-			// endpoint := core.Endpoint{}
-			// err := json.Unmarshal([]byte(response), &endpoint)
-		}
-		err := controller.DeleteObject(core.ObjEndPoint, namespace, name)
-		if err != nil {
-			log.Errorf("error in delete endpoint %s:%s", namespace, name)
-			return err
-		}
+func DeleteEndpointObject(service *core.Service) error {
+	name := service.MetaData.Name
+	namespace := service.MetaData.NameSpace
+	err := controller.DeleteObject(core.ObjEndPoint, namespace, name)
+	if err != nil {
+		log.Errorf("error in delete endpoint %s:%s", namespace, name)
+		return err
 	}
 	return nil
 }

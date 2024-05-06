@@ -1,23 +1,17 @@
 package core
 
 type Endpoint struct {
-	MetaData MetaData         `json:"metadata" yaml:"metadata"`
-	Subsets  []EndpointSubset `json:"subsets" yaml:"subsets"`
+	MetaData         MetaData       `json:"metadata" yaml:"metadata"`
+	ServiceClusterIP string         `json:"serviceClusterIP" yaml:"serviceClusterIP"`
+	Binds            []EndpointBind `json:"binds" yaml:"binds"`
 }
 
-type EndpointSubset struct {
-	Addresses []EndpointAddress `json:"addresses" yaml:"addresses"`
-	Ports     []EndpointPort    `json:"ports" yaml:"ports"`
+type EndpointBind struct {
+	ServicePort  uint32                `json:"servicePort" yaml:"servicePort"`
+	Destinations []EndpointDestination `json:"destinations" yaml:"destinations"`
 }
 
-type EndpointAddress struct {
-	IP       string `json:"ip" yaml:"ip"`
-	Hostname string `json:"hostname" yaml:"hostname"`
-	NodeName string `json:"nodeName" yaml:"nodeName"`
-}
-
-type EndpointPort struct {
-	Port     uint32 `json:"port" yaml:"port"`
-	Protocol string `json:"protocol" yaml:"protocol"`
-	Name     string `json:"name" yaml:"name"`
+type EndpointDestination struct {
+	IP   string `json:"ip" yaml:"ip"`
+	Port uint32 `json:"port" yaml:"port"`
 }
