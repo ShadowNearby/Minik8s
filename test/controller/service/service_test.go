@@ -2,12 +2,11 @@ package test
 
 import (
 	"encoding/json"
+	"github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
-	"minik8s/pkgs/controller"
+	"minik8s/utils"
 	"os"
 	"testing"
-
-	"github.com/sirupsen/logrus"
 )
 
 func TestServiceController(t *testing.T) {
@@ -27,9 +26,9 @@ func TestServiceController(t *testing.T) {
 	json.Unmarshal(content, &services)
 	logrus.Infof("%d\n", len(services))
 
-	controller.CreateObject(core.ObjPod, pods[0].MetaData.Namespace, pods[0])
-	controller.CreateObject(core.ObjPod, pods[1].MetaData.Namespace, pods[1])
+	utils.CreateObject(core.ObjPod, pods[0].MetaData.Namespace, pods[0])
+	utils.CreateObject(core.ObjPod, pods[1].MetaData.Namespace, pods[1])
 
-	controller.DeleteObject(core.ObjPod, pods[0].MetaData.Namespace, pods[0].MetaData.Name)
-	controller.DeleteObject(core.ObjPod, pods[1].MetaData.Namespace, pods[1].MetaData.Name)
+	utils.DeleteObject(core.ObjPod, pods[0].MetaData.Namespace, pods[0].MetaData.Name)
+	utils.DeleteObject(core.ObjPod, pods[1].MetaData.Namespace, pods[1].MetaData.Name)
 }

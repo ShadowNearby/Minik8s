@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	core "minik8s/pkgs/apiobject"
-	"minik8s/pkgs/controller"
 	"minik8s/pkgs/kubeproxy"
+	"minik8s/utils"
 	"strconv"
 	"strings"
 
@@ -56,7 +56,7 @@ func FindDestPort(targetPort string, containers []core.Container) uint32 {
 
 func CreateEndpointObject(service *core.Service) error {
 	// get all pods
-	response := controller.GetObject(core.ObjPod, service.MetaData.Namespace, "")
+	response := utils.GetObject(core.ObjPod, service.MetaData.Namespace, "")
 	if response == "" {
 		err := errors.New("cannot get pods")
 		log.Errorf("get pod error: %s", err.Error())
@@ -97,7 +97,7 @@ func CreateEndpointObject(service *core.Service) error {
 			Destinations: Destinations,
 		})
 	}
-	err = controller.CreateObject(core.ObjEndPoint, endpoint.MetaData.Name, endpoint)
+	err = utils.CreateObject(core.ObjEndPoint, endpoint.MetaData.Name, endpoint)
 	if err != nil {
 		log.Errorf("create endpoint error: %s", err.Error())
 		return err
@@ -108,7 +108,7 @@ func CreateEndpointObject(service *core.Service) error {
 func DeleteEndpointObject(service *core.Service) error {
 	name := service.MetaData.Name
 	namespace := service.MetaData.Namespace
-	err := controller.DeleteObject(core.ObjEndPoint, namespace, name)
+	err := utils.DeleteObject(core.ObjEndPoint, namespace, name)
 	if err != nil {
 		log.Errorf("error in delete endpoint %s:%s", namespace, name)
 		return err
@@ -134,7 +134,7 @@ func UpdateEndpointObjectByPodCreate(service *core.Service, pod *core.Pod) error
 			Port: destPort,
 		})
 	}
-	err = controller.SetObject(core.ObjEndPoint, endpoint.MetaData.Namespace, endpoint.MetaData.Name, endpoint)
+	err = utils.SetObject(core.ObjEndPoint, endpoint.MetaData.Namespace, endpoint.MetaData.Name, endpoint)
 	if err != nil {
 		log.Errorf("update endpoint error: %s", err.Error())
 		return err
@@ -160,7 +160,7 @@ func UpdateEndpointObjectByPodDelete(service *core.Service, pod *core.Pod) error
 			Port: destPort,
 		})
 	}
-	err = controller.SetObject(core.ObjEndPoint, endpoint.MetaData.Namespace, endpoint.MetaData.Name, endpoint)
+	err = utils.SetObject(core.ObjEndPoint, endpoint.MetaData.Namespace, endpoint.MetaData.Name, endpoint)
 	if err != nil {
 		log.Errorf("update endpoint error: %s", err.Error())
 		return err
@@ -195,7 +195,7 @@ func RemoveBinds(binds *[]core.EndpointBind, port uint32, dest core.EndpointDest
 func GetEndpointObject(service *core.Service) (*core.Endpoint, error) {
 	name := service.MetaData.Name
 	namespace := service.MetaData.Namespace
-	response := controller.GetObject(core.ObjEndPoint, namespace, name)
+	response := utils.GetObject(core.ObjEndPoint, namespace, name)
 	if response == "" {
 		err := errors.New("cannot get endpoint")
 		log.Errorf("get endpoint error: %s", err.Error())
@@ -211,7 +211,7 @@ func GetEndpointObject(service *core.Service) (*core.Endpoint, error) {
 }
 
 func GetAllServiceObject(namespace string) ([]core.Service, error) {
-	response := controller.GetObject(core.ObjService, namespace, "")
+	response := utils.GetObject(core.ObjService, namespace, "")
 	if response == "" {
 		err := errors.New("cannot get services")
 		log.Errorf("get services error: %s", err.Error())
