@@ -1,9 +1,9 @@
 package core
 
 type Endpoint struct {
-	MetaData         MetaData       `json:"metadata" yaml:"metadata"`
-	ServiceClusterIP string         `json:"serviceClusterIP" yaml:"serviceClusterIP"`
-	Binds            []EndpointBind `json:"binds" yaml:"binds"`
+	MetaData         MetaData `json:"metadata" yaml:"metadata"`
+	ServiceClusterIP string   `json:"serviceClusterIP" yaml:"serviceClusterIP"`
+	Binds            []EndpointBind
 }
 
 type EndpointBind struct {
