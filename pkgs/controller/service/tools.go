@@ -183,8 +183,10 @@ func RemoveBinds(binds *[]core.EndpointBind, port uint32, dest core.EndpointDest
 		if bind.ServicePort != port {
 			continue
 		}
-		for _, dest := range bind.Destinations {
-			newDestinations = append(newDestinations, dest)
+		for _, d := range bind.Destinations {
+			if d != dest {
+				newDestinations = append(newDestinations, dest)
+			}
 		}
 		bind.Destinations = newDestinations
 	}
