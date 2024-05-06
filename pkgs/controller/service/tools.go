@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	core "minik8s/pkgs/apiobject"
-	"minik8s/pkgs/controller"
 	"minik8s/pkgs/kubeproxy"
+	"minik8s/utils"
 	"strconv"
 	"strings"
 
@@ -71,7 +71,7 @@ func GetSelector(service *core.Service) *core.Selector {
 
 func CreateEndpointObject(service *core.Service) error {
 	// get all pods
-	response := controller.GetObject(core.ObjPod, service.MetaData.NameSpace, "")
+	response := utils.GetObject(core.ObjPod, service.MetaData.NameSpace, "")
 	if response == "" {
 		err := errors.New("cannot get pods")
 		log.Errorf("get pod error: %s", err.Error())
@@ -111,7 +111,7 @@ func CreateEndpointObject(service *core.Service) error {
 				},
 			},
 		}
-		err := controller.CreateObject(core.ObjEndPoint, endpoint.MetaData.Name, endpoint)
+		err := utils.CreateObject(core.ObjEndPoint, endpoint.MetaData.Name, endpoint)
 		if err != nil {
 			log.Errorf("create endpoint error: %s", err.Error())
 			return err
@@ -129,7 +129,7 @@ func DeleteEndpointObject(service *core.Service) error {
 	for _, port := range service.Spec.Ports {
 		name := fmt.Sprintf("%s-%d", service.MetaData.Name, port.Port)
 		namespace := service.MetaData.NameSpace
-		err := controller.DeleteObject(core.ObjEndPoint, namespace, name)
+		err := utils.DeleteObject(core.ObjEndPoint, namespace, name)
 		if err != nil {
 			log.Errorf("error in delete endpoint %s:%s", namespace, name)
 			return err
