@@ -1,5 +1,7 @@
 package core
 
+import "encoding/json"
+
 type ServiceStatus struct {
 	Phase PhaseLabel `json:"phase"`
 }
@@ -24,6 +26,10 @@ type Service struct {
 	BasicInfo `json:",inline" yaml:",inline"`
 	Spec      ServiceSpec   `json:"spec" yaml:"spec"`
 	Status    ServiceStatus `json:"status,omitempty" yaml:"status,omitempty"`
+}
+
+func (p Service) MarshalBinary() ([]byte, error) {
+	return json.Marshal(p)
 }
 
 /*---------------------------------ReplicaSet Types--------------------------------*/
