@@ -34,15 +34,15 @@ func Put(key string, val any) error {
 
 func Get(key string, ptr any) error {
 	err := RedisInstance.redisGet(key, ptr)
-	logger.Infof("redis get done")
-	if err == nil {
-		return err
-	}
-	err = etcdClient.Get(ctx, key, ptr)
-	if err != nil {
-		return err
-	}
-	return nil
+	logger.Infof("redis get done: %v", ptr)
+	//if err == nil {
+	return err
+	//}
+	//err = etcdClient.Get(ctx, key, ptr)
+	//if err != nil {
+	//	return err
+	//}
+	//return nil
 }
 
 func Del(keys ...string) error {

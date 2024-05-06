@@ -4,11 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"minik8s/pkgs/constants"
-	"reflect"
-
 	"github.com/redis/go-redis/v9"
 	logger "github.com/sirupsen/logrus"
+	"minik8s/pkgs/constants"
+	"minik8s/utils"
 )
 
 type Redis struct {
@@ -40,6 +39,10 @@ func (r *Redis) InitChannels() {
 }
 
 func (r *Redis) redisSet(key string, value any) error {
+	if _, ok := value.(string); ok != true {
+		value = utils.JsonMarshal(value)
+		logger.Info(value)
+	}
 	err := r.Client.Set(ctx, key, value, 0)
 	if err != nil {
 		return err.Err()
@@ -47,7 +50,7 @@ func (r *Redis) redisSet(key string, value any) error {
 	return nil
 }
 
-// redisGet bind should be a pointer
+// redisGet bind should be a pointer, only for json object
 func (r *Redis) redisGet(key string, ptr any) error {
 	val, err := r.Client.Get(ctx, key).Result()
 	if errors.Is(err, redis.Nil) {
@@ -56,14 +59,23 @@ func (r *Redis) redisGet(key string, ptr any) error {
 	if err != nil {
 		return err
 	}
-	ptrValue := reflect.ValueOf(ptr)
-	eleType := reflect.TypeOf(ptr).Elem()
-	item := reflect.ValueOf(val)
-	if !item.Type().AssignableTo(eleType) {
-		return errors.New("value type does not match pointer type")
+	err = utils.JsonUnMarshal(val, ptr)
+	if err != nil {
+		return err
 	}
-	ptrValue.Elem().Set(item)
 	return nil
+	//ptrValue := reflect.ValueOf(ptr)
+	//eleType := reflect.TypeOf(ptr).Elem()
+	//item := reflect.ValueOf(val)
+	//logger.Info(reflect.TypeOf(ptr))
+	//logger.Info(val)
+	//logger.Info(item)
+	//if !item.Type().AssignableTo(eleType) {
+	//	return errors.New("value type does not match pointer type")
+	//}
+	//logger.Info("not error")
+	//ptrValue.Elem().Set(item)
+	//return nil
 }
 
 func (r *Redis) redisDel(keys ...string) error {
