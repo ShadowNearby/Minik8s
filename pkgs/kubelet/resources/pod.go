@@ -45,7 +45,7 @@ func CreatePod(podConfig *core.Pod, pStatusChan chan<- core.PodStatus, cStatusCh
 
 	// get pause container information
 	// ns
-	pausePid, err := ContainerManagerInstance.GetContainerInfo(podConfig.MetaData.NameSpace, pauseSpec.ID, "State", "Pid")
+	pausePid, err := ContainerManagerInstance.GetContainerInfo(podConfig.MetaData.Namespace, pauseSpec.ID, "State", "Pid")
 	if err != nil {
 		logger.Errorf("cannot get namespace: %s", err.Error())
 		//_ = utils.RmPodContainers(startedContainer, *podConfig)

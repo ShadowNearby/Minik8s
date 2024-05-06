@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/constants"
 	"minik8s/pkgs/controller"
@@ -13,7 +14,6 @@ import (
 const TotalIP = (1 << 8)
 
 var UsedIP = [TotalIP]bool{}
-var ServiceSelector = map[string]*core.Selector{}
 
 const IPPrefix = "10.10.0."
 
@@ -34,11 +34,10 @@ func (sc *ServiceController) HandleCreate(message string) error {
 	// creaete service and alloc ip
 	clusterIP := FindUnusedIP()
 	service.Spec.ClusterIP = clusterIP
-	controller.SetObject(core.ObjService, service.MetaData.NameSpace, service.MetaData.Name, service)
+	controller.SetObject(core.ObjService, service.MetaData.Namespace, service.MetaData.Name, service)
 	for _, port := range service.Spec.Ports {
 		kubeproxy.CreateService(clusterIP, uint32(port.Port))
 	}
-	PutSelector(service)
 
 	err = CreateEndpointObject(service)
 	if err != nil {
@@ -49,18 +48,23 @@ func (sc *ServiceController) HandleCreate(message string) error {
 }
 
 func (sc *ServiceController) HandleUpdate(message string) error {
-	service := &core.Service{}
-	err := json.Unmarshal([]byte(message), service)
+	services := []core.Service{}
+	err := json.Unmarshal([]byte(message), &services)
 	if err != nil {
 		log.Errorf("unmarshal service error: %s", err.Error())
 		return err
 	}
-	previousSelector := GetSelector(service)
+	if len(services) != 2 {
+		return fmt.Errorf("service update error")
+	}
+	preService := &services[0]
+	service := &services[1]
+	previousSelector := preService.Spec.Selector
 	if MatchLabel(previousSelector.MatchLabels, service.Spec.Selector.MatchLabels) {
 		return nil
 	}
 
-	err = DeleteEndpointObject(service, nil)
+	err = DeleteEndpointObject(service)
 	if err != nil {
 		log.Errorf("error in UpdateEndpointObject")
 		return err
@@ -71,7 +75,6 @@ func (sc *ServiceController) HandleUpdate(message string) error {
 		return err
 	}
 
-	PutSelector(service)
 	return nil
 }
 
@@ -83,10 +86,8 @@ func (sc *ServiceController) HandleDelete(message string) error {
 		return err
 	}
 
-	DelSelector(service)
-
 	FreeUsedIP(service.Spec.ClusterIP)
-	err = DeleteEndpointObject(service, nil)
+	err = DeleteEndpointObject(service)
 	if err != nil {
 		log.Errorf("error in DeleteEndpointObject")
 		return err

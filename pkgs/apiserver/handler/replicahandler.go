@@ -111,7 +111,7 @@ func UpdateReplicaHandler(c *gin.Context) {
 		namespace = "default"
 	}
 	// check
-	if namespace != newReplica.MetaData.NameSpace || name != newReplica.MetaData.Name {
+	if namespace != newReplica.MetaData.Namespace || name != newReplica.MetaData.Name {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "path info should same as replica info"})
 		return
 	}

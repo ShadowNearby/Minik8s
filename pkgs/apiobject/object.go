@@ -2,7 +2,7 @@ package core
 
 type MetaData struct {
 	Name            string            `json:"name" yaml:"name"`
-	NameSpace       string            `json:"nameSpace" yaml:"namespace,omitempty"`
+	Namespace       string            `json:"namespace" yaml:"namespace,omitempty"`
 	Labels          map[string]string `json:"labels,omitempty" yaml:"labels,omitempty"`
 	ResourceVersion string            `json:"resourceVersion" yaml:"resourceVersion,omitempty"`
 	Annotations     map[string]string `json:"annotations"`
@@ -15,6 +15,6 @@ type Selector struct {
 type OwnerReference struct {
 	ObjType    ObjType `json:"objType"`
 	Name       string  `json:"name"`
-	NameSpace  string  `json:"nameSpace"`
+	Namespace  string  `json:"namespace"`
 	Controller bool    `yaml:"controller"`
 }
