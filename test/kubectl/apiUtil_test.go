@@ -9,7 +9,7 @@ import (
 )
 
 func TestGetApiKindFromYamlFile(t *testing.T) {
-	content, err := utils.ReadFile("../files/service.yaml")
+	content, err := utils.ReadFile("../files/replicaset.yaml")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -18,7 +18,7 @@ func TestGetApiKindFromYamlFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if kind != core.ObjService {
+	if kind != core.ObjReplicaSet {
 		t.Fatal("kind should be Service")
 	}
 	content, err = utils.ReadFile("../files/createPod.yaml")
