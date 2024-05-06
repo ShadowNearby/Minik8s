@@ -1,5 +1,7 @@
 package core
 
+import "encoding/json"
+
 type WorkflowSpec struct {
 	EntryParams   string         `json:"entryParams" yaml:"entryParams"`
 	EntryNodeName string         `json:"entryNodeName" yaml:"entryNodeName"`
@@ -9,6 +11,10 @@ type WorkflowSpec struct {
 type Workflow struct {
 	BasicInfo `json:",inline" yaml:",inline"`
 	Spec      WorkflowSpec `json:"spec" yaml:"spec"`
+}
+
+func (p Workflow) MarshalBinary() ([]byte, error) {
+	return json.Marshal(p)
 }
 
 type WorkflowNode struct {

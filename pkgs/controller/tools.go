@@ -71,7 +71,7 @@ func DeleteObject(objType core.ObjType, namespace string, name string) error {
 	if namespace == "" {
 		namespace = "default"
 	}
-	var url = fmt.Sprintf("http://%s:%s/api/v1/%s/%s/%s",
+	var url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s/%s",
 		config.LocalServerIp, config.ApiServerPort, namespace, objType, name)
 	if code, info, err := utils.SendRequest("DELETE", url, make([]byte, 0)); err != nil || code != http.StatusOK {
 		logger.Errorf("[delete object error]: %s", info)
