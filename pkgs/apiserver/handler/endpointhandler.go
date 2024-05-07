@@ -2,11 +2,13 @@ package handler
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/apiserver/storage"
+	"minik8s/utils"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 )
 
 func EndpointKeyPrefix(namespace string, name string) string {
@@ -31,7 +33,7 @@ func CreateEndpointHandler(c *gin.Context) {
 	}
 	key := EndpointKeyPrefix(namespace, endpointConfig.MetaData.Name)
 	existEndpointConfig := core.Endpoint{}
-	if err := storage.Get(key, &existEndpointConfig); err == nil {
+	if err := storage.Get(key, &existEndpointConfig); err != nil {
 		log.Errorf("endpoint %s:%s already exist", namespace, endpointConfig.MetaData.Name)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "endpoint already exist"})
 		return
@@ -41,7 +43,7 @@ func CreateEndpointHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{})
+	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }
 
 // GetEndpointHandler GET /api/v1/namespaces/:namespace/endpoints/:name
@@ -58,12 +60,12 @@ func GetEndpointHandler(c *gin.Context) {
 	}
 	key := EndpointKeyPrefix(namespace, name)
 	endpointConfig := core.Endpoint{}
-	if err := storage.Get(key, &endpointConfig); err == nil {
+	if err := storage.Get(key, &endpointConfig); err != nil {
 		log.Errorf("endpoint %s:%s not found", namespace, name)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "endpoint not found"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{})
+	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(endpointConfig)})
 }
 
 // GetEndpointListHandler GET /api/v1/namespaces/:namespace/endpoints
@@ -75,12 +77,12 @@ func GetEndpointListHandler(c *gin.Context) {
 	}
 	key := EndpointListKeyPrefix(namespace)
 	var endpointListConfig []core.Endpoint
-	if err := storage.RangeGet(key, &endpointListConfig); err == nil {
+	if err := storage.RangeGet(key, &endpointListConfig); err != nil {
 		log.Errorf("endpoint list %s not found", namespace)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "endpoint not found"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{})
+	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(endpointListConfig)})
 }
 
 // DeleteEndpointHandler DELETE /api/v1/namespaces/:namespace/endpoints/:name
@@ -96,12 +98,12 @@ func DeleteEndpointHandler(c *gin.Context) {
 		return
 	}
 	key := EndpointKeyPrefix(namespace, name)
-	if err := storage.Del(key); err == nil {
+	if err := storage.Del(key); err != nil {
 		log.Errorf("endpoint %s:%s not found", namespace, name)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "endpoint not found"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{})
+	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }
 
 // UpdateEndpointHandler PUT /api/v1/namespaces/:namespace/endpoints/:name
@@ -122,10 +124,10 @@ func UpdateEndpointHandler(c *gin.Context) {
 		return
 	}
 	key := EndpointKeyPrefix(namespace, name)
-	if err := storage.Put(key, endpointConfig); err == nil {
+	if err := storage.Put(key, endpointConfig); err != nil {
 		log.Errorf("endpoint %s:%s not found", namespace, name)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "endpoint not found"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{})
+	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }

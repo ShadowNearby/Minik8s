@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"context"
 	"reflect"
 
 	"github.com/redis/go-redis/v9"
@@ -21,7 +20,7 @@ func Put(key string, val any) error {
 		//return err
 	}
 	err = TaskQueue.Enqueue(func() {
-		err := etcdClient.Put(context.Background(), key, val)
+		err := etcdClient.Put(ctx, key, val)
 		if err != nil {
 			logger.Errorf("etcd cannot put: %s", key)
 		}
