@@ -16,13 +16,13 @@ var RouteTable = [...]Route{
 	{Path: "/api/v1/namespaces/:namespace/services/:name", Method: "GET", Handler: GetServiceHandler},       // GET, get a service
 	{Path: "/api/v1/namespaces/:namespace/services", Method: "GET", Handler: GetServiceListHandler},         // GET, list all services
 	{Path: "/api/v1/namespaces/:namespace/services/:name", Method: "DELETE", Handler: DeleteServiceHandler}, // DELETE, delete a service
-	{Path: "/api/v1/namespaces/:namespace/services/:name", Method: "PUT", Handler: UpdateServiceHandler},     // POST, update a service
+	{Path: "/api/v1/namespaces/:namespace/services/:name", Method: "PUT", Handler: UpdateServiceHandler},    // POST, update a service
 
 	{Path: "/api/v1/namespaces/:namespace/endpoints", Method: "POST", Handler: CreateEndpointHandler},         // POST, create an endpoint
 	{Path: "/api/v1/namespaces/:namespace/endpoints/:name", Method: "GET", Handler: GetEndpointHandler},       // GET, get an endpoint
 	{Path: "/api/v1/namespaces/:namespace/endpoints", Method: "GET", Handler: GetEndpointListHandler},         // GET, list all endpoints in this namespace
 	{Path: "/api/v1/namespaces/:namespace/endpoints/:name", Method: "DELETE", Handler: DeleteEndpointHandler}, // DELETE, delete a endpoint
-	{Path: "/api/v1/namespaces/:namespace/endpoints/:name", Method: "PUT", Handler: UpdateEndpointHandler},     // POST, update a endpoint
+	{Path: "/api/v1/namespaces/:namespace/endpoints/:name", Method: "PUT", Handler: UpdateEndpointHandler},    // POST, update a endpoint
 
 	{Path: "/api/v1/namespaces/:namespace/dns", Method: "POST", Handler: CreateDNSHandler},         // POST, create a dns
 	{Path: "/api/v1/namespaces/:namespace/dns/:name", Method: "GET", Handler: GetDNSHandler},       // GET, get a dns

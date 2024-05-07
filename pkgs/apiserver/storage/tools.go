@@ -77,7 +77,7 @@ func RangeGet(prefix string, ptr any) error {
 	newVal := reflect.MakeSlice(listType, len(res), len(res))
 	for i, item := range res {
 		resValue := reflect.New(listType.Elem())
-		err := json.Unmarshal([]byte(item.(string)), resValue.Interface()) 
+		err := json.Unmarshal([]byte(item.(string)), resValue.Interface())
 		if err != nil {
 			logger.Errorf("cannot unmarshal: %s", err.Error())
 			return err
