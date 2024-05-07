@@ -4,6 +4,7 @@ import (
 	"fmt"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/apiserver/storage"
+	"minik8s/pkgs/constants"
 	"minik8s/utils"
 	"net/http"
 
@@ -37,13 +38,12 @@ func CreateServiceHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	log.Info("create service success")
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelService, constants.ChannelCreate), utils.JsonMarshal(serviceConfig))
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }
 
 // GetServiceHandler GET /api/v1/namespaces/:namespace/services/:name
 func GetServiceHandler(c *gin.Context) {
-	log.Info("begin get service")
 	namespace := c.Param("namespace")
 	if namespace == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "need namespace"})
@@ -94,11 +94,18 @@ func DeleteServiceHandler(c *gin.Context) {
 		return
 	}
 	key := ServiceKeyPrefix(namespace, name)
+	serviceConfig := &core.Service{}
+	if err := storage.Get(key, serviceConfig); err != nil {
+		log.Errorf("service %s:%s not found", namespace, name)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "service not found"})
+		return
+	}
 	if err := storage.Del(key); err != nil {
 		log.Errorf("service %s:%s not found", namespace, name)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "service not found"})
 		return
 	}
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelService, constants.ChannelDelete), utils.JsonMarshal(serviceConfig))
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }
 
@@ -114,16 +121,24 @@ func UpdateServiceHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "need name"})
 		return
 	}
-	serviceConfig := core.Service{}
-	if err := c.Bind(&serviceConfig); err != nil {
+	serviceConfig := &core.Service{}
+	if err := c.Bind(serviceConfig); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	key := ServiceKeyPrefix(namespace, name)
+	preServiceConfig := &core.Service{}
+	if err := storage.Get(key, preServiceConfig); err != nil {
+		log.Errorf("service %s:%s not found", namespace, name)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "service not found"})
+		return
+	}
 	if err := storage.Put(key, serviceConfig); err != nil {
 		log.Errorf("service %s:%s not found", namespace, name)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "service put error"})
 		return
 	}
+	services := []core.Service{*preServiceConfig, *serviceConfig}
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelService, constants.ChannelUpdate), utils.JsonMarshal(services))
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }

@@ -17,7 +17,7 @@ func CreateService(serviceIP string, servicePort uint32) error {
 	createIPArgs := []string{"-A", "-t", fmt.Sprintf("%s:%d", serviceIP, servicePort), "-s", "rr"}
 	output, err := exec.Command("ipvsadm", createIPArgs...).CombinedOutput()
 	if err != nil {
-		log.Fatalf("failed to create ip: %s output: %s", err.Error(), output)
+		log.Errorf("failed to create ip: %s output: %s", err.Error(), output)
 		return err
 	}
 
@@ -40,7 +40,7 @@ func DeleteService(serviceIP string, servicePort uint32) error {
 	deleteArgs := []string{"-D", "-t", fmt.Sprintf("%s:%d", serviceIP, servicePort)}
 	output, err := exec.Command("ipvsadm", deleteArgs...).CombinedOutput()
 	if err != nil {
-		log.Fatalf("failed to delete ip: %s output: %s", err.Error(), output)
+		log.Errorf("failed to delete ip: %s output: %s", err.Error(), output)
 		return err
 	}
 	unbindArgs := []string{"addr", "del", fmt.Sprintf("%s/24", serviceIP), "dev", "flannel.1"}
@@ -52,13 +52,15 @@ func DeleteService(serviceIP string, servicePort uint32) error {
 	return nil
 }
 
-// CreateEndpoint serviceIP 和 servicePort 代表虚拟节点的 IP 和端口，destIP 和 destPort 是真实节点的 IP 和端口，backend 是真实节点的 IP 地址。
-// 在 IPVS 中添加服务的虚拟节点和真实节点的连接
+// CreateEndpoint serviceIP and servicePort represent the virtual node's IP and port, 
+// while destIP and destPort are the real node's IP and port. The backend is the IP address of the real node. 
+// Add the connection between the virtual node and the real node in IPVS for the service.
 func BindEndpoint(serviceIP string, servicePort uint32, destIP string, destPort uint32) error {
+	log.Infof("bind serviceIP %s servicePort %d destIP %s destPort %d", serviceIP, servicePort, destIP, destPort)
 	addEndpointArgs := []string{"-a", "-t", fmt.Sprintf("%s:%d", serviceIP, servicePort), "-r", fmt.Sprintf("%s:%d", destIP, destPort), "-m"}
 	output, err := exec.Command("ipvsadm", addEndpointArgs...).CombinedOutput()
 	if err != nil {
-		log.Fatalf("failed to bind endpoint: %s output: %s", err.Error(), output)
+		log.Errorf("failed to bind endpoint: %s output: %s", err.Error(), output)
 		return err
 	}
 	return nil
@@ -68,7 +70,7 @@ func UnbindEndpoint(serviceIP string, servicePort uint32, destIP string, destPor
 	rmEndpointArgs := []string{"-d", "-t", fmt.Sprintf("%s:%d", serviceIP, servicePort), "-r", fmt.Sprintf("%s:%d", destIP, destPort)}
 	output, err := exec.Command("ipvsadm", rmEndpointArgs...).CombinedOutput()
 	if err != nil {
-		log.Fatalf("failed to unbind endpoint: %s output: %s", err.Error(), output)
+		log.Errorf("failed to unbind endpoint: %s output: %s", err.Error(), output)
 		return err
 	}
 	return nil

@@ -85,7 +85,9 @@ func (sc *ServiceController) HandleDelete(message string) error {
 		log.Errorf("unmarshal service error: %s", err.Error())
 		return err
 	}
-
+	for _, port := range service.Spec.Ports {
+		kubeproxy.DeleteService(service.Spec.ClusterIP, uint32(port.Port))
+	}
 	FreeUsedIP(service.Spec.ClusterIP)
 	err = DeleteEndpointObject(service)
 	if err != nil {

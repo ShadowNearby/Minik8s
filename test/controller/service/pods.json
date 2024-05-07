@@ -4,6 +4,7 @@
       "kind": "Pod",
       "metadata": {
           "name": "example-pod1",
+          "namespace": "default",
           "labels": {
               "app": "deploy-1"
           }
@@ -12,7 +13,8 @@
           "containers": [
               {
                   "name": "example-container",
-                  "image": "nginx:lastest",
+                  "image": "docker.io/library/nginx:latest",
+                  "imagePullPolicy": "IfNotPresent",
                   "ports": [
                       {
                           "containerPort": 12345,
@@ -39,7 +41,8 @@
           "containers": [
               {
                   "name": "example-container",
-                  "image": "nginx:lastest",
+                  "image": "docker.io/library/nginx:latest",
+                  "imagePullPolicy": "IfNotPresent",
                   "ports": [
                       {
                           "containerPort": 12345,
@@ -58,6 +61,7 @@
       "kind": "Pod",
       "metadata": {
           "name": "example-pod1",
+          "namespace": "default",
           "labels": {
               "app": "deploy-2"
           }
@@ -67,6 +71,7 @@
               {
                   "name": "example-container",
                   "image": "nginx",
+                  "imagePullPolicy": "IfNotPresent",
                   "ports": [
                       {
                           "containerPort": 12345,
