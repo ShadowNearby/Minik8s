@@ -22,7 +22,7 @@ func SetObject(objType core.ObjType, namespace string, name string, obj any) err
 	} else {
 		url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s/%s", config.LocalServerIp, config.ApiServerPort, namespace, string(objType), name)
 	}
-	if code, info, err := SendRequest("POST", url, []byte(objTxt)); err != nil || code != http.StatusOK {
+	if code, info, err := SendRequest("PUT", url, []byte(objTxt)); err != nil || code != http.StatusOK {
 		logger.Errorf("[set obj error]: %s", info)
 		return err
 	}

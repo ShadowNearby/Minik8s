@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"encoding/json"
 	"reflect"
 
 	"github.com/redis/go-redis/v9"
@@ -75,8 +76,13 @@ func RangeGet(prefix string, ptr any) error {
 	listType := reflect.TypeOf(ptr).Elem()
 	newVal := reflect.MakeSlice(listType, len(res), len(res))
 	for i, item := range res {
-		resValue := reflect.ValueOf(item)
-		newVal.Index(i).Set(resValue)
+		resValue := reflect.New(listType.Elem())
+		err := json.Unmarshal([]byte(item.(string)), resValue.Interface()) 
+		if err != nil {
+			logger.Errorf("cannot unmarshal: %s", err.Error())
+			return err
+		}
+		newVal.Index(i).Set(resValue.Elem())
 	}
 	reflect.ValueOf(ptr).Elem().Set(newVal)
 	return nil
