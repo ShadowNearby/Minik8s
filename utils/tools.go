@@ -41,11 +41,14 @@ func GetObject(objType core.ObjType, namespace string, name string) string {
 			config.LocalServerIp, config.ApiServerPort, namespace, string(objType), name)
 	}
 
+	var retInfo core.InfoType
 	if code, info, err := SendRequest("GET", url, make([]byte, 0)); err != nil || code != http.StatusOK {
-		logger.Error("[get obj error]: ", info)
+		_ = JsonUnMarshal(info, &retInfo)
+		logger.Error("[get obj error]: ", retInfo.Error)
 		return ""
 	} else {
-		return info
+		_ = JsonUnMarshal(info, &retInfo)
+		return retInfo.Data
 	}
 }
 

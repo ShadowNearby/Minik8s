@@ -18,7 +18,3 @@ type OwnerReference struct {
 	Namespace  string  `json:"namespace"`
 	Controller bool    `yaml:"controller"`
 }
-
-type InfoType struct {
-	Data any `json:"data"`
-}

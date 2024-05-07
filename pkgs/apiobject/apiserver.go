@@ -7,3 +7,9 @@ type Route struct {
 	Method  string
 	Handler gin.HandlerFunc
 }
+
+// InfoType either Data or Error exists
+type InfoType struct {
+	Data  string `json:"data"`
+	Error string `json:"error"`
+}
