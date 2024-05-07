@@ -2,11 +2,12 @@ package utils
 
 import (
 	"fmt"
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/config"
 	"net/http"
 	"strings"
+
+	logger "github.com/sirupsen/logrus"
 )
 
 func SetObject(objType core.ObjType, namespace string, name string, obj any) error {
@@ -70,7 +71,7 @@ func DeleteObject(objType core.ObjType, namespace string, name string) error {
 		namespace = "default"
 	}
 	var url string
-	url = fmt.Sprintf("http://%s:%s/api/v1/%s/%s/%s",
+	url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s/%s",
 		config.LocalServerIp, config.ApiServerPort, namespace, objType, name)
 	if code, info, err := SendRequest("DELETE", url, make([]byte, 0)); err != nil || code != http.StatusOK {
 		logger.Errorf("[delete object error]: %s", info)

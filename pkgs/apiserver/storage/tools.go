@@ -2,9 +2,10 @@ package storage
 
 import (
 	"context"
+	"reflect"
+
 	"github.com/redis/go-redis/v9"
 	logger "github.com/sirupsen/logrus"
-	"reflect"
 )
 
 var etcdClient = CreateEtcdStorage(DefaultEndpoints)
@@ -34,15 +35,14 @@ func Put(key string, val any) error {
 
 func Get(key string, ptr any) error {
 	err := RedisInstance.redisGet(key, ptr)
-	logger.Infof("redis get done: %v", ptr)
-	//if err == nil {
-	return err
-	//}
-	//err = etcdClient.Get(ctx, key, ptr)
-	//if err != nil {
-	//	return err
-	//}
-	//return nil
+	if err == nil {
+		return err
+	}
+	err = etcdClient.Get(ctx, key, ptr)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func Del(keys ...string) error {

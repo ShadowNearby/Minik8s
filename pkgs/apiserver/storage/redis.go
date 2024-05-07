@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/redis/go-redis/v9"
-	logger "github.com/sirupsen/logrus"
 	"minik8s/pkgs/constants"
 	"minik8s/utils"
+
+	"github.com/redis/go-redis/v9"
+	logger "github.com/sirupsen/logrus"
 )
 
 type Redis struct {
@@ -39,9 +40,8 @@ func (r *Redis) InitChannels() {
 }
 
 func (r *Redis) redisSet(key string, value any) error {
-	if _, ok := value.(string); ok != true {
+	if _, ok := value.(string); !ok {
 		value = utils.JsonMarshal(value)
-		logger.Info(value)
 	}
 	err := r.Client.Set(ctx, key, value, 0)
 	if err != nil {
@@ -64,18 +64,6 @@ func (r *Redis) redisGet(key string, ptr any) error {
 		return err
 	}
 	return nil
-	//ptrValue := reflect.ValueOf(ptr)
-	//eleType := reflect.TypeOf(ptr).Elem()
-	//item := reflect.ValueOf(val)
-	//logger.Info(reflect.TypeOf(ptr))
-	//logger.Info(val)
-	//logger.Info(item)
-	//if !item.Type().AssignableTo(eleType) {
-	//	return errors.New("value type does not match pointer type")
-	//}
-	//logger.Info("not error")
-	//ptrValue.Elem().Set(item)
-	//return nil
 }
 
 func (r *Redis) redisDel(keys ...string) error {
