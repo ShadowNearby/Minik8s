@@ -52,8 +52,8 @@ func DeleteService(serviceIP string, servicePort uint32) error {
 	return nil
 }
 
-// CreateEndpoint serviceIP and servicePort represent the virtual node's IP and port, 
-// while destIP and destPort are the real node's IP and port. The backend is the IP address of the real node. 
+// CreateEndpoint serviceIP and servicePort represent the virtual node's IP and port,
+// while destIP and destPort are the real node's IP and port. The backend is the IP address of the real node.
 // Add the connection between the virtual node and the real node in IPVS for the service.
 func BindEndpoint(serviceIP string, servicePort uint32, destIP string, destPort uint32) error {
 	log.Infof("bind serviceIP %s servicePort %d destIP %s destPort %d", serviceIP, servicePort, destIP, destPort)
