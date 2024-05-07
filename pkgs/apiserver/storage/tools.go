@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"context"
+	"encoding/json"
 	"reflect"
 
 	"github.com/redis/go-redis/v9"
@@ -21,7 +21,7 @@ func Put(key string, val any) error {
 		//return err
 	}
 	err = TaskQueue.Enqueue(func() {
-		err := etcdClient.Put(context.Background(), key, val)
+		err := etcdClient.Put(ctx, key, val)
 		if err != nil {
 			logger.Errorf("etcd cannot put: %s", key)
 		}
@@ -76,8 +76,13 @@ func RangeGet(prefix string, ptr any) error {
 	listType := reflect.TypeOf(ptr).Elem()
 	newVal := reflect.MakeSlice(listType, len(res), len(res))
 	for i, item := range res {
-		resValue := reflect.ValueOf(item)
-		newVal.Index(i).Set(resValue)
+		resValue := reflect.New(listType.Elem())
+		err := json.Unmarshal([]byte(item.(string)), resValue.Interface())
+		if err != nil {
+			logger.Errorf("cannot unmarshal: %s", err.Error())
+			return err
+		}
+		newVal.Index(i).Set(resValue.Elem())
 	}
 	reflect.ValueOf(ptr).Elem().Set(newVal)
 	return nil

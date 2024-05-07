@@ -82,13 +82,12 @@ func (r *Redis) redisRangeOp(prefix string, op string) ([]any, error) {
 	var err error
 	keys, _, err = r.Client.Scan(ctx, cursor, prefix+"*", 0).Result()
 	if err != nil {
-		logger.Fatalf("Error scanning keys: %s", err)
+		logger.Errorf("Error scanning keys: %s", err)
 		return nil, errors.New("cannot scanning keys")
 	}
 	if len(keys) == 0 {
 		return make([]any, 0), nil
 	}
-
 	switch op {
 	case OpDel:
 		_, err = r.Client.Del(ctx, keys...).Result()
@@ -96,7 +95,7 @@ func (r *Redis) redisRangeOp(prefix string, op string) ([]any, error) {
 		vals, err = r.Client.MGet(ctx, keys...).Result()
 	}
 	if err != nil {
-		logger.Fatalf("Error %s keys: %s", op, err)
+		logger.Errorf("Error %s keys: %s", op, err)
 		return nil, fmt.Errorf("cannot %s", op)
 	}
 	logger.Debugf("val len: %d", len(vals))

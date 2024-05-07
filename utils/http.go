@@ -3,12 +3,13 @@ package utils
 import (
 	"bytes"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 	"minik8s/pkgs/config"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 )
 
 var Resources = []string{"pod", "service", "endpoint", "replica", "job", "hpa", "dnsrecord"}

@@ -105,11 +105,10 @@ func (e *EtcdStorage) Put(ctx context.Context, key string, value interface{}) er
 	if err != nil {
 		return err
 	}
-	res, err := e.client.Put(ctx, key, string(jsonValue))
+	_, err = e.client.Put(ctx, key, string(jsonValue))
 	if err != nil {
 		return err
 	}
-	log.Infoln(res.Header.String())
 	return nil
 }
 
