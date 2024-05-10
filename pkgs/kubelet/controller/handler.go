@@ -30,7 +30,7 @@ func CreatePod(pConfig *core.Pod) error {
 	}(&wg, doneChan)
 	// pod status
 	var pStat core.PodStatus
-	for i := 0; i < cLen+2; i++ {
+	for i := 0; i < cLen+3; i++ {
 		select {
 		case pStat = <-pStatusChan:
 			logger.Infof("init pod status")
@@ -81,30 +81,36 @@ func InspectPod(pod *core.Pod, probeType runtime.ProbeType) string {
 
 // NodeMetrics return the metrics of a node, including ready, cpu, memory, process_num, disk, network
 func NodeMetrics() core.NodeMetrics {
-	var allPID uint64
-	var allMem uint64
-	var allCPU uint64
-	var allDisk uint64
-	logger.Infof("len:%d", len(runtime.KubeletInstance.PodConfigMap))
-	for name, podConfig := range runtime.KubeletInstance.PodConfigMap {
-		metrics, err := resources.GetPodMetrics(&podConfig)
-		if err != nil {
-			logger.Errorf("get pod %s metrics error: %s", name, err.Error())
-			continue
-		}
-		for _, metric := range metrics {
-			allPID += metric.PidCount
-			allMem += metric.MemoryUsage
-			allCPU += metric.CpuUsage
-			allDisk += metric.DiskUsage
-		}
+	state, err := runtime.GetNodeState()
+	if err != nil {
+		logger.Errorf("error: %s", err.Error())
+		return state
 	}
-	return core.NodeMetrics{
-		Ready:              true,
-		CPUUsage:           allCPU,
-		MemoryUsage:        allMem,
-		PIDUsage:           allPID,
-		DiskUsage:          allDisk,
-		NetworkUnavailable: false,
-	}
+	return state
+	//var allPID uint64
+	//var allMem uint64
+	//var allCPU uint64
+	//var allDisk uint64
+	//logger.Infof("len:%d", len(runtime.KubeletInstance.PodConfigMap))
+	//for name, podConfig := range runtime.KubeletInstance.PodConfigMap {
+	//	metrics, err := resources.GetPodMetrics(&podConfig)
+	//	if err != nil {
+	//		logger.Errorf("get pod %s metrics error: %s", name, err.Error())
+	//		continue
+	//	}
+	//	for _, metric := range metrics {
+	//		allPID += metric.PidCount
+	//		allMem += metric.MemoryUsage
+	//		allCPU += metric.CpuUsage
+	//		allDisk += metric.DiskUsage
+	//	}
+	//}
+	//return core.NodeMetrics{
+	//	Ready:              true,
+	//	CPUUsage:           float64(allCPU),
+	//	MemoryUsage:        float64(allMem),
+	//	PIDUsage:           float64(allPID),
+	//	DiskUsage:          float64(allDisk),
+	//	NetworkUnavailable: false,
+	//}
 }
