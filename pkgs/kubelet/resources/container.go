@@ -73,6 +73,7 @@ func (cmg *ContainerManager) CreateContainer(ctx context.Context, config core.Co
 	}
 	// add filter labels
 	copts = append(copts, containerd.WithAdditionalContainerLabels(utils.GenerateContainerLabel(config.PodName)))
+	copts = append(copts, containerd.WithAdditionalContainerLabels(map[string]string{"name": config.Name}))
 	// create container
 	container, err := cmg.Client.NewContainer(ctx, config.ID, copts...)
 	if err != nil {
