@@ -4,13 +4,41 @@ import (
 	"time"
 )
 
+// CPUSet is a thread-safe, immutable set-like data structure for CPU IDs.
+type CPUSet struct {
+	elems map[int]struct{}
+}
+
+// CPUInfo contains the NUMA, socket, and core IDs associated with a CPU.
+type CPUInfo struct {
+	NUMANodeID int
+	SocketID   int
+	CoreID     int
+}
+
+// CPUDetails is a map from CPU ID to Core ID, Socket ID, and NUMA ID.
+type CPUDetails map[int]CPUInfo
+
+// CPUTopology contains details of node cpu, where :
+// CPU  - logical CPU, cadvisor - thread
+// Core - physical CPU, cadvisor - Core
+// Socket - socket, cadvisor - Socket
+// NUMA Node - NUMA cell, cadvisor - Node
+type CPUTopology struct {
+	NumCPUs    int
+	NumCores   int
+	NumSockets int
+	CPUDetails CPUDetails
+}
+
+// NodeMetrics usage means percentage
 type NodeMetrics struct {
-	Ready              bool   `json:"ready"`
-	CPUUsage           uint64 `json:"cpuUsage"`
-	MemoryUsage        uint64 `json:"memoryUsage"`
-	PIDUsage           uint64 `json:"PIDUsage"`
-	DiskUsage          uint64 `json:"diskUsage"`
-	NetworkUnavailable bool   `json:"networkUnavailable"`
+	Ready              bool    `json:"ready"`
+	CPUUsage           float64 `json:"cpuUsage"`
+	MemoryUsage        float64 `json:"memoryUsage"`
+	PIDUsage           float64 `json:"PIDUsage"`
+	DiskUsage          float64 `json:"diskUsage"`
+	NetworkUnavailable bool    `json:"networkUnavailable"`
 }
 
 type ContainerMetrics struct {

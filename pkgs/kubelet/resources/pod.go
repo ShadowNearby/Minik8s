@@ -34,6 +34,16 @@ func CreatePod(podConfig *core.Pod, pStatusChan chan<- core.PodStatus, cStatusCh
 		logger.Errorf("Create Pause Container Failed: %s", err.Error())
 		return err
 	}
+	if cStatusChan != nil {
+		cStatusChan <- core.ContainerStatus{
+			ID:           pauseSpec.ID,
+			Name:         pauseSpec.Name,
+			Image:        pauseSpec.Image,
+			State:        core.ContainerRunning,
+			RestartCount: 0,
+			Environment:  nil,
+		}
+	}
 	startedContainer = append(startedContainer, pauseConfig)
 	err = ContainerManagerInstance.StartContainer(ctx, pause, podConfig)
 	if err != nil {
