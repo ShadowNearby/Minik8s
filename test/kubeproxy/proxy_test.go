@@ -51,7 +51,7 @@ func TestIPVS(t *testing.T) {
 	serverIP := "localhost"
 	serverPorts := []uint32{20000, 20001, 20002}
 	serviceIP := "10.10.0.1"
-	servicePort := uint32(8080)
+	servicePort := uint32(5678)
 	err := kubeproxy.CreateService(serviceIP, servicePort)
 	if err != nil {
 		t.Fatalf("can not create service error: %s", err.Error())
@@ -76,7 +76,7 @@ func TestIPVS(t *testing.T) {
 	for i := len(serverPorts) - 1; i >= 0; i-- {
 		output, err := exec.Command("curl", curlArgs...).CombinedOutput()
 		if string(output) != fmt.Sprintf("hello server%d\n", i) {
-			t.Errorf("output not match expect: %s, actual: %s", string(output), fmt.Sprintf("hello server%d\n", i))
+			t.Errorf("output not match actual: %s, expect: %s", string(output), fmt.Sprintf("hello server%d\n", i))
 		}
 		if err != nil {
 			t.Fatalf("can not curl error: %s output: %s", err.Error(), output)
