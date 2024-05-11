@@ -90,9 +90,9 @@ func TestPodUpdate(t *testing.T) {
 		t.Error("return bad: ", info)
 	}
 	logger.Info("create pod return 200")
-	time.Sleep(2 * time.Second)
+	time.Sleep(5 * time.Second)
 	pod.MetaData.Labels = map[string]string{"test": "haha"}
-	code, info, err = utils.SendRequest("PUT", fmt.Sprintf("http://127.0.0.1:8090/api/v1/namespaces/%s/pods/%s", pod.MetaData.Namespace, pod.MetaData.Name), []byte(utils.JsonMarshal(pod)))
+	code, info, err = utils.SendRequest("POST", fmt.Sprintf("http://127.0.0.1:8090/api/v1/namespaces/%s/pods/%s", pod.MetaData.Namespace, pod.MetaData.Name), []byte(utils.JsonMarshal(pod)))
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -100,7 +100,29 @@ func TestPodUpdate(t *testing.T) {
 		t.Error("return bad: ", info)
 	}
 	logger.Info("create pod return 200")
-	time.Sleep(2 * time.Second)
+	time.Sleep(10 * time.Second)
+	code, info, err = utils.SendRequest("DELETE", fmt.Sprintf("http://127.0.0.1:8090/api/v1/namespaces/%s/pods/%s", pod.MetaData.Namespace, pod.MetaData.Name), nil)
+	if err != nil {
+		t.Error(err.Error())
+	}
+	if code != http.StatusOK {
+		t.Error("return bad: ", info)
+	}
+	logger.Info("create pod return 200")
+	//kubeletcontroller.CreatePod(&pod)
+	_ = kubeletcontroller.StopPod(pod)
+}
+
+func TestPodHttp(t *testing.T) {
+	pod := generateConfig()
+	code, info, err := utils.SendRequest("POST", fmt.Sprintf("http://127.0.0.1:8090/api/v1/namespaces/%s/pods/", pod.MetaData.Namespace), []byte(utils.JsonMarshal(pod)))
+	if err != nil {
+		t.Error(err.Error())
+	}
+	if code != http.StatusOK {
+		t.Error("return bad: ", info)
+	}
+	logger.Info("create pod return 200")
 	code, info, err = utils.SendRequest("DELETE", fmt.Sprintf("http://127.0.0.1:8090/api/v1/namespaces/%s/pods/%s", pod.MetaData.Namespace, pod.MetaData.Name), nil)
 	if err != nil {
 		t.Error(err.Error())

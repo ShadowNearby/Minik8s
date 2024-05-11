@@ -60,7 +60,7 @@ func (sc *ServiceController) HandleUpdate(message string) error {
 	preService := &services[0]
 	service := &services[1]
 	previousSelector := preService.Spec.Selector
-	if MatchLabel(previousSelector.MatchLabels, service.Spec.Selector.MatchLabels) {
+	if utils.MatchLabel(previousSelector.MatchLabels, service.Spec.Selector.MatchLabels) {
 		return nil
 	}
 
