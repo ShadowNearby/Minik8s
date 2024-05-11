@@ -23,8 +23,8 @@ func CreatePodHandler(c *gin.Context) {
 	if pod.MetaData.Namespace == "" {
 		pod.MetaData.Namespace = "default"
 	}
-	podName := fmt.Sprintf("/pods/object/%s/%s", pod.MetaData.Namespace, pod.MetaData.Name)
-	err = storage.Put(podName, pod)
+	key := fmt.Sprintf("/pods/object/%s/%s", pod.MetaData.Namespace, pod.MetaData.Name)
+	err = storage.Put(key, pod)
 	if err != nil {
 		logger.Errorf("put error: %s", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot store data"})
@@ -120,6 +120,7 @@ func UpdatePodHandler(c *gin.Context) {
 	pods[0] = oldPod
 	pods[1] = pod
 	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelPod, constants.ChannelUpdate), pods)
+	logger.Info("publish message")
 	c.JSON(http.StatusOK, gin.H{})
 }
 

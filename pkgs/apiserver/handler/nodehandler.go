@@ -3,8 +3,10 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/apiserver/storage"
+	"minik8s/pkgs/constants"
 	"minik8s/utils"
 	"net/http"
 )
@@ -48,4 +50,55 @@ func GetAllNodesHandler(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(nodes)})
+}
+
+// DeleteNodeHandler DELETE /api/v1/nodes
+func DeleteNodeHandler(c *gin.Context) {
+	name := c.Param("name")
+	key := fmt.Sprintf("/nodes/object/%s", name)
+	var node core.Node
+	// TODO: all pods on the node should be scheduled
+	err := storage.Get(key, &node)
+	err = storage.Del(key)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "cannot delete node"})
+		return
+	}
+	var pods []core.Pod
+	err = storage.RangeGet(fmt.Sprintf("/pods/object/namespaces"), &pods)
+	if err != nil {
+		logger.Errorf("get error: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get data"})
+		return
+	}
+	for _, pod := range pods {
+		logger.Infof("podip:%s, nodeip: %s", pod.Status.HostIP, node.Spec.NodeIP)
+		if pod.Status.HostIP == node.Spec.NodeIP {
+			storage.RedisInstance.PublishMessage(constants.ChannelPodSchedule, pod)
+		}
+	}
+	c.JSON(http.StatusOK, gin.H{"data": "ok"})
+}
+
+// UpdateNodeHandler PUT /api/v1/nodes/:name
+func UpdateNodeHandler(c *gin.Context) {
+	name := c.Param("name")
+	key := fmt.Sprintf("/nodes/object/%s", name)
+	var node core.Node
+	err := c.Bind(&node)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "expect node in body"})
+		return
+	}
+	err = storage.Get(key, &node)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "does not exist before"})
+		return
+	}
+	err = storage.Put(key, node)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": "ok"})
 }

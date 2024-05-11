@@ -17,7 +17,14 @@ const (
 
 var Channels = []string{ChannelNode, ChannelPod, ChannelService, ChannelReplica}
 var Operations = []string{ChannelCreate, ChannelUpdate, ChannelDelete}
+var OtherChannels = []string{ChannelPodSchedule}
 
 func GenerateChannelName(object string, chanType string) string {
 	return fmt.Sprintf("%s-%s", object, chanType)
 }
+
+// Additional Channels
+
+const (
+	ChannelPodSchedule string = "POD-SCHEDULE"
+)

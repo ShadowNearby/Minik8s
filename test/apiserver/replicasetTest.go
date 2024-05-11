@@ -2,9 +2,9 @@ package test
 
 import (
 	"fmt"
+	"minik8s/config"
 	"minik8s/pkgs/apiserver/server"
 	"minik8s/pkgs/apiserver/storage"
-	"minik8s/pkgs/config"
 )
 
 func ServerRun() {
