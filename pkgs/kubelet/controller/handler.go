@@ -53,6 +53,7 @@ func CreatePod(pConfig *core.Pod) error {
 	}
 	wg.Wait()
 	pConfig.Status = pStat
+	runtime.KubeletInstance.WritePodConfig(pConfig.MetaData.Name, pConfig.MetaData.Namespace, pConfig)
 	return nil
 }
 

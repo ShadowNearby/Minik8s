@@ -37,6 +37,9 @@ func (r *Redis) InitChannels() {
 			r.CreateChannel(constants.GenerateChannelName(channel, operation))
 		}
 	}
+	for _, channel := range constants.OtherChannels {
+		r.CreateChannel(channel)
+	}
 }
 
 func (r *Redis) redisSet(key string, value any) error {

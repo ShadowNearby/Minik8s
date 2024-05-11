@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	logger "github.com/sirupsen/logrus"
+	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/utils"
 	"os"
@@ -32,6 +33,7 @@ func (k *Kubelet) InitKubelet(config core.KubeletConfig) {
 
 func (k *Kubelet) RegisterNode() {
 	name, _ := os.Hostname()
+	logger.Infof(name)
 	nodeInfo := core.Node{
 		ApiVersion: "v1",
 		Kind:       "Node",
@@ -39,10 +41,13 @@ func (k *Kubelet) RegisterNode() {
 			Name:   name,
 			Labels: k.Labels,
 		},
-		Spec: core.NodeSpec{},
+		Spec: core.NodeSpec{
+			NodeIP:  utils.GetIP(),
+			PodCIDR: config.PodCIDR,
+		},
 	}
 	code, data, err := utils.SendRequest("POST",
-		fmt.Sprintf("%s:%s/api/v1/nodes", k.MasterIP, k.MasterPort),
+		fmt.Sprintf("http://%s:%s/api/v1/nodes", k.MasterIP, k.MasterPort),
 		[]byte(utils.JsonMarshal(nodeInfo)))
 	if err != nil {
 		logger.Errorf("send request error: %s", err.Error())
@@ -53,20 +58,10 @@ func (k *Kubelet) RegisterNode() {
 	}
 }
 
-func (k *Kubelet) GetPodStat(podName string, podNamespace string) (status core.PodStatus) {
-	return k.PodStatMap[fmt.Sprintf("%s-%s", podName, podNamespace)]
-}
-
 func (k *Kubelet) GetPodConfig(podName string, podNamespace string) core.Pod {
 	return k.PodConfigMap[fmt.Sprintf("%s-%s", podName, podNamespace)]
 }
 
-func (k *Kubelet) WritePodStat(podName string, podNamespace string, podStat *core.PodStatus) {
-	if k.PodStatMap == nil {
-		k.PodStatMap = make(map[string]core.PodStatus)
-	}
-	k.PodStatMap[fmt.Sprintf("%s-%s", podName, podNamespace)] = *podStat
-}
 func (k *Kubelet) WritePodConfig(podName string, podNamespace string, podConfig *core.Pod) {
 	if k.PodConfigMap == nil {
 		k.PodConfigMap = make(map[string]core.Pod)

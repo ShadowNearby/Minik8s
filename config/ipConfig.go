@@ -9,6 +9,9 @@ const (
 	clusterMode    = true
 )
 
+const PodCIDR = "10.244.0.0/16"
+const NodePort = "10250"
+
 type apiSpace string
 
 func GetMasterIp() string {

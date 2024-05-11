@@ -34,15 +34,6 @@ func FreeUsedIP(ip string) {
 	UsedIP[ret] = false
 }
 
-func MatchLabel(l map[string]string, r map[string]string) bool {
-	for k, v := range l {
-		if r[k] != v {
-			return false
-		}
-	}
-	return true
-}
-
 func FindDestPort(targetPort string, containers []core.Container) uint32 {
 	for _, c := range containers {
 		for _, p := range c.Ports {
@@ -70,7 +61,7 @@ func CreateEndpointObject(service *core.Service) error {
 	}
 	selectedPods := []core.Pod{}
 	for _, pod := range pods {
-		if MatchLabel(service.Spec.Selector.MatchLabels, pod.MetaData.Labels) {
+		if utils.MatchLabel(service.Spec.Selector.MatchLabels, pod.MetaData.Labels) {
 			selectedPods = append(selectedPods, pod)
 		}
 	}
@@ -121,7 +112,7 @@ func UpdateEndpointObjectByPodCreate(service *core.Service, pod *core.Pod) error
 	if err != nil {
 		return err
 	}
-	if !MatchLabel(service.Spec.Selector.MatchLabels, pod.MetaData.Labels) {
+	if !utils.MatchLabel(service.Spec.Selector.MatchLabels, pod.MetaData.Labels) {
 		return nil
 	}
 	for _, port := range service.Spec.Ports {
@@ -147,7 +138,7 @@ func UpdateEndpointObjectByPodDelete(service *core.Service, pod *core.Pod) error
 	if err != nil {
 		return err
 	}
-	if !MatchLabel(service.Spec.Selector.MatchLabels, pod.MetaData.Labels) {
+	if !utils.MatchLabel(service.Spec.Selector.MatchLabels, pod.MetaData.Labels) {
 		return nil
 	}
 	for _, port := range service.Spec.Ports {

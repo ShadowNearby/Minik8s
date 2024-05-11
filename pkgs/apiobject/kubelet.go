@@ -132,6 +132,7 @@ func (p Node) MarshalBinary() ([]byte, error) {
 type NodeSpec struct {
 	PodCIDR  string   `json:"podCIDR,omitempty"`
 	PodCIDRs []string `json:"podCIDRs,omitempty"`
+	NodeIP   string   `json:"nodeIP"`
 	Taints   []Taint  `json:"taints,omitempty"`
 }
 

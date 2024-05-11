@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	logger "github.com/sirupsen/logrus"
+	"net"
 )
 
 func JsonMarshal(item any) string {
@@ -20,4 +21,41 @@ func JsonUnMarshal(text string, bind any) error {
 		return err
 	}
 	return nil
+}
+
+func GetIP() string {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return ""
+	}
+	for _, iface := range interfaces {
+		if iface.Name != "eth0" {
+			continue
+		}
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+		for _, addr := range addrs {
+			ipNet, ok := addr.(*net.IPNet)
+			if !ok {
+				continue
+			}
+
+			if ipNet.IP.IsLoopback() || ipNet.IP.To4() == nil {
+				continue
+			}
+			return ipNet.IP.String()
+		}
+	}
+	return ""
+}
+
+func MatchLabel(l map[string]string, r map[string]string) bool {
+	for k, v := range l {
+		if val, ok := r[k]; ok != true || val != v {
+			return false
+		}
+	}
+	return true
 }

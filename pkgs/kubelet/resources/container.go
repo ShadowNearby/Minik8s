@@ -71,9 +71,11 @@ func (cmg *ContainerManager) CreateContainer(ctx context.Context, config core.Co
 	if len(config.Labels) > 0 {
 		copts = append(copts, containerd.WithContainerLabels(config.Labels))
 	}
-	// add filter labels
-	copts = append(copts, containerd.WithAdditionalContainerLabels(utils.GenerateContainerLabel(config.PodName)))
-	copts = append(copts, containerd.WithAdditionalContainerLabels(map[string]string{"name": config.Name}))
+	// add filter and name labels
+	addLabels := make(map[string]string)
+	addLabels["name"] = config.Name
+	addLabels[constants.MiniK8SPod] = config.PodName
+	copts = append(copts, containerd.WithAdditionalContainerLabels(addLabels))
 	// create container
 	container, err := cmg.Client.NewContainer(ctx, config.ID, copts...)
 	if err != nil {

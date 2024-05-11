@@ -3,7 +3,7 @@ package utils
 import (
 	"bytes"
 	"fmt"
-	"minik8s/pkgs/config"
+	"minik8s/config"
 	"net/http"
 	"os"
 	"strings"
@@ -89,7 +89,7 @@ func SendRequest(method string, url string, body []byte) (int, string, error) {
 			log.Error(err)
 		}
 		log.Infoln(response.Status)
-		log.Debugf("[Http Request] to %s method:%s status:%s receive:%d bytes", url, method, response.Status, length)
+		log.Infof("[Http Request] to %s method:%s status:%s receive:%d bytes", url, method, response.Status, length)
 	}
 
 	return response.StatusCode, buffer.String(), err
