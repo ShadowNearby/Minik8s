@@ -3,7 +3,7 @@ package utils
 import (
 	"bytes"
 	"fmt"
-	"minik8s/pkgs/config"
+	"minik8s/config"
 	"net/http"
 	"os"
 	"strings"

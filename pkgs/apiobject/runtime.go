@@ -4,33 +4,6 @@ import (
 	"time"
 )
 
-// CPUSet is a thread-safe, immutable set-like data structure for CPU IDs.
-type CPUSet struct {
-	elems map[int]struct{}
-}
-
-// CPUInfo contains the NUMA, socket, and core IDs associated with a CPU.
-type CPUInfo struct {
-	NUMANodeID int
-	SocketID   int
-	CoreID     int
-}
-
-// CPUDetails is a map from CPU ID to Core ID, Socket ID, and NUMA ID.
-type CPUDetails map[int]CPUInfo
-
-// CPUTopology contains details of node cpu, where :
-// CPU  - logical CPU, cadvisor - thread
-// Core - physical CPU, cadvisor - Core
-// Socket - socket, cadvisor - Socket
-// NUMA Node - NUMA cell, cadvisor - Node
-type CPUTopology struct {
-	NumCPUs    int
-	NumCores   int
-	NumSockets int
-	CPUDetails CPUDetails
-}
-
 // NodeMetrics usage means percentage
 type NodeMetrics struct {
 	Ready              bool    `json:"ready"`
@@ -57,7 +30,7 @@ var EmptyContainerMetrics = ContainerMetrics{
 
 type PodStatus struct {
 	Phase            PhaseLabel        `json:"phase" yaml:"phase"`
-	HostIP           string            `json:"hostIP" yaml:"hostIP"` /* node name */
+	HostIP           string            `json:"hostIP" yaml:"hostIP"` /* node ip */
 	PodIP            string            `json:"podIP" yaml:"podIP"`
 	StartTime        time.Time         `yaml:"startTime"`
 	OldStatus        []Status          `json:"oldStatus"`

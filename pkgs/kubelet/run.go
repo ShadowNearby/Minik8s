@@ -5,14 +5,14 @@ import (
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/kubelet/controller"
 	"minik8s/pkgs/kubelet/runtime"
-	"time"
 )
-
-var defaultAddr = ":10250"
 
 func Run(config core.KubeletConfig, addr string) {
 	runtime.KubeletInstance.InitKubelet(config)
 	runtime.KubeletInstance.RegisterNode()
+	for _, route := range kubeletcontroller.KubeletRouter {
+		route.Register(runtime.KubeletInstance.Server)
+	}
 	go func() {
 		for {
 			err := runtime.KubeletInstance.Server.Run(addr)
@@ -21,13 +21,13 @@ func Run(config core.KubeletConfig, addr string) {
 			}
 		}
 	}()
-	go func() {
-		for {
-			for _, podConfig := range runtime.KubeletInstance.PodConfigMap {
-				kubeletcontroller.InspectPod(&podConfig, runtime.ExecProbe)
-			}
-			time.Sleep(5 * time.Second)
-		}
-	}()
+	//go func() {
+	//	for {
+	//		for _, podConfig := range runtime.KubeletInstance.PodConfigMap {
+	//			kubeletcontroller.InspectPod(&podConfig, runtime.ExecProbe)
+	//		}
+	//		time.Sleep(5 * time.Second)
+	//	}
+	//}()
 	select {}
 }

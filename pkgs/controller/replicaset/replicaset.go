@@ -54,7 +54,7 @@ func (rsc *ReplicaSetController) createReplicas(info string) error {
 		return err
 	}
 	// update the replicaset status
-	err = utils.SetObject(core.ObjReplicaSet, replica.MetaData.Namespace, replica.MetaData.Name, replica)
+	err = utils.SetObject(core.ObjReplicaSet, replica.MetaData.Namespace, replica.MetaData.Name, replica, false)
 	return err
 }
 
@@ -72,7 +72,7 @@ func (rsc *ReplicaSetController) updateReplicas(info string) error {
 	if err != nil {
 		return err
 	}
-	err = utils.SetObject(core.ObjReplicaSet, replicas[1].MetaData.Namespace, replicas[1].MetaData.Name, replicas[1])
+	err = utils.SetObject(core.ObjReplicaSet, replicas[1].MetaData.Namespace, replicas[1].MetaData.Name, replicas[1], false)
 	return err
 }
 
