@@ -41,6 +41,7 @@ func StopPodController(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, "bad request")
 		return
 	}
+	pod = runtime.KubeletInstance.GetPodConfig(pod.MetaData.Name, pod.MetaData.Namespace)
 	err = StopPod(pod)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

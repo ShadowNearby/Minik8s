@@ -12,6 +12,10 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
+// 1. update -> no need to reschedule
+// 2. create, replace -> need reschedule
+// 3. delete -> tell kubelet to stop pod
+
 // CreatePodHandler POST /api/v1/namespaces/:namespace/pods
 func CreatePodHandler(c *gin.Context) {
 	var pod core.Pod
@@ -31,6 +35,8 @@ func CreatePodHandler(c *gin.Context) {
 		return
 	}
 	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelPod, constants.ChannelCreate), pod)
+	pods := []core.Pod{core.Pod{}, pod}
+	storage.RedisInstance.PublishMessage(constants.ChannelPodSchedule, utils.JsonMarshal(pods))
 	c.JSON(http.StatusOK, gin.H{})
 }
 
@@ -116,11 +122,8 @@ func UpdatePodHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot store data"})
 		return
 	}
-	pods := make([]core.Pod, 2)
-	pods[0] = oldPod
-	pods[1] = pod
-	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelPod, constants.ChannelUpdate), pods)
-	logger.Info("publish message")
+	pods := []core.Pod{oldPod, pod}
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelPod, constants.ChannelUpdate), utils.JsonMarshal(pods))
 	c.JSON(http.StatusOK, gin.H{})
 }
 
@@ -134,4 +137,33 @@ func GetAllPodsHandler(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(podConfigs)})
+}
+
+// ReplacePodHandler POST /api/v1/namespaces/:namespace/pods/:name
+func ReplacePodHandler(c *gin.Context) {
+	var pod core.Pod
+	var oldPod core.Pod
+	namespace := c.Param("namespace")
+	name := c.Param("name")
+	err := c.Bind(&pod)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "needs pod config type"})
+		return
+	}
+	if namespace != pod.MetaData.Namespace || name != pod.MetaData.Name {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "namespace and name should same as path"})
+		return
+	}
+	path := fmt.Sprintf("/pods/object/%s/%s", pod.MetaData.Namespace, pod.MetaData.Name)
+	err = storage.Get(path, &oldPod)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get old pod"})
+		return
+	}
+	// 1. hostip
+	// 2. labels
+	// need to reschedule
+	pods := []core.Pod{oldPod, pod}
+	storage.RedisInstance.PublishMessage(constants.ChannelPodSchedule, utils.JsonMarshal(pods))
+	c.JSON(http.StatusOK, gin.H{"data": "ok"})
 }

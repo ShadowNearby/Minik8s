@@ -14,79 +14,24 @@ import (
 )
 
 type Scheduler struct {
-	Policy      string `json:"policy"`
-	podChannels []<-chan *redis.Message
-}
-
-func (sched *Scheduler) GetChannel() string {
-	return ""
-}
-func (sched *Scheduler) HandleCreate(message string) error {
-	var pod core.Pod
-	utils.JsonUnMarshal(message, &pod)
-	ip, err := sched.Schedule(pod)
-	if err != nil {
-		logger.Error("err: ", err.Error())
-		return err
-	} else {
-		logger.Infof("[scheduler create]schedule pod %s to node %s", pod.MetaData.Name, ip)
-	}
-	return nil
-}
-func (sched *Scheduler) HandleUpdate(message string) error {
-	var pods []core.Pod
-	utils.JsonUnMarshal(message, &pods)
-	oldPod := pods[0]
-	if oldPod.Status.HostIP != "" {
-		err := sendStopPod(oldPod.Status.HostIP, oldPod)
-		if err != nil {
-			logger.Errorf("cannot stop pod on %s", oldPod.Status.HostIP)
-		}
-	} else {
-		logger.Errorf("old pod does not have host ip")
-	}
-	pod := pods[1]
-	pod.Status.HostIP = ""
-	ip, err := sched.Schedule(pod)
-	if err != nil {
-		logger.Error(err.Error())
-		return err
-	} else {
-		logger.Infof("[scheduler update]schedule pod %s to node %s", pod.MetaData.Name, ip)
-	}
-	return nil
-}
-func (sched *Scheduler) HandleDelete(message string) error {
-	return nil
+	Policy     string `json:"policy"`
+	podChannel <-chan *redis.Message
 }
 
 func (sched *Scheduler) Run(policy string) {
 	sched.Policy = policy
-	sched.podChannels = make([]<-chan *redis.Message, 4)
-	//storage.RedisInstance.CreateChannel(constants.ChannelPodSchedule)
-	for i, operation := range constants.Operations {
-		sched.podChannels[i] = storage.RedisInstance.SubscribeChannel(constants.GenerateChannelName(constants.ChannelPod, operation))
-	}
-	sched.podChannels[3] = storage.RedisInstance.SubscribeChannel(constants.ChannelPodSchedule)
+	sched.podChannel = storage.RedisInstance.SubscribeChannel(constants.ChannelPodSchedule)
 	go func() {
-		for message := range sched.podChannels[0] {
-			sched.HandleCreate(message.Payload)
-		}
-	}()
-	go func() {
-		for message := range sched.podChannels[1] {
-			sched.HandleUpdate(message.Payload)
-		}
-	}()
-	go func() {
-		for message := range sched.podChannels[2] {
-			sched.HandleDelete(message.Payload)
-		}
-	}()
-	go func() {
-		for message := range sched.podChannels[3] {
-			logger.Info("[scheduler reschedule]")
-			sched.HandleCreate(message.Payload)
+		for message := range sched.podChannel {
+			msg := message.Payload
+			pods := make([]core.Pod, 2)
+			utils.JsonUnMarshal(msg, &pods)
+			logger.Infof("old:%s\nnew:%s", utils.JsonMarshal(pods[0].Status), utils.JsonMarshal(pods[1].Status))
+			pods[1].Status.HostIP = pods[0].Status.HostIP
+			_, err := sched.Schedule(pods[1])
+			if err != nil {
+				logger.Errorf("schedule fail: %s", err.Error())
+			}
 		}
 	}()
 	select {}
@@ -133,7 +78,7 @@ func (sched *Scheduler) Schedule(pod core.Pod) (string, error) {
 		return "", err
 	}
 	// node register pod over, write back to storage
-	err = utils.SetObject(core.ObjPod, pod.MetaData.Namespace, pod.MetaData.Name, pod, false)
+	err = utils.SetObject(core.ObjPod, pod.MetaData.Namespace, pod.MetaData.Name, pod)
 	if err != nil {
 		return "", err
 	}

@@ -7,6 +7,7 @@ var RouteTable = [...]Route{
 	{Path: "/api/v1/namespaces/:namespace/pods/:name", Method: "DELETE", Handler: DeletePodHandler}, // DELETE, delete a pod
 	{Path: "/api/v1/namespaces/:namespace/pods/:name", Method: "PUT", Handler: UpdatePodHandler},    // PUT, update a pod
 	{Path: "/api/v1/pods", Method: "GET", Handler: GetAllPodsHandler},                               // GET, get all pods
+	{Path: "/api/v1/namespaces/:namespace/pods/:name", Method: "POST", Handler: ReplacePodHandler},  // POST, replace a pod
 
 	{Path: "/api/v1/nodes", Method: "POST", Handler: CreateNodeHandler},         // POST, create a node
 	{Path: "/api/v1/nodes", Method: "GET", Handler: GetAllNodesHandler},         // GET, list all nodes

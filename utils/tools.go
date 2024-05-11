@@ -10,7 +10,8 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
-func SetObject(objType core.ObjType, namespace string, name string, obj any, sendMsg ...bool) error {
+// SetObject this function will use update message
+func SetObject(objType core.ObjType, namespace string, name string, obj any) error {
 	if namespace == "" {
 		namespace = "default"
 	}
@@ -22,11 +23,9 @@ func SetObject(objType core.ObjType, namespace string, name string, obj any, sen
 	} else {
 		url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s/%s", config.LocalServerIp, config.ApiServerPort, namespace, string(objType), name)
 	}
-	if len(sendMsg) == 0 || sendMsg[0] == true {
-		if code, info, err := SendRequest("PUT", url, []byte(objTxt)); err != nil || code != http.StatusOK {
-			logger.Errorf("[set obj error]: %s", info)
-			return err
-		}
+	if code, info, err := SendRequest("PUT", url, []byte(objTxt)); err != nil || code != http.StatusOK {
+		logger.Errorf("[set obj error]: %s", info)
+		return err
 	}
 	return nil
 }

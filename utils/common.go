@@ -50,3 +50,12 @@ func GetIP() string {
 	}
 	return ""
 }
+
+func MatchLabel(l map[string]string, r map[string]string) bool {
+	for k, v := range l {
+		if val, ok := r[k]; ok != true || val != v {
+			return false
+		}
+	}
+	return true
+}
