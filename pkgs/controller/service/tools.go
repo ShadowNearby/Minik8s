@@ -97,16 +97,17 @@ func CreateEndpointObject(service *core.Service) error {
 				Namespace: service.MetaData.Namespace,
 			},
 		}
+		NodeIP := utils.GetIP()
 		for _, port := range service.Spec.Ports {
 			Destinations := []core.EndpointDestination{}
 			for _, pod := range selectedPods {
 				destPort := FindDestPort(port.TargetPort, pod.Spec.Containers)
 				Destinations = append(Destinations, core.EndpointDestination{
-					IP:   pod.Status.PodIP,
+					IP:   NodeIP,
 					Port: destPort,
 				})
-				kubeproxy.BindEndpoint(pod.Status.PodIP, port.NodePort, pod.Status.PodIP, destPort)
-				log.Infof("create endpoint: %s:%d -> %s:%d", pod.Status.PodIP, port.NodePort, pod.Status.PodIP, destPort)
+				kubeproxy.BindEndpoint(NodeIP, port.NodePort, pod.Status.PodIP, destPort)
+				log.Infof("create endpoint: %s:%d -> %s:%d", NodeIP, port.NodePort, pod.Status.PodIP, destPort)
 			}
 			endpoint.Binds = append(endpoint.Binds, core.EndpointBind{
 				ServicePort:  port.NodePort,
