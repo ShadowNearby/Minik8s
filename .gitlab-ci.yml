@@ -1,12 +1,20 @@
 stages:
   - build
   - test
+  - finish
 
 build:
   stage: build
   script:
     - go mod tidy
     - echo "Compiling the code..."
+    - go build -o ./bin/apiserver ./cmd/apiserver.go
+    - go build -o ./bin/kubelet ./cmd/kubelet.go
+    - ./bin/apiserver > ./log/apiserver.log 2>&1 &
+    - echo "start apiserver"
+    - sleep 3
+    - ./bin/kubelet > ./log/kubelet.log 2>&1 &
+    - echo "start kubelet"
     - echo "Compile complete."
 
 test-static-analysis:
@@ -39,3 +47,8 @@ test-kubeproxy:
     - echo "Running unit tests for kubeproxy..."
     - go test minik8s/test/kubeproxy -cover
 
+finish:
+  stage: finish
+  script:
+    - pkill apiserver
+    - pkill kubelet

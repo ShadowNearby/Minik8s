@@ -18,3 +18,4 @@
 .gitee/
 
 bin/
+*.log
