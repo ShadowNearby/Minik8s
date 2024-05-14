@@ -8,20 +8,20 @@ build:
   script:
     - go mod tidy
     - echo "Compiling the code..."
-    - go build -o ./bin/apiserver ./cmd/apiserver.go
-    - go build -o ./bin/kubelet ./cmd/kubelet.go
+    - go build -o ./bin/apiserver ./cmd/apiserver/apiserver.go
+    - go build -o ./bin/kubelet ./cmd/kubelet/kubelet.go
     - ./bin/apiserver > ./log/apiserver.log 2>&1 &
     - echo "start apiserver"
     - sleep 3
     - ./bin/kubelet > ./log/kubelet.log 2>&1 &
     - echo "start kubelet"
-    - echo "Compile complete."
+    - echo "Compile and run complete."
 
 test-static-analysis:
   stage: test
   script:
     - echo "Running go vet..."
-    # - go vet ./...
+    - go vet ./...
 
 test-apiserver:
   stage: test

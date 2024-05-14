@@ -3,14 +3,15 @@ package scheduler
 import (
 	"errors"
 	"fmt"
-	"github.com/redis/go-redis/v9"
-	logger "github.com/sirupsen/logrus"
 	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/apiserver/storage"
 	"minik8s/pkgs/constants"
 	"minik8s/utils"
 	"net/http"
+
+	"github.com/redis/go-redis/v9"
+	logger "github.com/sirupsen/logrus"
 )
 
 type Scheduler struct {
@@ -35,7 +36,6 @@ func (sched *Scheduler) Run(policy string) {
 		}
 	}()
 	select {}
-	logger.Error("should not be here")
 }
 
 func (sched *Scheduler) Schedule(pod core.Pod) (string, error) {
