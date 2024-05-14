@@ -80,7 +80,7 @@ type EnvConfig struct {
 }
 
 type ResourceLimit struct {
-	Cpu    int    `json:"cpu"`    /* 500m */
+	Cpu    string `json:"cpu"`    /* 500m */
 	Memory uint64 `json:"memory"` /* 48Mi */
 }
 
