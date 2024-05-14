@@ -47,6 +47,13 @@ test-kubeproxy:
     - echo "Running unit tests for kubeproxy..."
     - go test minik8s/test/kubeproxy -cover
 
+test-dns:
+  stage: test
+  script:
+    - echo "Running unit tests for kubeproxy..."
+    - go test minik8s/test/dns -cover
+
+
 finish:
   stage: finish
   script:

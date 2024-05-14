@@ -22,10 +22,10 @@ func TestDocker(t *testing.T) {
 
 	}
 	for i, serverPort := range serverPorts {
-		curlArgs := []string{"curl", "-s", fmt.Sprintf("%s:%d", "localhost", serverPort)}
+		curlArgs := []string{"-s", fmt.Sprintf("%s:%d", "localhost", serverPort)}
 		output, err := exec.Command("curl", curlArgs...).CombinedOutput()
 		if string(output) != fmt.Sprintf("hello server%d\n", i) {
-			t.Errorf("output not match expect: %s, actual: %s", string(output), fmt.Sprintf("hello server%d\n", i))
+			t.Errorf("output not match expect: %s, actual: %s", fmt.Sprintf("hello server%d\n", i), string(output))
 		}
 		if err != nil {
 			t.Fatalf("can not curl error: %s output: %s", err.Error(), output)
@@ -72,7 +72,7 @@ func TestIPVS(t *testing.T) {
 			return
 		}
 	}
-	curlArgs := []string{"curl", "-s", fmt.Sprintf("%s:%d", serviceIP, servicePort)}
+	curlArgs := []string{"-s", fmt.Sprintf("%s:%d", serviceIP, servicePort)}
 	for i := len(serverPorts) - 1; i >= 0; i-- {
 		output, err := exec.Command("curl", curlArgs...).CombinedOutput()
 		if string(output) != fmt.Sprintf("hello server%d\n", i) {

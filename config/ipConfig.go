@@ -12,6 +12,8 @@ const (
 const PodCIDR = "10.244.0.0/16"
 const NodePort = "10250"
 
+var DefaultEtcdEndpoints = []string{"localhost:2380"}
+
 type apiSpace string
 
 func GetMasterIp() string {
