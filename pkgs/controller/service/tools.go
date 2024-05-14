@@ -74,29 +74,56 @@ func CreateEndpointObject(service *core.Service) error {
 			selectedPods = append(selectedPods, pod)
 		}
 	}
-	endpoint := core.Endpoint{
-		MetaData: core.MetaData{
-			Name:      service.MetaData.Name,
-			Namespace: service.MetaData.Namespace,
-		},
-		ServiceClusterIP: service.Spec.ClusterIP,
-	}
-	for _, port := range service.Spec.Ports {
-		Destinations := []core.EndpointDestination{}
-		for _, pod := range selectedPods {
-			destPort := FindDestPort(port.TargetPort, pod.Spec.Containers)
-			Destinations = append(Destinations, core.EndpointDestination{
-				IP:   pod.Status.PodIP,
-				Port: destPort,
-			})
-			kubeproxy.BindEndpoint(service.Spec.ClusterIP, port.Port, pod.Status.PodIP, destPort)
-			log.Infof("create endpoint: %s:%d -> %s:%d", service.Spec.ClusterIP, port.Port, pod.Status.PodIP, destPort)
+	endpoint := core.Endpoint{}
+	if service.Spec.Type == core.ServiceTypeClusterIP {
+		endpoint = core.Endpoint{
+			MetaData: core.MetaData{
+				Name:      service.MetaData.Name,
+				Namespace: service.MetaData.Namespace,
+			},
+			ServiceClusterIP: service.Spec.ClusterIP,
 		}
-		endpoint.Binds = append(endpoint.Binds, core.EndpointBind{
-			ServicePort:  port.Port,
-			Destinations: Destinations,
-		})
+		for _, port := range service.Spec.Ports {
+			Destinations := []core.EndpointDestination{}
+			for _, pod := range selectedPods {
+				destPort := FindDestPort(port.TargetPort, pod.Spec.Containers)
+				Destinations = append(Destinations, core.EndpointDestination{
+					IP:   pod.Status.PodIP,
+					Port: destPort,
+				})
+				kubeproxy.BindEndpoint(service.Spec.ClusterIP, port.Port, pod.Status.PodIP, destPort)
+				log.Infof("create endpoint: %s:%d -> %s:%d", service.Spec.ClusterIP, port.Port, pod.Status.PodIP, destPort)
+			}
+			endpoint.Binds = append(endpoint.Binds, core.EndpointBind{
+				ServicePort:  port.Port,
+				Destinations: Destinations,
+			})
+		}
+	} else if service.Spec.Type == core.ServiceTypeNodePort {
+		endpoint = core.Endpoint{
+			MetaData: core.MetaData{
+				Name:      service.MetaData.Name,
+				Namespace: service.MetaData.Namespace,
+			},
+		}
+		for _, port := range service.Spec.Ports {
+			Destinations := []core.EndpointDestination{}
+			for _, pod := range selectedPods {
+				destPort := FindDestPort(port.TargetPort, pod.Spec.Containers)
+				Destinations = append(Destinations, core.EndpointDestination{
+					IP:   pod.Status.PodIP,
+					Port: destPort,
+				})
+				kubeproxy.BindEndpoint(pod.Status.PodIP, port.NodePort, pod.Status.PodIP, destPort)
+				log.Infof("create endpoint: %s:%d -> %s:%d", pod.Status.PodIP, port.NodePort, pod.Status.PodIP, destPort)
+			}
+			endpoint.Binds = append(endpoint.Binds, core.EndpointBind{
+				ServicePort:  port.NodePort,
+				Destinations: Destinations,
+			})
+		}
 	}
+
 	err = utils.CreateObject(core.ObjEndPoint, endpoint.MetaData.Name, endpoint)
 	if err != nil {
 		log.Errorf("create endpoint error: %s", err.Error())

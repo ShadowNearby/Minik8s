@@ -17,6 +17,8 @@ var UsedIP = [TotalIP]bool{}
 
 const IPPrefix = "10.10.0."
 
+const NodePortIP = "0.0.0.0"
+
 type ServiceController struct{}
 
 func (sc *ServiceController) GetChannel() string {
@@ -32,11 +34,17 @@ func (sc *ServiceController) HandleCreate(message string) error {
 	}
 
 	// creaete service and alloc ip
-	clusterIP := FindUnusedIP()
-	service.Spec.ClusterIP = clusterIP
-	utils.SetObject(core.ObjService, service.MetaData.Namespace, service.MetaData.Name, service)
-	for _, port := range service.Spec.Ports {
-		kubeproxy.CreateService(clusterIP, uint32(port.Port))
+	if service.Spec.Type == core.ServiceTypeClusterIP {
+		clusterIP := FindUnusedIP()
+		service.Spec.ClusterIP = clusterIP
+		utils.SetObject(core.ObjService, service.MetaData.Namespace, service.MetaData.Name, service)
+		for _, port := range service.Spec.Ports {
+			kubeproxy.CreateService(clusterIP, port.Port)
+		}
+	} else if service.Spec.Type == core.ServiceTypeNodePort {
+		for _, port := range service.Spec.Ports {
+			kubeproxy.CreateService(NodePortIP, port.NodePort)
+		}
 	}
 
 	err = CreateEndpointObject(service)
