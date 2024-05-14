@@ -15,6 +15,7 @@ import (
 
 type Scheduler struct {
 	Policy     string `json:"policy"`
+	rrIdx      int
 	podChannel <-chan *redis.Message
 }
 
@@ -101,8 +102,13 @@ func (sched *Scheduler) dispatch(candidates map[string]core.NodeMetrics) string 
 		}
 	default:
 		{
-			logger.Errorf("unsuppported policy")
-			return ""
+			// use roundRobin
+			candidatesList := make([]string, 0)
+			for key, _ := range candidates {
+				candidatesList = append(candidatesList, key)
+			}
+			sched.rrIdx++
+			return roundRobinPolicy(sched.rrIdx, candidatesList...)
 		}
 
 	}
