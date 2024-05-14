@@ -1,10 +1,11 @@
 package main
 
 import (
-	logger "github.com/sirupsen/logrus"
 	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/kubelet"
+
+	logger "github.com/sirupsen/logrus"
 )
 
 func main() {
