@@ -18,7 +18,7 @@ type ServiceSpec struct {
 	Selector                      Selector      `yaml:"selector"`
 	Ports                         []ServicePort `yaml:"ports"`
 	AllocateLoadBalancerNodePorts bool          `yaml:"allocateLoadBalancerNodePorts"`
-	Type                          string        `yaml:"type"`
+	Type                          ServiceType   `yaml:"type"`
 	ClusterIP                     string        `yaml:"clusterIp"`
 }
 
@@ -27,6 +27,18 @@ type Service struct {
 	Spec      ServiceSpec   `json:"spec" yaml:"spec"`
 	Status    ServiceStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
+
+type ServiceType string
+
+const (
+	// ServiceTypeClusterIP means a service will only be accessible inside the
+	// cluster, via the portal IP.
+	ServiceTypeClusterIP ServiceType = "ClusterIP"
+
+	// ServiceTypeNodePort means a service will be exposed on one port of
+	// every node, in addition to 'ClusterIP' type.
+	ServiceTypeNodePort ServiceType = "NodePort"
+)
 
 func (p Service) MarshalBinary() ([]byte, error) {
 	return json.Marshal(p)
