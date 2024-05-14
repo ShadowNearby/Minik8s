@@ -31,19 +31,21 @@ func TestDocker(t *testing.T) {
 			t.Fatalf("can not curl error: %s output: %s", err.Error(), output)
 		}
 	}
+	stopArgs := []string{"stop"}
+	rmArgs := []string{"rm"}
 	for i := range serverPorts {
-		stopArgs := []string{"stop", fmt.Sprintf("hello-server%d", i)}
-		rmArgs := []string{"rm", fmt.Sprintf("hello-server%d", i)}
-		output, err := exec.Command("docker", stopArgs...).CombinedOutput()
-		if err != nil {
-			t.Fatalf("can not create image error: %s output: %s", err.Error(), output)
-			return
-		}
-		output, err = exec.Command("docker", rmArgs...).CombinedOutput()
-		if err != nil {
-			t.Fatalf("can not create image error: %s output: %s", err.Error(), output)
-			return
-		}
+		stopArgs = append(stopArgs, fmt.Sprintf("hello-server%d", i))
+		rmArgs = append(rmArgs, fmt.Sprintf("hello-server%d", i))
+	}
+	output, err := exec.Command("docker", stopArgs...).CombinedOutput()
+	if err != nil {
+		t.Fatalf("can not create image error: %s output: %s", err.Error(), output)
+		return
+	}
+	output, err = exec.Command("docker", rmArgs...).CombinedOutput()
+	if err != nil {
+		t.Fatalf("can not create image error: %s output: %s", err.Error(), output)
+		return
 	}
 }
 
@@ -87,16 +89,20 @@ func TestIPVS(t *testing.T) {
 	if err != nil {
 		t.Fatalf("can not delete service error: %s", err.Error())
 	}
+	stopArgs := []string{"stop"}
+	rmArgs := []string{"rm"}
 	for i := range serverPorts {
-		stopArgs := []string{"stop", fmt.Sprintf("hello-server%d", i)}
-		rmArgs := []string{"rm", fmt.Sprintf("hello-server%d", i)}
-		output, err := exec.Command("docker", stopArgs...).CombinedOutput()
-		if err != nil {
-			t.Fatalf("can not create image error: %s output: %s", err.Error(), output)
-		}
-		output, err = exec.Command("docker", rmArgs...).CombinedOutput()
-		if err != nil {
-			t.Fatalf("can not create image error: %s output: %s", err.Error(), output)
-		}
+		stopArgs = append(stopArgs, fmt.Sprintf("hello-server%d", i))
+		rmArgs = append(rmArgs, fmt.Sprintf("hello-server%d", i))
+	}
+	output, err := exec.Command("docker", stopArgs...).CombinedOutput()
+	if err != nil {
+		t.Fatalf("can not create image error: %s output: %s", err.Error(), output)
+		return
+	}
+	output, err = exec.Command("docker", rmArgs...).CombinedOutput()
+	if err != nil {
+		t.Fatalf("can not create image error: %s output: %s", err.Error(), output)
+		return
 	}
 }
