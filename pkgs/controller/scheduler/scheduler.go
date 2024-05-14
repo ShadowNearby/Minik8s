@@ -133,6 +133,7 @@ func requestNodeInfos(node core.Node) (map[string]string, core.NodeMetrics, erro
 func sendCreatePod(nodeIp string, pod core.Pod) error {
 	//url := fmt.Sprintf("http://%s:%s/pod/create", nodeIp, config.NodePort)
 	// TODO: using ip
+	logger.Info("send create pod")
 	url := fmt.Sprintf("http://%s:%s/pod/create", "127.0.0.1", config.NodePort)
 	code, info, err := utils.SendRequest("POST", url, []byte(utils.JsonMarshal(pod)))
 	if err != nil {
@@ -149,6 +150,7 @@ func sendCreatePod(nodeIp string, pod core.Pod) error {
 func sendStopPod(nodeIP string, pod core.Pod) error {
 	//url := fmt.Sprintf("http://%s:%s/pod/stop",nodeIP, config.NodePort)
 	// TODO: using ip
+	logger.Info("send stop pod")
 	url := fmt.Sprintf("http://%s:%s/pod/stop", "127.0.0.1", config.NodePort)
 	code, info, err := utils.SendRequest("POST", url, []byte(utils.JsonMarshal(pod)))
 	if err != nil {

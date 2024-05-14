@@ -80,8 +80,10 @@ func TestPodLocalhostTest(t *testing.T) {
 	_ = kubeletcontroller.StopPod(podConfig)
 }
 
+// test including api-server, kubelet, scheduler
 func TestPodUpdate(t *testing.T) {
 	pod := generateConfig()
+	// create pod, should scheduler pod to node
 	code, info, err := utils.SendRequest("POST", fmt.Sprintf("http://127.0.0.1:8090/api/v1/namespaces/%s/pods/", pod.MetaData.Namespace), []byte(utils.JsonMarshal(pod)))
 	if err != nil {
 		t.Error(err.Error())
@@ -91,7 +93,21 @@ func TestPodUpdate(t *testing.T) {
 	}
 	logger.Info("create pod return 200")
 	time.Sleep(5 * time.Second)
+
 	pod.MetaData.Labels = map[string]string{"test": "haha"}
+	// hard update, should stop pod and reschedule
+	code, info, err = utils.SendRequest("POST", fmt.Sprintf("http://127.0.0.1:8090/api/v1/namespaces/%s/pods/%s", pod.MetaData.Namespace, pod.MetaData.Name), []byte(utils.JsonMarshal(pod)))
+	if err != nil {
+		t.Error(err.Error())
+	}
+	if code != http.StatusOK {
+		t.Error("return bad: ", info)
+	}
+	logger.Info("create pod return 200")
+	time.Sleep(2 * time.Second)
+
+	pod.MetaData.Labels = map[string]string{"test": "nothaha"}
+	// hard update, should stop pod and reschedule
 	code, info, err = utils.SendRequest("POST", fmt.Sprintf("http://127.0.0.1:8090/api/v1/namespaces/%s/pods/%s", pod.MetaData.Namespace, pod.MetaData.Name), []byte(utils.JsonMarshal(pod)))
 	if err != nil {
 		t.Error(err.Error())
@@ -101,6 +117,8 @@ func TestPodUpdate(t *testing.T) {
 	}
 	logger.Info("create pod return 200")
 	time.Sleep(10 * time.Second)
+
+	// delete pod, should send delete request to kubelet
 	code, info, err = utils.SendRequest("DELETE", fmt.Sprintf("http://127.0.0.1:8090/api/v1/namespaces/%s/pods/%s", pod.MetaData.Namespace, pod.MetaData.Name), nil)
 	if err != nil {
 		t.Error(err.Error())
