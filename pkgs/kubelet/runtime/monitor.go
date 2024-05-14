@@ -22,10 +22,12 @@ func GetNodeState() (core.NodeMetrics, error) {
 	if err != nil {
 		return nodeMetrics, err
 	}
+	numCores := machineAttr.NumCores
 	deltaUsage := float64(containerInfos.Stats[1].Cpu.Usage.Total - containerInfos.Stats[0].Cpu.Usage.Total)
 	deltaTime := float64(containerInfos.Stats[1].Timestamp.Sub(containerInfos.Stats[0].Timestamp))
 	cpuUsage := deltaUsage / deltaTime
-	nodeMetrics.CPUUsage = cpuUsage * 100.0
+	cpuMetricVal := cpuUsage * float64(numCores) * 1000
+	nodeMetrics.CPUUsage = cpuMetricVal
 	memUsage := float64(containerInfos.Stats[0].Memory.Usage) / float64(machineAttr.MemoryCapacity)
 	nodeMetrics.MemoryUsage = memUsage * 100.0
 	fs := containerInfos.Stats[0].Filesystem
