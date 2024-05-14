@@ -7,19 +7,18 @@ type ServiceStatus struct {
 }
 
 type ServicePort struct {
-	Name       string `yaml:"name"`
-	Port       uint32 `yaml:"port"`
-	NodePort   uint32 `yaml:"nodePort"`
-	Protocol   string `yaml:"protocol"`
-	TargetPort string `yaml:"targetPort"`
+	Name       string `json:"name" yaml:"name"`
+	Port       uint32 `json:"port" yaml:"port"`
+	NodePort   uint32 `json:"nodePort" yaml:"nodePort"`
+	Protocol   string `json:"protocol" yaml:"protocol"`
+	TargetPort string `json:"targetPort" yaml:"targetPort"`
 }
 
 type ServiceSpec struct {
-	Selector                      Selector      `yaml:"selector"`
-	Ports                         []ServicePort `yaml:"ports"`
-	AllocateLoadBalancerNodePorts bool          `yaml:"allocateLoadBalancerNodePorts"`
-	Type                          ServiceType   `yaml:"type"`
-	ClusterIP                     string        `yaml:"clusterIp"`
+	Selector  Selector      `json:"selector" yaml:"selector"`
+	Ports     []ServicePort `json:"ports" yaml:"ports"`
+	Type      ServiceType   `json:"type" yaml:"type"`
+	ClusterIP string        `json:"clusterIp" yaml:"clusterIp"`
 }
 
 type Service struct {
