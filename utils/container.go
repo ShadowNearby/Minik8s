@@ -92,53 +92,68 @@ func GetContainerStatus(container containerd.Container) (containerd.Status, erro
 // GetContainerMetrics copy from containerd
 func GetContainerMetrics(container containerd.Container) (core.ContainerMetrics, error) {
 	ctx := context.Background()
-	task, err := container.Task(ctx, nil)
-	if err != nil {
-		logger.Errorf("get running task error: %s", err.Error())
-		return core.EmptyContainerMetrics, err
-	}
-	metric, err := task.Metrics(ctx)
-	if err != nil {
-		logger.Errorf("get task metrics error: %s", err.Error())
-		return core.EmptyContainerMetrics, err
-	}
-	//var data interface{}
 	var containerMetrics core.ContainerMetrics
-	switch {
-	case typeurl.Is(metric.Data, (*v2.Metrics)(nil)): // should be v2
-		{
-			data := &v2.Metrics{}
-			if err := typeurl.UnmarshalTo(metric.Data, data); err != nil {
-				return core.EmptyContainerMetrics, err
-			}
-			var ioMajor uint64 = 0
-			for _, ioEntry := range data.Io.Usage {
-				ioMajor += ioEntry.Major
-			}
-			containerMetrics.CpuUsage = data.CPU.UsageUsec
-			containerMetrics.PidCount = data.Pids.Current
-			containerMetrics.MemoryUsage = data.Memory.Usage
-			containerMetrics.DiskUsage = ioMajor
-			return containerMetrics, nil
+	var cpuUsageUsec, memoryUsageBytes uint64
+	var initialTime, finalTime time.Time
+	for i := 0; i < 2; i++ {
+		task, err := container.Task(ctx, nil)
+		if err != nil {
+			logger.Errorf("get running task error: %s", err.Error())
+			return core.EmptyContainerMetrics, err
 		}
-	case typeurl.Is(metric.Data, (*v1.Metrics)(nil)):
-		{
-			data := &v1.Metrics{}
-			if err := typeurl.UnmarshalTo(metric.Data, data); err != nil {
-				return core.EmptyContainerMetrics, err
-			}
-			containerMetrics.CpuUsage = data.CPU.Usage.Total
-			containerMetrics.PidCount = data.Pids.Current
-			containerMetrics.MemoryUsage = data.Memory.Usage.Usage
-			return containerMetrics, nil
+		metric, err := task.Metrics(ctx)
+		if err != nil {
+			logger.Errorf("get task metrics error: %s", err.Error())
+			return core.EmptyContainerMetrics, err
 		}
-	default:
-		return core.EmptyContainerMetrics, errors.New("cannot convert metric data to cgroups.Metrics")
+		//var data interface{}
+		if i == 0 {
+			initialTime = time.Now()
+		} else {
+			finalTime = time.Now()
+		}
+		switch {
+		case typeurl.Is(metric.Data, (*v2.Metrics)(nil)): // should be v2
+			{
+				data := &v2.Metrics{}
+				if err := typeurl.UnmarshalTo(metric.Data, data); err != nil {
+					return core.EmptyContainerMetrics, err
+				}
+				if i == 0 {
+					cpuUsageUsec = data.CPU.UsageUsec
+					memoryUsageBytes = data.Memory.Usage
+				} else {
+					cpuUsageUsec = data.CPU.UsageUsec - cpuUsageUsec
+					memoryUsageBytes = (data.Memory.Usage + memoryUsageBytes) / 2
+				}
+			}
+		case typeurl.Is(metric.Data, (*v1.Metrics)(nil)):
+			{
+				data := &v1.Metrics{}
+				if err := typeurl.UnmarshalTo(metric.Data, data); err != nil {
+					return core.EmptyContainerMetrics, err
+				}
+				if i == 0 {
+					cpuUsageUsec = data.CPU.Usage.Total
+					memoryUsageBytes = data.Memory.Usage.Usage
+				} else {
+					cpuUsageUsec = data.CPU.Usage.Total - cpuUsageUsec
+					memoryUsageBytes = (data.Memory.Usage.Usage - memoryUsageBytes) / 2
+				}
+			}
+		default:
+			return core.EmptyContainerMetrics, errors.New("cannot convert metric data to cgroups.Metrics")
+		}
+		if i == 0 {
+			time.Sleep(1 * time.Millisecond)
+		}
 	}
-	//marshaledJSON, err := json.MarshalIndent(data, "", "  ")
-	//if err != nil {
-	//	return err
-	//}
-	//logger.Infof("inspect data: %s", marshaledJSON) // 打印一下看看
-	//return core.EmptyContainerMetrics, nil
+	elapsedTime := finalTime.Sub(initialTime).Microseconds()
+
+	// 计算CPU,MEM使用率
+	cpuUsageRate := (float64(cpuUsageUsec) / float64(elapsedTime)) * 100
+	memUsageRage := float64(memoryUsageBytes)
+	containerMetrics.CpuUsage = cpuUsageRate
+	containerMetrics.MemoryUsage = memUsageRage
+	return containerMetrics, nil
 }

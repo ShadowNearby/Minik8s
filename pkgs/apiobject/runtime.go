@@ -15,17 +15,13 @@ type NodeMetrics struct {
 }
 
 type ContainerMetrics struct {
-	PidCount    uint64
-	CpuUsage    uint64
-	MemoryUsage uint64
-	DiskUsage   uint64
+	CpuUsage    float64 // percentage
+	MemoryUsage float64 // percentage
 }
 
 var EmptyContainerMetrics = ContainerMetrics{
-	PidCount:    0,
 	CpuUsage:    0,
 	MemoryUsage: 0,
-	DiskUsage:   0,
 }
 
 type PodStatus struct {

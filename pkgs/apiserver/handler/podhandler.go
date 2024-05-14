@@ -35,7 +35,7 @@ func CreatePodHandler(c *gin.Context) {
 		return
 	}
 	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelPod, constants.ChannelCreate), pod)
-	pods := []core.Pod{core.Pod{}, pod}
+	pods := []core.Pod{{}, pod}
 	storage.RedisInstance.PublishMessage(constants.ChannelPodSchedule, utils.JsonMarshal(pods))
 	c.JSON(http.StatusOK, gin.H{})
 }
@@ -86,7 +86,14 @@ func DeletePodHandler(c *gin.Context) {
 		return
 	}
 	podName := fmt.Sprintf("/pods/object/%s/%s", namespace, name)
-	err := storage.Del(podName)
+	var pod core.Pod
+	err := storage.Get(podName, &pod)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "no such pod"})
+		return
+	}
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelPod, constants.ChannelDelete), pod)
+	err = storage.Del(podName)
 	if err != nil {
 		logger.Errorf("del error: %s", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get data"})

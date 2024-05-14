@@ -1,17 +1,16 @@
-package test
+package utils
 
 import (
 	"github.com/containerd/containerd/namespaces"
 	"github.com/docker/go-connections/nat"
 	core "minik8s/pkgs/apiobject"
-	"minik8s/utils"
 )
 
 func GeneratePodConfigPy() core.Pod {
 	metadata := core.MetaData{
 		Name:      "test",
 		Namespace: namespaces.Default,
-		UUID:      utils.GenerateUUID(),
+		UUID:      GenerateUUID(),
 	}
 	portMap := nat.PortMap{}
 	portMap[nat.Port(rune(80))] = make([]nat.PortBinding, 0)

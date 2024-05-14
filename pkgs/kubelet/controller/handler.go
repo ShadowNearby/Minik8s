@@ -88,30 +88,13 @@ func NodeMetrics() core.NodeMetrics {
 		return state
 	}
 	return state
-	//var allPID uint64
-	//var allMem uint64
-	//var allCPU uint64
-	//var allDisk uint64
-	//logger.Infof("len:%d", len(runtime.KubeletInstance.PodConfigMap))
-	//for name, podConfig := range runtime.KubeletInstance.PodConfigMap {
-	//	metrics, err := resources.GetPodMetrics(&podConfig)
-	//	if err != nil {
-	//		logger.Errorf("get pod %s metrics error: %s", name, err.Error())
-	//		continue
-	//	}
-	//	for _, metric := range metrics {
-	//		allPID += metric.PidCount
-	//		allMem += metric.MemoryUsage
-	//		allCPU += metric.CpuUsage
-	//		allDisk += metric.DiskUsage
-	//	}
-	//}
-	//return core.NodeMetrics{
-	//	Ready:              true,
-	//	CPUUsage:           float64(allCPU),
-	//	MemoryUsage:        float64(allMem),
-	//	PIDUsage:           float64(allPID),
-	//	DiskUsage:          float64(allDisk),
-	//	NetworkUnavailable: false,
-	//}
+}
+
+func PodMetrics(pod core.Pod) core.Metrics {
+	metrics, err := runtime.GetPodMetrics(&pod)
+	if err != nil {
+		logger.Errorf("get pod metrics error")
+		return core.Metrics{}
+	}
+	return metrics
 }

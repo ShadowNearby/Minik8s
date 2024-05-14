@@ -15,14 +15,16 @@ import (
 )
 
 type Scheduler struct {
-	Policy     string `json:"policy"`
-	rrIdx      int
-	podChannel <-chan *redis.Message
+	Policy        string `json:"policy"`
+	rrIdx         int
+	podChannel    <-chan *redis.Message
+	podDelChannel <-chan *redis.Message
 }
 
 func (sched *Scheduler) Run(policy string) {
 	sched.Policy = policy
 	sched.podChannel = storage.RedisInstance.SubscribeChannel(constants.ChannelPodSchedule)
+	sched.podDelChannel = storage.RedisInstance.SubscribeChannel(constants.GenerateChannelName(constants.ChannelPod, constants.ChannelDelete))
 	go func() {
 		for message := range sched.podChannel {
 			msg := message.Payload
@@ -33,6 +35,20 @@ func (sched *Scheduler) Run(policy string) {
 			_, err := sched.Schedule(pods[1])
 			if err != nil {
 				logger.Errorf("schedule fail: %s", err.Error())
+			}
+		}
+	}()
+	go func() {
+		for message := range sched.podDelChannel {
+			msg := message.Payload
+			var pod core.Pod
+			utils.JsonUnMarshal(msg, pod)
+			if pod.Status.HostIP != "" {
+				pod.Status.HostIP = "127.0.0.1" // TODO: should delete
+				utils.SendRequest("DELETE",
+					fmt.Sprintf("http://%s:10250/pod/stop/%s/%s",
+						pod.Status.HostIP, pod.GetNameSpace(), pod.MetaData.Name),
+					nil)
 			}
 		}
 	}()
@@ -115,9 +131,8 @@ func (sched *Scheduler) dispatch(candidates map[string]core.NodeMetrics) string 
 }
 
 func requestNodeInfos(node core.Node) (map[string]string, core.NodeMetrics, error) {
-	//url := fmt.Sprintf("http://%s:%s/metrics", node.Spec.NodeIP, config.NodePort)
-	// TODO: using ip
-	url := fmt.Sprintf("http://%s:%s/metrics", "127.0.0.1", config.NodePort)
+	node.Spec.NodeIP = "127.0.0.1" // TODO: should delete
+	url := fmt.Sprintf("http://%s:%s/metrics", node.Spec.NodeIP, config.NodePort)
 	code, data, err := utils.SendRequest("GET", url, []byte(""))
 	if err != nil || code != http.StatusOK {
 		logger.Error("get metrics error")
@@ -131,10 +146,9 @@ func requestNodeInfos(node core.Node) (map[string]string, core.NodeMetrics, erro
 }
 
 func sendCreatePod(nodeIp string, pod core.Pod) error {
-	//url := fmt.Sprintf("http://%s:%s/pod/create", nodeIp, config.NodePort)
-	// TODO: using ip
+	nodeIp = "127.0.0.1" // TODO: should delete
+	url := fmt.Sprintf("http://%s:%s/pod/create", nodeIp, config.NodePort)
 	logger.Info("send create pod")
-	url := fmt.Sprintf("http://%s:%s/pod/create", "127.0.0.1", config.NodePort)
 	code, info, err := utils.SendRequest("POST", url, []byte(utils.JsonMarshal(pod)))
 	if err != nil {
 		return err
@@ -148,11 +162,14 @@ func sendCreatePod(nodeIp string, pod core.Pod) error {
 }
 
 func sendStopPod(nodeIP string, pod core.Pod) error {
-	//url := fmt.Sprintf("http://%s:%s/pod/stop",nodeIP, config.NodePort)
-	// TODO: using ip
+	nodeIP = "127.0.0.1" // TODO: should delete
 	logger.Info("send stop pod")
-	url := fmt.Sprintf("http://%s:%s/pod/stop", "127.0.0.1", config.NodePort)
-	code, info, err := utils.SendRequest("POST", url, []byte(utils.JsonMarshal(pod)))
+	url := fmt.Sprintf("http://%s:%s/pod/stop/%s/%s",
+		nodeIP,
+		config.NodePort,
+		pod.GetNameSpace(),
+		pod.MetaData.Name)
+	code, info, err := utils.SendRequest("DELETE", url, []byte(utils.JsonMarshal(pod)))
 	if err != nil {
 		return nil
 	}

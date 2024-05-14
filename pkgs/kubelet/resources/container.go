@@ -75,6 +75,7 @@ func (cmg *ContainerManager) CreateContainer(ctx context.Context, config core.Co
 	addLabels := make(map[string]string)
 	addLabels["name"] = config.Name
 	addLabels[constants.MiniK8SPod] = config.PodName
+	addLabels[constants.MiniK8SNamespace] = config.Namespace
 	copts = append(copts, containerd.WithAdditionalContainerLabels(addLabels))
 	// create container
 	container, err := cmg.Client.NewContainer(ctx, config.ID, copts...)
@@ -120,7 +121,8 @@ func (cmg *ContainerManager) GetContainerInfo(namespace string, containerID stri
 
 func (cmg *ContainerManager) GetPodContainers(pConfig *core.Pod) []containerd.Container {
 	cmg.createClient(pConfig.MetaData.Namespace)
-	cs, err := cmg.Client.Containers(context.Background(), fmt.Sprintf("labels.%q==%s", constants.MiniK8SPod, pConfig.MetaData.Name))
+	cs, err := cmg.Client.Containers(context.Background(), fmt.Sprintf("labels.%q==%s",
+		constants.MiniK8SPod, pConfig.MetaData.Name), fmt.Sprintf("labels.%q==%s", constants.MiniK8SNamespace, pConfig.MetaData.Namespace))
 	if err != nil {
 		logger.Errorf("filter containers failed: %s", err.Error())
 		return nil
