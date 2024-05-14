@@ -5,6 +5,12 @@ import (
 	core "minik8s/pkgs/apiobject"
 )
 
+func roundRobinPolicy(idx int, candidates ...string) string {
+	cLen := len(candidates)
+	idx = idx % cLen
+	return candidates[idx]
+}
+
 func cpuPolicy(candidates map[string]core.NodeMetrics) string {
 	var bestCpuUsage = math.MaxFloat64
 	var bestIp string
