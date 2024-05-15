@@ -8,7 +8,7 @@ build:
   script:
     - go mod tidy
     - echo "Compiling the code..."
-    - make build
+    - mkdir build && cd build && cmake .. && make -j`nproc` && cd ..
     - ./bin/apiserver > ./log/apiserver.log 2>&1 &
     - echo "start apiserver"
     - sleep 3
@@ -58,4 +58,4 @@ finish:
   script:
     - pkill apiserver
     - pkill kubelet
-    - make clean
+    - echo "Finish testing"
