@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
+	"minik8s/pkgs/constants"
 	"minik8s/utils"
+
+	logger "github.com/sirupsen/logrus"
 )
 
 type NameIdPair struct {
@@ -28,12 +30,13 @@ func CreatePod(podConfig *core.Pod, pStatusChan chan<- core.PodStatus, cStatusCh
 	}
 	var pauseSpec = utils.GenerateContainerSpec(*podConfig, pauseConfig)
 	ctx := context.Background()
+	output, err := utils.NerdRun([]string{"run", "-d", "--name", pauseSpec.Name, "--namespace", pauseSpec.Namespace, "--net", "flannel", "--label", fmt.Sprintf("%s=%s", "name", pauseSpec.Name), "--label", fmt.Sprintf("%s=%s", constants.MiniK8SPod, pauseSpec.PodName), pauseSpec.Image}...)
 	var startedContainer = make([]core.Container, 0)
-	pause, err := ContainerManagerInstance.CreateContainer(ctx, pauseSpec)
 	if err != nil {
-		logger.Errorf("Create Pause Container Failed: %s", err.Error())
+		logger.Errorf("Run Pause Container Failed: %s\n output: %s", err.Error(), output)
 		return err
 	}
+	pauseSpec.ID = output[:12]
 	if cStatusChan != nil {
 		cStatusChan <- core.ContainerStatus{
 			ID:           pauseSpec.ID,
@@ -45,12 +48,6 @@ func CreatePod(podConfig *core.Pod, pStatusChan chan<- core.PodStatus, cStatusCh
 		}
 	}
 	startedContainer = append(startedContainer, pauseConfig)
-	err = ContainerManagerInstance.StartContainer(ctx, pause, podConfig)
-	if err != nil {
-		logger.Errorf("Start Pause Container Failed: %s", err.Error())
-		//_ = utils.RmPodContainers(startedContainer, *podConfig)
-		return err
-	}
 	logger.Infof("------CREATE PAUSE CONTAINER OVER--------")
 
 	// get pause container information

@@ -4,14 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	core "minik8s/pkgs/apiobject"
+	"minik8s/pkgs/constants"
+	"time"
+
 	v1 "github.com/containerd/cgroups/stats/v1"
 	v2 "github.com/containerd/cgroups/v2/stats"
 	"github.com/containerd/containerd"
 	"github.com/containerd/typeurl/v2"
 	logger "github.com/sirupsen/logrus"
-	core "minik8s/pkgs/apiobject"
-	"minik8s/pkgs/constants"
-	"time"
 )
 
 //type ContainerWalker struct {
