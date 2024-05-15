@@ -26,31 +26,31 @@ test-apiserver:
   stage: test
   script:
     - echo "Running unit tests for apiserver..."
-    - go test minik8s/test/apiserver -cover
+    - go test minik8s/test/apiserver -cover -count=1
 
 test-kubelet:
   stage: test
   script:
     - echo "Running unit tests for kubelet..."
-    - go test minik8s/test/kubelet -cover
+    - go test minik8s/test/kubelet -cover -count=1
 
 test-kubectl:
   stage: test
   script:
     - echo "Running unit tests for kubectl..."
-    - go test minik8s/test/kubectl -cover
+    - go test minik8s/test/kubectl -cover -count=1
 
 test-kubeproxy:
   stage: test
   script:
     - echo "Running unit tests for kubeproxy..."
-    - go test minik8s/test/kubeproxy -cover
+    - go test minik8s/test/kubeproxy -cover -count=1
 
 test-dns:
   stage: test
   script:
     - echo "Running unit tests for kubeproxy..."
-    - go test minik8s/test/dns -cover
+    - go test minik8s/test/dns -cover -count=1
 
 
 finish:

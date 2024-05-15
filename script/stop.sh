@@ -1,0 +1,2 @@
+pkill kubelet
+pkill apiserver
