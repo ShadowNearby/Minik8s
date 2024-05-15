@@ -39,7 +39,7 @@ const (
 	CtrRm string = "rm"
 )
 
-func NerdTest(args ...string) (string, error) {
+func NerdRun(args ...string) (string, error) {
 	res, err := exec.Command(nerdCtl, args...).CombinedOutput()
 	return string(res), err
 }

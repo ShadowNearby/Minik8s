@@ -15,6 +15,8 @@ import (
 )
 
 func TestPodBasicTest(t *testing.T) {
+	logger.SetFormatter(&logger.TextFormatter{ForceColors: true})
+	logger.SetReportCaller(true)
 	// create a pod config
 	metadata := core.MetaData{
 		Name:      "test",
@@ -60,8 +62,8 @@ func TestPodBasicTest(t *testing.T) {
 		_ = kubeletcontroller.StopPod(podConfig)
 		t.Errorf("run pod error: %s", err.Error())
 	}
-	res2, err := utils.NerdTest("ps", "-a")
-	res1, err := utils.NerdTest("ps")
+	res2, err := utils.NerdRun("ps", "-a")
+	res1, err := utils.NerdRun("ps")
 	logger.Infof("ps output:\n%s\nps -a output:\n%s\n", res1, res2)
 	_ = kubeletcontroller.StopPod(podConfig)
 }
@@ -73,8 +75,8 @@ func TestPodLocalhostTest(t *testing.T) {
 		t.Errorf("run pod error: %s", err.Error())
 		//t.Errorf("run pod error: %s", err.Error())
 	}
-	res2, err := utils.NerdTest("ps", "-a")
-	res1, err := utils.NerdTest("ps")
+	res2, err := utils.NerdRun("ps", "-a")
+	res1, err := utils.NerdRun("ps")
 	t.Logf("ps output:\n%s\nps -a output:\n%s\n", res1, res2)
 	time.Sleep(2 * time.Second)
 	_ = kubeletcontroller.StopPod(podConfig)

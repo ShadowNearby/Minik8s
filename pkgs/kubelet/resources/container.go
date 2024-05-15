@@ -3,14 +3,15 @@ package resources
 import (
 	"context"
 	"fmt"
-	"github.com/containerd/containerd"
-	"github.com/containerd/containerd/cio"
-	"github.com/containerd/containerd/oci"
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/constants"
 	"minik8s/utils"
 	"strings"
+
+	"github.com/containerd/containerd"
+	"github.com/containerd/containerd/cio"
+	"github.com/containerd/containerd/oci"
+	logger "github.com/sirupsen/logrus"
 )
 
 type ContainerManager struct {
