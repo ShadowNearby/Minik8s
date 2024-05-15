@@ -75,8 +75,8 @@ func RmPodContainers(cStatus []core.ContainerStatus, pod core.Pod) error {
 	for i, status := range cStatus {
 		cs[i] = status.ID
 	}
-	_, _ = NerdContainerOps(cs, pod.MetaData.Namespace, NerdRm)
-	return nil
+	_, err := NerdContainerOps(cs, pod.MetaData.Namespace, NerdRm)
+	return err
 }
 
 func NerdContainerOps(containers []string, namespace string, ctlType string, args ...string) (string, error) {
@@ -87,7 +87,7 @@ func NerdContainerOps(containers []string, namespace string, ctlType string, arg
 	for _, c := range containers {
 		output, err := NerdExec(NerdCtl{namespace: namespace, containerName: c, ctlType: ctlType}, args...)
 		if err != nil {
-			logger.Errorf("stop container %s failed: %s", c, err.Error())
+			logger.Errorf("%s container %s failed: %s", ctlType, c, err.Error())
 		}
 		retOutput = output
 	}

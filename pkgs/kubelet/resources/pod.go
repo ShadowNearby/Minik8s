@@ -19,8 +19,9 @@ type NameIdPair struct {
 // CreatePod create containers and start them
 func CreatePod(podConfig *core.Pod, pStatusChan chan<- core.PodStatus, cStatusChan chan<- core.ContainerStatus, done chan<- bool) error {
 	// first create a pause c_config
+	pStat := utils.InitPodStatus(podConfig)
 	if pStatusChan != nil {
-		pStatusChan <- utils.InitPodStatus(podConfig)
+		pStatusChan <- pStat
 	}
 	var pauseConfig = core.Container{
 		Name:            core.PauseContainerName,
@@ -37,6 +38,11 @@ func CreatePod(podConfig *core.Pod, pStatusChan chan<- core.PodStatus, cStatusCh
 		return err
 	}
 	pauseSpec.ID = output[:12]
+
+	// change pod ip
+	pStat.PodIP, _ = ContainerManagerInstance.GetContainerInfo(podConfig.MetaData.Namespace, pauseSpec.ID, "NetworkSettings", "IPAddress")
+	pStatusChan <- pStat
+
 	if cStatusChan != nil {
 		cStatusChan <- core.ContainerStatus{
 			ID:           pauseSpec.ID,
@@ -103,8 +109,14 @@ func CreatePod(podConfig *core.Pod, pStatusChan chan<- core.PodStatus, cStatusCh
 // StopPod stop and remove the containers in pod
 func StopPod(podConfig core.Pod) error {
 	// stop every containerd in pod
-	_ = utils.StopPodContainers(podConfig.Status.ContainersStatus, podConfig)
-	_ = utils.RmPodContainers(podConfig.Status.ContainersStatus, podConfig)
+	err := utils.StopPodContainers(podConfig.Status.ContainersStatus, podConfig)
+	if err != nil {
+		return err
+	}
+	err = utils.RmPodContainers(podConfig.Status.ContainersStatus, podConfig)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

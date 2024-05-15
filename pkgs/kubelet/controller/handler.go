@@ -2,13 +2,14 @@ package kubeletcontroller
 
 import (
 	"errors"
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/kubelet/resources"
 	"minik8s/pkgs/kubelet/runtime"
 	"minik8s/utils"
 	"sync"
 	"time"
+
+	logger "github.com/sirupsen/logrus"
 )
 
 // CreatePod pull and create containers of a pod, and register the pod to kubelet runtime
@@ -30,10 +31,10 @@ func CreatePod(pConfig *core.Pod) error {
 	}(&wg, doneChan)
 	// pod status
 	var pStat core.PodStatus
-	for i := 0; i < cLen+3; i++ {
+	for i := 0; i < cLen+4; i++ {
 		select {
 		case pStat = <-pStatusChan:
-			logger.Infof("init pod status")
+			logger.Infof("change pod status")
 		case cStatus := <-cStatusChan:
 			pStat.ContainersStatus = append(pStat.ContainersStatus, cStatus)
 		case done := <-doneChan:
