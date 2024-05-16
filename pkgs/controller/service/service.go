@@ -30,9 +30,14 @@ func (sc *ServiceController) HandleCreate(message string) error {
 		log.Errorf("unmarshal service error: %s", err.Error())
 		return err
 	}
-	clusterIP := FindUnusedIP()
-	service.Spec.ClusterIP = clusterIP
-	utils.SetObject(core.ObjService, service.MetaData.Namespace, service.MetaData.Name, service)
+	var clusterIP string
+	if service.Spec.ClusterIP == "" {
+		clusterIP := FindUnusedIP()
+		service.Spec.ClusterIP = clusterIP
+		utils.SetObject(core.ObjService, service.MetaData.Namespace, service.MetaData.Name, service)
+	} else {
+		clusterIP = service.Spec.ClusterIP
+	}
 
 	// creaete service and alloc ip
 	if service.Spec.Type == core.ServiceTypeClusterIP {
@@ -86,6 +91,7 @@ func (sc *ServiceController) HandleUpdate(message string) error {
 }
 
 func (sc *ServiceController) HandleDelete(message string) error {
+	log.Info("service delete")
 	service := &core.Service{}
 	err := json.Unmarshal([]byte(message), service)
 	if err != nil {

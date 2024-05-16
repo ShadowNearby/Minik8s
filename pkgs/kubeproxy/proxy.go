@@ -40,13 +40,13 @@ func DeleteService(serviceIP string, servicePort uint32) error {
 	deleteArgs := []string{"-D", "-t", fmt.Sprintf("%s:%d", serviceIP, servicePort)}
 	output, err := exec.Command("ipvsadm", deleteArgs...).CombinedOutput()
 	if err != nil {
-		log.Errorf("failed to delete ip: %s output: %s", err.Error(), output)
+		log.Errorf("failed to delete ip: %s output: %s serviceIP: %s servicePort: %d", err.Error(), output, serviceIP, servicePort)
 		return err
 	}
 	unbindArgs := []string{"addr", "del", fmt.Sprintf("%s/24", serviceIP), "dev", "flannel.1"}
 	output, err = exec.Command("ip", unbindArgs...).CombinedOutput()
 	if err != nil {
-		log.Errorf("unbind ip error: %s output: %s", err.Error(), output)
+		log.Errorf("unbind ip error: %s serviceIP: %s output: %s", err.Error(), serviceIP, output)
 		return err
 	}
 	return nil
