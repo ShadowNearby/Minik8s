@@ -11,12 +11,13 @@ const (
 	ObjNode       ObjType = "nodes"
 	ObjReplicaSet ObjType = "replicas"
 	ObjService    ObjType = "services"
-	ObjJob        ObjType = "job"
+	ObjJob        ObjType = "jobs"
 	ObjHpa        ObjType = "hpa"
-	ObjFunction   ObjType = "function"
-	ObjWorkflow   ObjType = "workflow"
+	ObjFunction   ObjType = "functions"
+	ObjWorkflow   ObjType = "workflows"
 	ObjDeployment ObjType = "deployment"
-	ObjEndPoint   ObjType = "endpoint"
+	ObjEndPoint   ObjType = "endpoints"
+	ObjDNS        ObjType = "dns"
 )
 
 var ObjTypeAll = []string{
@@ -28,7 +29,9 @@ var ObjTypeAll = []string{
 	"job",
 	"hpa",
 	"function",
-	"workflow"}
+	"workflow",
+	"dns",
+}
 
 var ObjTypeToCoreObjMap = map[ObjType]reflect.Type{
 	ObjPod:        reflect.TypeOf(&Pod{}).Elem(),
@@ -36,6 +39,8 @@ var ObjTypeToCoreObjMap = map[ObjType]reflect.Type{
 	ObjReplicaSet: reflect.TypeOf(&ReplicaSet{}).Elem(),
 	ObjService:    reflect.TypeOf(&Service{}).Elem(),
 	ObjDeployment: reflect.TypeOf(&ReplicaSet{}).Elem(),
+	ObjEndPoint:   reflect.TypeOf(&Endpoint{}).Elem(),
+	ObjDNS:        reflect.TypeOf(&DNSRecord{}).Elem(),
 }
 
 type ApiObjectKind interface {
