@@ -1,10 +1,12 @@
 package config
 
+import "fmt"
+
 const DNSPathPrefix = "/dnspath"
 
-const NginxListenIP = "127.0.0.2"
+var NginxListenIP = "172.31.184.139"
 
-const NginxListenAddr = "127.0.0.2:80"
+var NginxListenAddr = fmt.Sprintf("%s:%d", NginxListenIP, 80)
 
 const ContainerResolvPath = "/etc/resolv.conf"
 
