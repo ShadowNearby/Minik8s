@@ -98,3 +98,21 @@ func ReloadNginx() error {
 	}
 	return nil
 }
+
+func AddCoreDns() error {
+	originalData, err := os.ReadFile(config.TempResolvPath)
+	if err != nil {
+		logrus.Errorf("error in read resolv.conf file %s", err.Error())
+		return err
+	}
+
+	newData := []byte(fmt.Sprintf("nameserver %s\n", config.NginxListenIP))
+	newData = append(newData, originalData...)
+
+	err = os.WriteFile(config.TempResolvPath, newData, 0644)
+	if err != nil {
+		logrus.Errorf("error in write resolv.conf file %s", err.Error())
+		return err
+	}
+	return nil
+}
