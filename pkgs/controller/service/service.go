@@ -91,7 +91,6 @@ func (sc *ServiceController) HandleUpdate(message string) error {
 }
 
 func (sc *ServiceController) HandleDelete(message string) error {
-	log.Info("service delete")
 	service := &core.Service{}
 	err := json.Unmarshal([]byte(message), service)
 	if err != nil {

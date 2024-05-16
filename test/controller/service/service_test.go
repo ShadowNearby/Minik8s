@@ -3,6 +3,7 @@ package test
 import (
 	"encoding/json"
 	core "minik8s/pkgs/apiobject"
+	kubeletcontroller "minik8s/pkgs/kubelet/controller"
 	"minik8s/utils"
 	"os"
 	"testing"
@@ -34,4 +35,6 @@ func TestServiceController(t *testing.T) {
 	time.Sleep(5 * time.Second)
 	utils.DeleteObject(core.ObjPod, pods[0].MetaData.Namespace, pods[0].MetaData.Name)
 	utils.DeleteObject(core.ObjPod, pods[1].MetaData.Namespace, pods[1].MetaData.Name)
+	_ = kubeletcontroller.StopPod(pods[0])
+	_ = kubeletcontroller.StopPod(pods[1])
 }

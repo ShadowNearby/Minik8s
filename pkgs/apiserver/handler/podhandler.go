@@ -85,14 +85,22 @@ func DeletePodHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "needs namespace and name"})
 		return
 	}
-	podName := fmt.Sprintf("/pods/object/%s/%s", namespace, name)
-	err := storage.Del(podName)
+	pod := core.Pod{}
+	path := fmt.Sprintf("/pods/object/%s/%s", namespace, name)
+	err := storage.Get(path, &pod)
 	if err != nil {
-		logger.Errorf("del error: %s", err.Error())
+		logger.Errorf("get error: %s", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get data"})
 		return
 	}
+	err = storage.Del(path)
+	if err != nil {
+		logger.Errorf("del error: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot del data"})
+		return
+	}
 	// TODO send message to kubelet
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelPod, constants.ChannelDelete), utils.JsonMarshal(pod))
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }
 
