@@ -25,11 +25,11 @@ func FindUnusedIP() string {
 }
 
 func FreeUsedIP(ip string) {
-	indexs := strings.SplitN(ip, ",", -1)
+	indexs := strings.SplitN(ip, ".", -1)
 	index := indexs[len(indexs)-1]
 	ret, err := strconv.Atoi(index)
 	if err != nil {
-		log.Errorf("ip index to int error")
+		log.Errorf("ip index to int error ip %s index %s", ip, index)
 	}
 	UsedIP[ret] = false
 }
@@ -116,7 +116,7 @@ func CreateEndpointObject(service *core.Service) error {
 		}
 	}
 
-	err = utils.CreateObject(core.ObjEndPoint, endpoint.MetaData.Name, endpoint)
+	err = utils.CreateObject(core.ObjEndPoint, endpoint.MetaData.Namespace, endpoint)
 	if err != nil {
 		log.Errorf("create endpoint error: %s", err.Error())
 		return err
