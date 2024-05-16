@@ -13,7 +13,7 @@
           "containers": [
               {
                   "name": "example-container",
-                  "image": "docker.io/library/nginx:latest",
+                  "image": "docker.io/shadownearby/ubuntu:latest",
                   "imagePullPolicy": "IfNotPresent",
                   "ports": [
                       {
@@ -41,7 +41,7 @@
           "containers": [
               {
                   "name": "example-container",
-                  "image": "docker.io/library/nginx:latest",
+                  "image": "docker.io/shadownearby/ubuntu:latest",
                   "imagePullPolicy": "IfNotPresent",
                   "ports": [
                       {

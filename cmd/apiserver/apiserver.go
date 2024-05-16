@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	logrus.SetFormatter(&logrus.TextFormatter{DisableTimestamp: true})
 	logrus.SetReportCaller(true)
 	apiserver.Run()
 }

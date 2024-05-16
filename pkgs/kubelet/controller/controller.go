@@ -1,13 +1,13 @@
 package kubeletcontroller
 
 import (
-	"github.com/gin-gonic/gin"
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/apiserver/handler"
 	"minik8s/pkgs/kubelet/runtime"
 	"minik8s/utils"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 var KubeletRouter = [...]handler.Route{
@@ -25,13 +25,12 @@ func CreatePodController(c *gin.Context) {
 		return
 	}
 	err = CreatePod(&pod)
-	logger.Info(pod.Status.ContainersStatus)
 	if err != nil {
 		StopPod(pod)
 		c.JSON(http.StatusInternalServerError, "cannot create pod")
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": "ok"})
+	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(pod.Status)})
 }
 
 func StopPodController(c *gin.Context) {

@@ -74,10 +74,11 @@ func (sched *Scheduler) Schedule(pod core.Pod) (string, error) {
 	selectedIP := sched.dispatch(nodeCandidate)
 	pod.Status.HostIP = selectedIP
 	// select node over, send message to node
-	err := sendCreatePod(selectedIP, pod)
+	response, err := sendCreatePod(selectedIP, pod)
 	if err != nil {
 		return "", err
 	}
+	utils.JsonUnMarshal(response, &pod.Status)
 	// node register pod over, write back to storage
 	err = utils.SetObject(core.ObjPod, pod.MetaData.Namespace, pod.MetaData.Name, pod)
 	if err != nil {
@@ -130,21 +131,21 @@ func requestNodeInfos(node core.Node) (map[string]string, core.NodeMetrics, erro
 	return node.NodeMetaData.Labels, metrics, nil
 }
 
-func sendCreatePod(nodeIp string, pod core.Pod) error {
+func sendCreatePod(nodeIp string, pod core.Pod) (string, error) {
 	//url := fmt.Sprintf("http://%s:%s/pod/create", nodeIp, config.NodePort)
 	// TODO: using ip
 	logger.Info("send create pod")
 	url := fmt.Sprintf("http://%s:%s/pod/create", "127.0.0.1", config.NodePort)
 	code, info, err := utils.SendRequest("POST", url, []byte(utils.JsonMarshal(pod)))
 	if err != nil {
-		return err
+		return "", err
 	}
+	var data core.InfoType
+	utils.JsonUnMarshal(info, &data)
 	if code != http.StatusOK {
-		var data core.InfoType
-		utils.JsonUnMarshal(info, &data)
-		return errors.New(data.Error)
+		return "", errors.New(data.Error)
 	}
-	return nil
+	return data.Data, nil
 }
 
 func sendStopPod(nodeIP string, pod core.Pod) error {

@@ -1,18 +1,15 @@
 package utils
 
 import (
+	"fmt"
+	"math/rand"
+
 	"github.com/google/uuid"
-	logger "github.com/sirupsen/logrus"
 )
 
 // GenerateUUID generate a random uuid
 func GenerateUUID() string {
-	id, err := uuid.NewUUID()
-	if err != nil {
-		logger.Errorf("generate uuid failed: %s", err.Error())
-		return ""
-	}
-	return id.String()
+	return fmt.Sprintf("%d", rand.Int())
 }
 
 // GenerateContainerIDByName receive container name + pod name as param

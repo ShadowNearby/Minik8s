@@ -3,7 +3,6 @@ package utils
 import (
 	"context"
 	"errors"
-	"fmt"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/constants"
 	"time"
@@ -34,7 +33,7 @@ func GenerateContainerSpec(pConfig core.Pod, cConfig core.Container, args ...str
 		Namespace:    pConfig.MetaData.Namespace,
 		Image:        cConfig.Image,
 		ID:           GenerateContainerIDByName(cConfig.Name, pConfig.MetaData.UUID),
-		Name:         GenerateContainerName(pConfig, cConfig),
+		Name:         cConfig.Name,
 		VolumeMounts: generateVolMountsMap(cConfig.VolumeMounts),
 		Cmd:          cConfig.Cmd,
 		Envs:         generateEnvList(cConfig.Env),
@@ -56,10 +55,6 @@ func GenerateContainerSpec(pConfig core.Pod, cConfig core.Container, args ...str
 		cSpec.LinuxNamespace = ns
 	}
 	return cSpec
-}
-
-func GenerateContainerName(pConfig core.Pod, cConfig core.Container) string {
-	return fmt.Sprintf("%s_%s", cConfig.Name, pConfig.MetaData.UUID)
 }
 
 func GenerateContainerLabel(podName string) map[string]string {

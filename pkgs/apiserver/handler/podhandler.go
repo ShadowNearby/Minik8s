@@ -92,6 +92,7 @@ func DeletePodHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get data"})
 		return
 	}
+	// TODO send message to kubelet
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }
 

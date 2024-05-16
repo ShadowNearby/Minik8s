@@ -10,5 +10,5 @@ RUN apt update && apt install -y \
     iproute2 \
     iputils-ping
 
-CMD ["/bin/bash","-c", "while true; do echo hello world; sleep 10; done"]
+CMD ["/bin/bash","-c", "tail -f /dev/null"]
     
