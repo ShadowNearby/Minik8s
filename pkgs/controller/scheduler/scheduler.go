@@ -49,11 +49,9 @@ func (sched *Scheduler) Schedule(pod core.Pod) (string, error) {
 	podSelector := pod.Spec.Selector.MatchLabels
 	nodesTxt := utils.GetObjectWONamespace(core.ObjNode, "")
 	var nodes []core.Node
-	logger.Warnf("nodes: %s", nodesTxt)
 	utils.JsonUnMarshal(nodesTxt, &nodes)
 	var nodeCandidate = make(map[string]core.NodeMetrics)
 	for _, node := range nodes {
-		logger.Infof("nodeIP: %s", node.Spec.NodeIP)
 		nodeLabels, metrics, err := requestNodeInfos(node)
 		if err != nil {
 			logger.Errorf("get node %s 's info failed", node.Spec.NodeIP)
