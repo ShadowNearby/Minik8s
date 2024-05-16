@@ -15,7 +15,7 @@
                 {
                     "name": "service-port1",
                     "protocol": "TCP",
-                    "port": 8080,
+                    "port": 30000,
                     "targetPort": "p1"
                 }
             ],
