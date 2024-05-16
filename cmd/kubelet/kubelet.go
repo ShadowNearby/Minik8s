@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	logger.SetFormatter(&logger.TextFormatter{DisableTimestamp: true})
+	logger.SetFormatter(&logger.TextFormatter{DisableTimestamp: true, DisableQuote: true})
 	logger.SetReportCaller(true)
 	var config = core.KubeletConfig{
 		MasterIP:   config.LocalServerIp,

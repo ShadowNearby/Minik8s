@@ -128,6 +128,7 @@ func TestPodUpdate(t *testing.T) {
 		t.Error("return bad: ", info)
 	}
 	logger.Info("delete pod return 200")
+	time.Sleep(5 * time.Second)
 }
 
 func TestPodConnection(t *testing.T) {
