@@ -63,7 +63,7 @@ func GenerateContainerName(pConfig core.Pod, cConfig core.Container) string {
 }
 
 func GenerateContainerLabel(podName string) map[string]string {
-	return map[string]string{constants.MiniK8SPod: podName}
+	return map[string]string{constants.MiniK8SPod: podName, constants.NerdctlName: podName}
 }
 
 // GetContainerStatus first return type of this function is nil or containerd.Status
