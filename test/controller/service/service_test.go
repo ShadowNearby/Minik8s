@@ -2,15 +2,18 @@ package test
 
 import (
 	"encoding/json"
-	"github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/utils"
 	"os"
 	"testing"
+	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 func TestServiceController(t *testing.T) {
-	logrus.SetFormatter(&logrus.TextFormatter{ForceColors: true})
+	logrus.SetFormatter(&logrus.TextFormatter{DisableTimestamp: true, ForceColors: true})
+	logrus.SetReportCaller(true)
 
 	content, err := os.ReadFile("pods.json")
 	if err != nil {
@@ -28,7 +31,7 @@ func TestServiceController(t *testing.T) {
 
 	utils.CreateObject(core.ObjPod, pods[0].MetaData.Namespace, pods[0])
 	utils.CreateObject(core.ObjPod, pods[1].MetaData.Namespace, pods[1])
-
+	time.Sleep(5 * time.Second)
 	utils.DeleteObject(core.ObjPod, pods[0].MetaData.Namespace, pods[0].MetaData.Name)
 	utils.DeleteObject(core.ObjPod, pods[1].MetaData.Namespace, pods[1].MetaData.Name)
 }

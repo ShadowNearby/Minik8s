@@ -23,6 +23,7 @@ func CreatePod(podConfig *core.Pod, pStatusChan chan<- core.PodStatus, cStatusCh
 	if pStatusChan != nil {
 		pStatusChan <- pStat
 	}
+	utils.CheckPodMetaData(podConfig)
 	var pauseConfig = core.Container{
 		Name:            core.PauseContainerName,
 		Image:           "registry.cn-hangzhou.aliyuncs.com/google_containers/pause:3.9",

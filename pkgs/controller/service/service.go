@@ -99,7 +99,10 @@ func (sc *ServiceController) HandleDelete(message string) error {
 		return err
 	}
 	for _, port := range service.Spec.Ports {
-		kubeproxy.DeleteService(service.Spec.ClusterIP, uint32(port.Port))
+		err = kubeproxy.DeleteService(service.Spec.ClusterIP, uint32(port.Port))
+		if err != nil {
+			log.Errorf("error in DeleteService err: %s", err.Error())
+		}
 	}
 	FreeUsedIP(service.Spec.ClusterIP)
 	err = DeleteEndpointObject(service)

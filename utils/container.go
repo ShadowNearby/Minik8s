@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"errors"
+	"fmt"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/constants"
 	"time"
@@ -29,11 +30,12 @@ import (
 //type OnFound func(ctx context.Context, found Found) error
 
 func GenerateContainerSpec(pConfig core.Pod, cConfig core.Container, args ...string) core.ContainerdSpec {
+	CheckContainerMataData(&cConfig)
 	var cSpec = core.ContainerdSpec{
 		Namespace:    pConfig.MetaData.Namespace,
 		Image:        cConfig.Image,
 		ID:           GenerateContainerIDByName(cConfig.Name, pConfig.MetaData.UUID),
-		Name:         cConfig.Name,
+		Name:         GenerateContainerName(pConfig.MetaData.Name, cConfig.Name),
 		VolumeMounts: generateVolMountsMap(cConfig.VolumeMounts),
 		Cmd:          cConfig.Cmd,
 		Envs:         generateEnvList(cConfig.Env),
@@ -57,8 +59,12 @@ func GenerateContainerSpec(pConfig core.Pod, cConfig core.Container, args ...str
 	return cSpec
 }
 
-func GenerateContainerLabel(podName string) map[string]string {
-	return map[string]string{constants.MiniK8SPod: podName, constants.NerdctlName: podName}
+func GenerateContainerName(podName string, cName string) string {
+	return fmt.Sprintf("%s-%s", podName, cName)
+}
+
+func GenerateContainerLabel(podName string, containerName string) map[string]string {
+	return map[string]string{constants.MiniK8SPod: podName, constants.NerdctlName: containerName}
 }
 
 // GetContainerStatus first return type of this function is nil or containerd.Status
@@ -137,4 +143,10 @@ func GetContainerMetrics(container containerd.Container) (core.ContainerMetrics,
 	//}
 	//logger.Infof("inspect data: %s", marshaledJSON) // 打印一下看看
 	//return core.EmptyContainerMetrics, nil
+}
+
+func CheckContainerMataData(container *core.Container) {
+	if container.Name == "" {
+		container.Name = GenerateUUID()
+	}
 }

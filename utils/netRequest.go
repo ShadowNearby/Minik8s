@@ -2,8 +2,9 @@ package utils
 
 import (
 	"encoding/json"
-	log "github.com/sirupsen/logrus"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
 )
 
 func DelRequest(uri string) (int, error) {
@@ -32,7 +33,7 @@ func PostRequestByTarget(uri string, target interface{}) (int, interface{}, erro
 		return 0, nil, err
 	}
 
-	status_code, resp, err := SendRequestWithJson(http.MethodPost, uri, jsonData)
+	status_code, resp, _ := SendRequestWithJson(http.MethodPost, uri, jsonData)
 	var bodyJson interface{}
 	if err := json.Unmarshal([]byte(resp), &bodyJson); err != nil {
 		log.Error("postRequest", "PostRequestByTarget: Decode response failed "+err.Error())
