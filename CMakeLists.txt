@@ -13,8 +13,10 @@ endif()
 file(GLOB TARGETS "${CMD}/*")
 
 set(GO_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pkgs)
+set(GO_UTIL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/utils)
 
 file(GLOB_RECURSE GO_FILES ${GO_SOURCE_DIR}/*.go)
+file(GLOB_RECURSE UTIL_GO_FILES ${GO_UTIL_DIR}/*.go)
 
 foreach(target ${TARGETS})
     get_filename_component(target_name ${target} NAME)
@@ -23,7 +25,7 @@ foreach(target ${TARGETS})
     add_custom_command(
         OUTPUT ${target_output}
         COMMAND ${GO_EXECUTABLE} build -o ${target_output} ${CMD}/${target_name}/${target_name}.go
-        DEPENDS ${CMD}/${target_name}/${target_name}.go ${GO_FILES}
+        DEPENDS ${CMD}/${target_name}/${target_name}.go ${GO_FILES} ${UTIL_GO_FILES}
         WORKING_DIRECTORY ${ROOT}
         COMMENT "Building ${target_name}"
     )

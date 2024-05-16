@@ -122,8 +122,7 @@ func DeleteObject(objType core.ObjType, namespace string, name string) error {
 	if namespace == "" {
 		namespace = "default"
 	}
-	var url string
-	url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s/%s",
+	url := fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s/%s",
 		config.LocalServerIp, config.ApiServerPort, namespace, objType, name)
 	if code, info, err := SendRequest("DELETE", url, make([]byte, 0)); err != nil || code != http.StatusOK {
 		logger.Errorf("[delete object error]: %s", info)
@@ -134,8 +133,7 @@ func DeleteObject(objType core.ObjType, namespace string, name string) error {
 }
 
 func DeleteObjectWONamespace(objType core.ObjType, name string) error {
-	var url string
-	url = fmt.Sprintf("http://%s:%s/api/v1/%s/%s",
+	url := fmt.Sprintf("http://%s:%s/api/v1/%s/%s",
 		config.LocalServerIp, config.ApiServerPort, objType, name)
 	if code, info, err := SendRequest("DELETE", url, make([]byte, 0)); err != nil || code != http.StatusOK {
 		logger.Errorf("[delete object error]: %s", info)

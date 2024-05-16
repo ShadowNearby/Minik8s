@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/constants"
 	"minik8s/utils"
@@ -23,6 +24,7 @@ func CreatePod(podConfig *core.Pod, pStatusChan chan<- core.PodStatus, cStatusCh
 	if pStatusChan != nil {
 		pStatusChan <- pStat
 	}
+	utils.CheckPodMetaData(podConfig)
 	var pauseConfig = core.Container{
 		Name:            core.PauseContainerName,
 		Image:           "registry.cn-hangzhou.aliyuncs.com/google_containers/pause:3.9",
@@ -67,16 +69,40 @@ func CreatePod(podConfig *core.Pod, pStatusChan chan<- core.PodStatus, cStatusCh
 	linuxNamespace := fmt.Sprintf("/proc/%s/ns/", pausePid)
 	logger.Infof("namespace: %s", linuxNamespace)
 
+	err = utils.NerdCopy(fmt.Sprintf("%s:%s", pauseSpec.ID, config.ContainerResolvPath), config.TempResolvPath, podConfig.MetaData.Namespace)
+	if err != nil {
+		logger.Errorf("copy pause resolv.conf to local failed: %s", err.Error())
+	}
+	err = utils.AddCoreDns()
+	if err != nil {
+		logger.Errorf("edit resolv.conf failed: %s", err.Error())
+	}
+	err = utils.NerdCopy(fmt.Sprintf("%s:%s", pauseSpec.ID, config.ContainerHostsPath), config.TempHostsPath, podConfig.MetaData.Namespace)
+	if err != nil {
+		logger.Errorf("copy pause hosts to local failed: %s", err.Error())
+	}
+
 	// create pod containers
 	for _, cConfig := range podConfig.Spec.Containers {
 		// while create containers, add into pause container's namespace
-		container, err := ContainerManagerInstance.CreateContainer(ctx, utils.GenerateContainerSpec(*podConfig, cConfig, linuxNamespace))
+		cSpec := utils.GenerateContainerSpec(*podConfig, cConfig, linuxNamespace)
+		container, err := ContainerManagerInstance.CreateContainer(ctx, cSpec)
 		if err != nil {
 			logger.Errorf("Create container %s Failed: %s", cConfig.Name, err.Error())
 			//_ = utils.StopPodContainers(startedContainer, *podConfig)
 			//_ = utils.RmPodContainers(startedContainer, *podConfig)
 			return err
 		}
+
+		err = utils.NerdCopy(config.TempResolvPath, fmt.Sprintf("%s:%s", cSpec.ID, config.ContainerResolvPath), podConfig.MetaData.Namespace)
+		if err != nil {
+			logger.Errorf("copy local resolv.conf to container %s failed: %s", err.Error(), cSpec.Name)
+		}
+		err = utils.NerdCopy(config.TempHostsPath, fmt.Sprintf("%s:%s", cSpec.ID, config.ContainerHostsPath), podConfig.MetaData.Namespace)
+		if err != nil {
+			logger.Errorf("copy local hosts to container %s failed: %s", err.Error(), cSpec.Name)
+		}
+
 		startedContainer = append(startedContainer, cConfig)
 		err = ContainerManagerInstance.StartContainer(ctx, container, podConfig)
 		if err != nil {

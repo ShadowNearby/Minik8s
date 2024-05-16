@@ -73,7 +73,7 @@ func (cmg *ContainerManager) CreateContainer(ctx context.Context, config core.Co
 		copts = append(copts, containerd.WithContainerLabels(config.Labels))
 	}
 	// add filter and name labels
-	addLabels := utils.GenerateContainerLabel(config.PodName)
+	addLabels := utils.GenerateContainerLabel(config.PodName, config.Name)
 
 	copts = append(copts, containerd.WithAdditionalContainerLabels(addLabels))
 	// create container

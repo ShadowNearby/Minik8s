@@ -109,3 +109,12 @@ func generateEnvList(envs []core.EnvConfig) []string {
 	}
 	return res
 }
+
+func CheckPodMetaData(podConfig *core.Pod) {
+	if podConfig.MetaData.UUID == "" {
+		podConfig.MetaData.UUID = GenerateUUID()
+	}
+	if podConfig.MetaData.Name == "" {
+		podConfig.MetaData.Name = GenerateUUID()
+	}
+}

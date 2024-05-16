@@ -9,10 +9,10 @@ build:
     - go mod tidy
     - echo "Compiling the code..."
     - mkdir build && cd build && cmake .. && make -j`nproc` && cd ..
-    - ./bin/apiserver > ./log/apiserver.log 2>&1 &
+    - ./bin/apiserver > /var/log/minik8s/apiserver.log 2>&1 &
     - echo "start apiserver"
-    - sleep 3
-    - ./bin/kubelet > ./log/kubelet.log 2>&1 &
+    - sleep 5
+    - ./bin/kubelet > /var/log/minik8s/kubelet.log 2>&1 &
     - echo "start kubelet"
     - echo "Compile and run complete."
 
