@@ -58,4 +58,5 @@ finish:
   script:
     - pkill apiserver
     - pkill kubelet
+    - pkill nginx
     - echo "Finish testing"

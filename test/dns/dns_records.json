@@ -8,7 +8,7 @@
   "host": "node1.com",
   "paths": [
       {
-          "path": "",
+          "path": "service1",
           "service": "service1",
           "ip": "localhost",
           "port": 12333
