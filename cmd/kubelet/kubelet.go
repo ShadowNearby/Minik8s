@@ -7,12 +7,12 @@ import (
 	"minik8s/pkgs/kubelet"
 	"minik8s/utils"
 
-	logger "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	logger.SetFormatter(&logger.TextFormatter{DisableTimestamp: true, DisableQuote: true})
-	logger.SetReportCaller(true)
+	logrus.SetReportCaller(true)
+	logrus.SetFormatter(&utils.CustomFormatter{})
 	var config = core.KubeletConfig{
 		MasterIP:   config.LocalServerIp,
 		MasterPort: config.ApiServerPort,
