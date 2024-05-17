@@ -1,0 +1,15 @@
+{
+  "apiVersion": "v1",
+  "kind": "DNS",
+  "metadata": {
+    "name": "dns-service",
+    "namespace": "default"
+  },
+  "host": "dns-service.com",
+  "paths": [
+      {
+          "path": "service-practice",
+          "service": "service-practice"
+      }
+  ]
+}

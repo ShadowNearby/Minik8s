@@ -96,6 +96,7 @@ type ContainerdSpec struct {
 	ID             string
 	VolumeMounts   map[string]string
 	Cmd            []string
+	Args           []string
 	Envs           []string
 	Resource       ResourceLimit
 	Labels         map[string]string

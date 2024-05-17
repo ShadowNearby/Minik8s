@@ -38,6 +38,7 @@ func GenerateContainerSpec(pConfig core.Pod, cConfig core.Container, args ...str
 		Name:         GenerateContainerName(pConfig.MetaData.Name, cConfig.Name),
 		VolumeMounts: generateVolMountsMap(cConfig.VolumeMounts),
 		Cmd:          cConfig.Cmd,
+		Args:         cConfig.Args,
 		Envs:         generateEnvList(cConfig.Env),
 		Resource:     cConfig.Resources.Limit,
 		Labels:       pConfig.MetaData.Labels,

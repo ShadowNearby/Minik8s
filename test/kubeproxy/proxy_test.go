@@ -16,7 +16,7 @@ func TestDocker(t *testing.T) {
 			"hashicorp/http-echo", "-listen=:" + strconv.Itoa(int(serverPort)), fmt.Sprintf("-text=hello server%d", i)}
 		output, err := exec.Command("docker", createArgs...).CombinedOutput()
 		if err != nil {
-			t.Fatalf("can not create image error: %s output: %s", err.Error(), output)
+			t.Errorf("can not create image error: %s output: %s", err.Error(), output)
 			return
 		}
 
@@ -28,7 +28,7 @@ func TestDocker(t *testing.T) {
 			t.Errorf("output not match expect: %s, actual: %s", fmt.Sprintf("hello server%d\n", i), string(output))
 		}
 		if err != nil {
-			t.Fatalf("can not curl error: %s output: %s", err.Error(), output)
+			t.Errorf("can not curl error: %s output: %s", err.Error(), output)
 		}
 	}
 	stopArgs := []string{"stop"}
@@ -39,12 +39,12 @@ func TestDocker(t *testing.T) {
 	}
 	output, err := exec.Command("docker", stopArgs...).CombinedOutput()
 	if err != nil {
-		t.Fatalf("can not create image error: %s output: %s", err.Error(), output)
+		t.Errorf("can not create image error: %s output: %s", err.Error(), output)
 		return
 	}
 	output, err = exec.Command("docker", rmArgs...).CombinedOutput()
 	if err != nil {
-		t.Fatalf("can not create image error: %s output: %s", err.Error(), output)
+		t.Errorf("can not create image error: %s output: %s", err.Error(), output)
 		return
 	}
 }
@@ -56,7 +56,7 @@ func TestIPVS(t *testing.T) {
 	servicePort := uint32(5678)
 	err := kubeproxy.CreateService(serviceIP, servicePort)
 	if err != nil {
-		t.Fatalf("can not create service error: %s", err.Error())
+		t.Errorf("can not create service error: %s", err.Error())
 		return
 	}
 	for i, serverPort := range serverPorts {
@@ -65,12 +65,12 @@ func TestIPVS(t *testing.T) {
 			"hashicorp/http-echo", "-listen=:" + strconv.Itoa(int(serverPort)), fmt.Sprintf("-text=hello server%d", i)}
 		output, err := exec.Command("docker", createArgs...).CombinedOutput()
 		if err != nil {
-			t.Fatalf("can not create image error: %s output: %s", err.Error(), output)
+			t.Errorf("can not create image error: %s output: %s", err.Error(), output)
 			return
 		}
 		err = kubeproxy.BindEndpoint(serviceIP, servicePort, serverIP, serverPort)
 		if err != nil {
-			t.Fatalf("can not create endpoint error: %s", err.Error())
+			t.Errorf("can not create endpoint error: %s", err.Error())
 			return
 		}
 	}
@@ -81,13 +81,13 @@ func TestIPVS(t *testing.T) {
 			t.Errorf("output not match actual: %s, expect: %s", string(output), fmt.Sprintf("hello server%d\n", i))
 		}
 		if err != nil {
-			t.Fatalf("can not curl error: %s output: %s", err.Error(), output)
+			t.Errorf("can not curl error: %s output: %s", err.Error(), output)
 		}
 	}
 
 	err = kubeproxy.DeleteService(serviceIP, servicePort)
 	if err != nil {
-		t.Fatalf("can not delete service error: %s", err.Error())
+		t.Errorf("can not delete service error: %s", err.Error())
 	}
 	stopArgs := []string{"stop"}
 	rmArgs := []string{"rm"}
@@ -97,12 +97,12 @@ func TestIPVS(t *testing.T) {
 	}
 	output, err := exec.Command("docker", stopArgs...).CombinedOutput()
 	if err != nil {
-		t.Fatalf("can not create image error: %s output: %s", err.Error(), output)
+		t.Errorf("can not create image error: %s output: %s", err.Error(), output)
 		return
 	}
 	output, err = exec.Command("docker", rmArgs...).CombinedOutput()
 	if err != nil {
-		t.Fatalf("can not create image error: %s output: %s", err.Error(), output)
+		t.Errorf("can not create image error: %s output: %s", err.Error(), output)
 		return
 	}
 }
