@@ -8,6 +8,8 @@ var NginxListenIP = "172.31.184.139"
 
 var NginxListenAddr = fmt.Sprintf("%s:%d", NginxListenIP, 80)
 
+var NginxStarted = false
+
 const ContainerResolvPath = "/etc/resolv.conf"
 
 const TempResolvPath = "/tmp/resolv.conf"

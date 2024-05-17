@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/apiserver/storage"
@@ -13,7 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func TestDNS(t *testing.T) {
+func TestDNSBasic(t *testing.T) {
 	logrus.SetReportCaller(true)
 	logrus.SetFormatter(&logrus.TextFormatter{ForceColors: true})
 	client := storage.CreateEtcdStorage(config.DefaultEtcdEndpoints)
@@ -37,9 +38,8 @@ func TestDNS(t *testing.T) {
 		t.Errorf("error put in storage")
 	}
 
-	err = utils.StartNginx()
+	err = utils.ReloadNginx()
 	if err != nil {
-		utils.StopNginx()
 		t.Fail()
 	}
 	path := dnsRecord.Paths[0]
@@ -47,7 +47,7 @@ func TestDNS(t *testing.T) {
 	if err != nil {
 		t.Errorf("error in create hello")
 	}
-	res, err := utils.TestHelloServer(dnsRecord.Host, 0)
+	res, err := utils.TestHelloServer(fmt.Sprintf("%s/%s", dnsRecord.Host, path.Path), 0)
 	if err != nil || res != true {
 		t.Errorf("error in test hello")
 	}
@@ -56,12 +56,43 @@ func TestDNS(t *testing.T) {
 	if err != nil {
 		t.Errorf("error in delete hello")
 	}
-	err = storage.Del(dnsKey)
+	err = client.Delete(ctx, dnsKey)
 	if err != nil {
 		t.Errorf("error in delete storage")
 	}
-	err = utils.StopNginx()
+}
+
+func TestDNSApi(t *testing.T) {
+	logrus.SetReportCaller(true)
+	logrus.SetFormatter(&logrus.TextFormatter{ForceColors: true})
+	content, err := os.ReadFile("dns_records.json")
 	if err != nil {
-		t.Fail()
+		t.Errorf("Error reading file: %s", err.Error())
+	}
+	dnsRecord := core.DNSRecord{}
+	json.Unmarshal(content, &dnsRecord)
+	err = utils.CreateObject(core.ObjDNS, dnsRecord.MetaData.Namespace, dnsRecord)
+	if err != nil {
+		logrus.Errorf("error in create dns err: %s", err.Error())
+	}
+
+	path := dnsRecord.Paths[0]
+	err = utils.CreateHelloServer(path.Port, 0)
+	if err != nil {
+		t.Errorf("error in create hello")
+	}
+	res, err := utils.TestHelloServer(fmt.Sprintf("%s/%s", dnsRecord.Host, path.Path), 0)
+	if err != nil || res != true {
+		t.Errorf("error in test hello")
+	}
+
+	err = utils.DeleteHelloServer(path.Port, 0)
+	if err != nil {
+		t.Errorf("error in delete hello")
+	}
+
+	err = utils.DeleteObject(core.ObjDNS, dnsRecord.MetaData.Namespace, dnsRecord.MetaData.Name)
+	if err != nil {
+		logrus.Errorf("error in del dns err: %s", err.Error())
 	}
 }

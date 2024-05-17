@@ -21,21 +21,24 @@ func GenerateDNSPath(path string) string {
 	return result
 }
 
-func GetServiceIP(namespace string, name string) string {
+func GetServiceAddress(namespace string, name string) (string, uint32, error) {
 	if namespace == "" {
 		namespace = "default"
 	}
 	content := GetObject(core.ObjService, namespace, name)
 	service := &core.Service{}
 	JsonUnMarshal(content, service)
+	if len(service.Spec.Ports) < 1 {
+		return "", 0, fmt.Errorf("service %s/%s has no port", namespace, name)
+	}
 	if service.Spec.ClusterIP != "" {
-		return service.Spec.ClusterIP
+		return service.Spec.ClusterIP, service.Spec.Ports[0].Port, nil
 	}
 	NodeIP := GetIP()
-	return NodeIP
+	return NodeIP, service.Spec.Ports[0].NodePort, nil
 }
 
-func GenerateNginxFile(configs []core.DNSRecord) {
+func GenerateNginxFile(configs []core.DNSRecord) error {
 	tmplpath := fmt.Sprintf("%s/%s", ConfigPath, "nginx.tmpl")
 	confpath := fmt.Sprintf("%s/%s", ConfigPath, "nginx.conf")
 	tmpl := template.Must(template.ParseFiles(tmplpath))
@@ -62,13 +65,15 @@ func GenerateNginxFile(configs []core.DNSRecord) {
 	}
 	conffile, err := os.OpenFile(confpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
-		logrus.Errorf("error in create file %s", confpath)
-		return
+		logrus.Errorf("error in create file %s err: %s", confpath, err.Error())
+		return err
 	}
 	err = tmpl.Execute(conffile, config)
 	if err != nil {
-		logrus.Errorf("error in exec template file")
+		logrus.Errorf("error in exec template file err:%s", err.Error())
+		return err
 	}
+	return nil
 }
 
 func StartNginx() error {
@@ -96,6 +101,32 @@ func ReloadNginx() error {
 		logrus.Errorf("error in reload nginx %s", err.Error())
 		return err
 	}
+	return nil
+}
+
+func UpdateNginx() error {
+	response := GetObjectWONamespace(core.ObjDNS, "")
+	dnsRecords := []core.DNSRecord{}
+	err := JsonUnMarshal(response, &dnsRecords)
+	if err != nil {
+		logrus.Errorf("error in unmarshal dns records %s", err.Error())
+		return err
+	}
+
+	err = GenerateNginxFile(dnsRecords)
+	if err != nil {
+		logrus.Errorf("error in generate nginx file %s", err.Error())
+		return err
+	}
+
+	err = ReloadNginx()
+	if err != nil {
+		StopNginx()
+		config.NginxStarted = false
+		logrus.Errorf("error in reload nginx: %s", err.Error())
+		return err
+	}
+
 	return nil
 }
 

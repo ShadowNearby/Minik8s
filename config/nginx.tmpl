@@ -14,6 +14,7 @@ http {
         {{range .Locations}}
         location /{{.Path}} {
             access_log /var/log/nginx/access.log;
+            rewrite ^/{{.Path}}(.*)$ /$1 break;
             proxy_pass http://{{.IP}}:{{.Port}}/;
         }
         {{end}}

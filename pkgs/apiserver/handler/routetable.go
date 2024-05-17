@@ -30,6 +30,7 @@ var RouteTable = [...]Route{
 	{Path: "/api/v1/namespaces/:namespace/dns", Method: "POST", Handler: CreateDNSHandler},         // POST, create a dns
 	{Path: "/api/v1/namespaces/:namespace/dns/:name", Method: "GET", Handler: GetDNSHandler},       // GET, get a dns
 	{Path: "/api/v1/namespaces/:namespace/dns", Method: "GET", Handler: GetDNSListHandler},         // GET, list all dns
+	{Path: "/api/v1/dns", Method: "GET", Handler: GetAllDNSHandler},                                //Get, get all dns
 	{Path: "/api/v1/namespaces/:namespace/dns/:name", Method: "DELETE", Handler: DeleteDNSHandler}, // DELETE, delete a dns
 	{Path: "/api/v1/namespaces/:namespace/dns/:name", Method: "PUT", Handler: UpdateDNSHandler},    // PUT, update a dns
 
@@ -43,7 +44,7 @@ var RouteTable = [...]Route{
 	{Path: "/api/v1/namespaces/:namespace/jobs/:name", Method: "GET", Handler: GetJobHandler},       // GET, get a Job
 	{Path: "/api/v1/namespaces/:namespace/jobs", Method: "GET", Handler: GetJobListHandler},         // GET, list all Jobs
 	{Path: "/api/v1/namespaces/:namespace/jobs/:name", Method: "DELETE", Handler: DeleteJobHandler}, // DELETE, delete a Job
-	{Path: "api/v1/namespaces/:namespace/jobs/:name", Method: "PUT", Handler: UpdateJobHandler},     // PUT, update a Job
+	{Path: "/api/v1/namespaces/:namespace/jobs/:name", Method: "PUT", Handler: UpdateJobHandler},    // PUT, update a Job
 
 	{Path: "/api/v1/functions", Method: "POST", Handler: CreateFunctionHandler},                // POST, create a function
 	{Path: "/api/v1/functions/:name", Method: "GET", Handler: GetFunctionHandler},              // GET, get a function
