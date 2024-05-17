@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var defaultLogFormat = "[%lvl%]: %time% %func% %file%\n%msg%\n"
+var defaultLogFormat = "[%lvl%] [%time% | %func% | %file%]: %msg%\n"
 var defaultTimestampFormat = "15:04:05"
 
 type CustomFormatter struct {
@@ -34,6 +34,7 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	if entry.HasCaller() {
 		funcVal := entry.Caller.Function
 		fileVal := fmt.Sprintf("%s:%d", entry.Caller.File, entry.Caller.Line)
+		fileVal = strings.Replace(fileVal, RootPath+"/", "", 1)
 		output = strings.Replace(output, "%func%", funcVal, 1)
 		output = strings.Replace(output, "%file%", fileVal, 1)
 	} else {
