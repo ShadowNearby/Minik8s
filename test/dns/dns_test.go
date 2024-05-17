@@ -22,15 +22,21 @@ func TestDNSBasic(t *testing.T) {
 		t.Fatalf("error in create storage")
 	}
 	ctx := context.Background()
-	content, err := os.ReadFile("dns_records.json")
+	content, err := os.ReadFile(fmt.Sprintf("%s/%s", utils.ExamplePath, "dns_records.json"))
 	if err != nil {
 		t.Errorf("Error reading file: %s", err.Error())
 	}
 	dnsRecord := core.DNSRecord{}
-	json.Unmarshal(content, &dnsRecord)
+	err = json.Unmarshal(content, &dnsRecord)
+	if err != nil {
+		t.Errorf("Error reading file: %s", err.Error())
+	}
 	dnsRecords := []core.DNSRecord{}
 	dnsRecords = append(dnsRecords, dnsRecord)
-	utils.GenerateNginxFile(dnsRecords)
+	err = utils.GenerateNginxFile(dnsRecords)
+	if err != nil {
+		t.Errorf("error in generate nginx file")
+	}
 	dnsKey := utils.GenerateDNSPath(dnsRecord.Host)
 	entry := core.DNSEntry{Host: config.NginxListenIP}
 	err = client.Put(ctx, dnsKey, entry)
@@ -65,15 +71,18 @@ func TestDNSBasic(t *testing.T) {
 func TestDNSApi(t *testing.T) {
 	logrus.SetReportCaller(true)
 	logrus.SetFormatter(&logrus.TextFormatter{ForceColors: true})
-	content, err := os.ReadFile("dns_records.json")
+	content, err := os.ReadFile(fmt.Sprintf("%s/%s", utils.ExamplePath, "dns_records.json"))
 	if err != nil {
 		t.Errorf("Error reading file: %s", err.Error())
 	}
 	dnsRecord := core.DNSRecord{}
-	json.Unmarshal(content, &dnsRecord)
+	err = json.Unmarshal(content, &dnsRecord)
+	if err != nil {
+		t.Errorf("Error reading file: %s", err.Error())
+	}
 	err = utils.CreateObject(core.ObjDNS, dnsRecord.MetaData.Namespace, dnsRecord)
 	if err != nil {
-		logrus.Errorf("error in create dns err: %s", err.Error())
+		t.Errorf("error in create dns err: %s", err.Error())
 	}
 
 	path := dnsRecord.Paths[0]
@@ -93,6 +102,6 @@ func TestDNSApi(t *testing.T) {
 
 	err = utils.DeleteObject(core.ObjDNS, dnsRecord.MetaData.Namespace, dnsRecord.MetaData.Name)
 	if err != nil {
-		logrus.Errorf("error in del dns err: %s", err.Error())
+		t.Errorf("error in del dns err: %s", err.Error())
 	}
 }

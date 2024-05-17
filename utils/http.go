@@ -79,6 +79,9 @@ func SendRequest(method string, url string, body []byte) (int, string, error) {
 	buffer := &bytes.Buffer{}
 	if err != nil {
 		log.Error(err)
+		if response == nil {
+			return http.StatusInternalServerError, "", err
+		}
 	} else {
 		length, err := buffer.ReadFrom(response.Body)
 		if err != nil {

@@ -13,11 +13,12 @@
           "containers": [
               {
                   "name": "example-container",
-                  "image": "docker.io/library/nginx:latest",
+                  "image": "docker.io/hashicorp/http-echo:latest",
                   "imagePullPolicy": "IfNotPresent",
+                  "cmd": ["/http-echo", "-listen=:8080", "-text=hello"],
                   "ports": [
                       {
-                          "containerPort": 80,
+                          "containerPort": 8080,
                           "name": "p1"
                       }
                   ]
@@ -38,11 +39,12 @@
           "containers": [
               {
                   "name": "example-container",
-                  "image": "docker.io/library/nginx:latest",
+                  "image": "docker.io/hashicorp/http-echo:latest",
                   "imagePullPolicy": "IfNotPresent",
+                  "cmd": ["/http-echo", "-listen=:8080", "-text=hello"],
                   "ports": [
                       {
-                          "containerPort": 80,
+                          "containerPort": 8080,
                           "name": "p1"
                       }
                   ]
