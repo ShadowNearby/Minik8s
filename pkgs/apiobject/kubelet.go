@@ -29,6 +29,7 @@ type PodSpec struct {
 	DnsPolicy       dnsPolicy       `json:"dnsPolicy,omitempty" yaml:"dnsPolicy,omitempty"`
 	Selector        Selector        `json:"selector" yaml:"selector"`
 	MinReadySeconds minReadySeconds `json:"minReadySeconds,omitempty" yaml:"minReadySeconds,omitempty"`
+	Volumes         []Volume        `json:"volumes" yaml:"volumes"`
 }
 
 type restartPolicy string
@@ -80,8 +81,9 @@ type EnvConfig struct {
 }
 
 type ResourceLimit struct {
-	Cpu    string `json:"cpu"` /* 0-3, 0, 1 */
-	Memory uint64 `json:"memory"`
+	Cpu     string `json:"cpu"` /* 0-3, 0, 1 */
+	Memory  uint64 `json:"memory"`
+	Storage uint64 `json:"storage"`
 }
 
 type ResourcesConfig struct {

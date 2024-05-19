@@ -7,17 +7,18 @@ import (
 type ObjType string
 
 const (
-	ObjPod        ObjType = "pods"
-	ObjNode       ObjType = "nodes"
-	ObjReplicaSet ObjType = "replicas"
-	ObjService    ObjType = "services"
-	ObjJob        ObjType = "jobs"
-	ObjHpa        ObjType = "hpa"
-	ObjFunction   ObjType = "functions"
-	ObjWorkflow   ObjType = "workflows"
-	ObjDeployment ObjType = "deployment"
-	ObjEndPoint   ObjType = "endpoints"
-	ObjDNS        ObjType = "dns"
+	ObjPod              ObjType = "pods"
+	ObjNode             ObjType = "nodes"
+	ObjReplicaSet       ObjType = "replicas"
+	ObjService          ObjType = "services"
+	ObjJob              ObjType = "jobs"
+	ObjHpa              ObjType = "hpa"
+	ObjFunction         ObjType = "functions"
+	ObjWorkflow         ObjType = "workflows"
+	ObjDeployment       ObjType = "deployment"
+	ObjEndPoint         ObjType = "endpoints"
+	ObjDNS              ObjType = "dns"
+	ObjPersistentVolume ObjType = "pv"
 )
 
 var ObjTypeAll = []string{
