@@ -10,6 +10,20 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+func HandleDynamicVolumes(mounts []core.Volume) error {
+	for _, volume := range mounts {
+		pv := &core.PersistentVolume{}
+		pv.MetaData.Name = volume.Name
+		pv.Spec.Nfs = volume.Nfs
+		err := utils.CreateObjectWONamespace(core.ObjVolume, pv)
+		if err != nil {
+			logrus.Errorf("error in create volume: %s", err.Error())
+			return err
+		}
+	}
+	return nil
+}
+
 func HandleMount(mounts []core.VolumeMountConfig) error {
 	for _, mount := range mounts {
 		if mount.Name != "" {

@@ -5,13 +5,8 @@ import (
 )
 
 type Volume struct {
-	Name                  string                            `json:"name" yaml:"name"`
-	PersistentVolumeClaim PersistentVolumeClaimVolumeSource `json:"persistentVolumeClaim,omitempty" yaml:"persistentVolumeClaim,omitempty"`
-}
-
-type PersistentVolumeClaimVolumeSource struct {
-	ClaimName string `json:"claimName" yaml:"claimName"`
-	ReadOnly  bool   `json:"readOnly,omitempty" yaml:"readOnly,omitempty"`
+	Name string              `json:"name" yaml:"name"`
+	Nfs  NfsVolumeAttributes `json:"nfs,omitempty" yaml:"nfs,omitempty"`
 }
 
 type PersistentVolume struct {
