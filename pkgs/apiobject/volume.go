@@ -1,5 +1,9 @@
 package core
 
+import (
+	"encoding/json"
+)
+
 type Volume struct {
 	Name                  string                            `json:"name" yaml:"name"`
 	PersistentVolumeClaim PersistentVolumeClaimVolumeSource `json:"persistentVolumeClaim,omitempty" yaml:"persistentVolumeClaim,omitempty"`
@@ -16,11 +20,23 @@ type PersistentVolume struct {
 	Status    PersistentVolumeStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
+func (p PersistentVolume) MarshalBinary() ([]byte, error) {
+	return json.Marshal(p)
+}
+
 type PersistentVolumeSpec struct {
-	Capacity                      ResourcesConfig            `json:"capacity" yaml:"capacity"`
-	AccessMode                    PersistentVolumeAccessMode `json:"accessMode" yaml:"accessMode"`
-	PersistentVolumeReclaimPolicy string                     `json:"persistentVolumeReclaimPolicy" yaml:"persistentVolumeReclaimPolicy"`
-	StorageClassName              string                     `json:"storageClassName" yaml:"storageClassName"`
+	Capacity                      ResourcesConfig               `json:"capacity" yaml:"capacity"`
+	AccessMode                    PersistentVolumeAccessMode    `json:"accessMode" yaml:"accessMode"`
+	PersistentVolumeReclaimPolicy PersistentVolumeReclaimPolicy `json:"persistentVolumeReclaimPolicy" yaml:"persistentVolumeReclaimPolicy"`
+	StorageClassName              string                        `json:"storageClassName" yaml:"storageClassName"`
+	Nfs                           NfsVolumeAttributes           `json:"nfs" yaml:"nfs"`
+}
+
+type NfsVolumeAttributes struct {
+	Server           string `json:"server" yaml:"server"`
+	Share            string `json:"share" yaml:"share"`
+	MountPermissions string `json:"mountPermissions,omitempty" yaml:"mountPermissions,omitempty"`
+	ReadOnly         bool   `json:"readOnly,omitempty" yaml:"readOnly,omitempty"`
 }
 
 type PersistentVolumeStatus struct {
@@ -31,6 +47,10 @@ type PersistentVolumeClaim struct {
 	BasicInfo `json:",inline" yaml:",inline"`
 	Spec      PersistentVolumeClaimSpec   `json:"spec,omitempty" yaml:"spec,omitempty"`
 	Status    PersistentVolumeClaimStatus `json:"status,omitempty" yaml:"status,omitempty"`
+}
+
+func (p PersistentVolumeClaim) MarshalBinary() ([]byte, error) {
+	return json.Marshal(p)
 }
 
 type PersistentVolumeClaimSpec struct {
@@ -56,6 +76,14 @@ const (
 	ReadOnlyMany     PersistentVolumeAccessMode = "ReadOnlyMany"
 	ReadWriteMany    PersistentVolumeAccessMode = "ReadWriteMany"
 	ReadWriteOncePod PersistentVolumeAccessMode = "ReadWriteOncePod"
+)
+
+type PersistentVolumeReclaimPolicy string
+
+const (
+	Retain  PersistentVolumeReclaimPolicy = "Retain"
+	Recycle PersistentVolumeReclaimPolicy = "Recycle"
+	Delete  PersistentVolumeReclaimPolicy = "Delete"
 )
 
 type PersistentVolumePhase string

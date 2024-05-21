@@ -4,7 +4,7 @@ import "fmt"
 
 const DNSPathPrefix = "/dnspath"
 
-var NginxListenIP = "172.31.184.139"
+var NginxListenIP = ClusterMasterIP
 
 var NginxListenAddr = fmt.Sprintf("%s:%d", NginxListenIP, 80)
 
