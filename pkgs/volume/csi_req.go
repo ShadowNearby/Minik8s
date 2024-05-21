@@ -36,24 +36,22 @@ func CreateVolume(volume *core.PersistentVolume) (*csi.Volume, error) {
 		logrus.Errorf("failed to create volume: %s", err.Error())
 		return nil, err
 	}
-	logrus.Infof("resp: %s", utils.JsonMarshal(resp))
 	return resp.Volume, nil
 }
 
 func DeleteVolume(volumeId string) error {
-	resp, err := CsiClientInstance.ControllerClient.DeleteVolume(CsiClientInstance.Context, &csi.DeleteVolumeRequest{
+	_, err := CsiClientInstance.ControllerClient.DeleteVolume(CsiClientInstance.Context, &csi.DeleteVolumeRequest{
 		VolumeId: volumeId,
 	})
 	if err != nil {
 		logrus.Errorf("failed to get volume: %s", err.Error())
 		return err
 	}
-	logrus.Debugf("resp: %s", utils.JsonMarshal(resp))
 	return nil
 }
 
 func NodePublishVolume(volumeId string, targetPath string, objVolume *core.PersistentVolume) error {
-	resp, err := CsiClientInstance.NodeClient.NodePublishVolume(CsiClientInstance.Context, &csi.NodePublishVolumeRequest{
+	_, err := CsiClientInstance.NodeClient.NodePublishVolume(CsiClientInstance.Context, &csi.NodePublishVolumeRequest{
 		TargetPath: targetPath,
 		VolumeId:   volumeId,
 		VolumeCapability: &csi.VolumeCapability{
@@ -75,12 +73,11 @@ func NodePublishVolume(volumeId string, targetPath string, objVolume *core.Persi
 		logrus.Errorf("failed to node publish volume: %s", err.Error())
 		return err
 	}
-	logrus.Infof("resp: %s", utils.JsonMarshal(resp))
 	return nil
 }
 
 func NodeUnpublishVolume(volumeId string, targetPath string) error {
-	resp, err := CsiClientInstance.NodeClient.NodeUnpublishVolume(CsiClientInstance.Context, &csi.NodeUnpublishVolumeRequest{
+	_, err := CsiClientInstance.NodeClient.NodeUnpublishVolume(CsiClientInstance.Context, &csi.NodeUnpublishVolumeRequest{
 		TargetPath: targetPath,
 		VolumeId:   volumeId,
 	})
@@ -88,7 +85,6 @@ func NodeUnpublishVolume(volumeId string, targetPath string) error {
 		logrus.Errorf("failed to node publish volume: %s", err.Error())
 		return err
 	}
-	logrus.Debugf("resp: %s", utils.JsonMarshal(resp))
 	return nil
 }
 

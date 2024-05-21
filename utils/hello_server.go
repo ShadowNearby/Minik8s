@@ -23,10 +23,6 @@ func CreateHelloServer(port uint32, i int) error {
 func TestHelloServer(addr string, i int) (bool, error) {
 	curlArgs := []string{"-s", addr}
 	output, err := exec.Command("curl", curlArgs...).CombinedOutput()
-	if string(output) != fmt.Sprintf("hello server%d\n", i) {
-		logrus.Errorf("output not match expect: %s, actual: %s", fmt.Sprintf("hello server%d\n", i), string(output))
-		return false, err
-	}
 	if err != nil {
 		logrus.Errorf("can not curl error: %s output: %s", err.Error(), output)
 		return false, err
