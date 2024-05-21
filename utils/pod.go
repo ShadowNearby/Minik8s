@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
 
 	"github.com/containerd/containerd"
@@ -96,8 +97,14 @@ func NerdContainerOps(containers []string, namespace string, ctlType string, arg
 
 func generateVolMountsMap(configs []core.VolumeMountConfig) map[string]string {
 	var res = make(map[string]string)
-	for _, config := range configs {
-		res[config.ContainerPath] = config.HostPath
+	for _, c := range configs {
+		if c.HostPath != "" && c.Name == "" {
+			res[c.ContainerPath] = c.HostPath
+		}
+		if c.Name != "" && c.HostPath == "" {
+			hostPath := fmt.Sprintf("%s/%s", config.CsiMntPath, c.Name)
+			res[c.ContainerPath] = hostPath
+		}
 	}
 	return res
 }

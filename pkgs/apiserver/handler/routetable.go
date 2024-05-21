@@ -67,4 +67,9 @@ var RouteTable = [...]Route{
 	{Path: "/api/v1/workflows/:name", Method: "DELETE", Handler: DeleteWorkflowHandler},        // DELETE, delete a workflow
 	{Path: "/api/v1/workflows/:name", Method: "PUT", Handler: UpdateWorkflowHandler},           // PUT, update a workflow
 	{Path: "/api/v1/workflows/:name/trigger", Method: "POST", Handler: TriggerWorkflowHandler}, // POST, trigger a workflow
+
+	{Path: "/api/v1/volumes", Method: "POST", Handler: CreateVolumeHandler},         // POST, create a volume
+	{Path: "/api/v1/volumes/:name", Method: "GET", Handler: GetVolumeHandler},       // GET, get a volume
+	{Path: "/api/v1/volumes/:name", Method: "DELETE", Handler: DeleteVolumeHandler}, // DELETE, delete a volume
+	{Path: "/api/v1/csivolumes/:name", Method: "GET", Handler: GetCsiVolumeHandler}, // GET, get a csivolume
 }

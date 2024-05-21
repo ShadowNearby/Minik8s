@@ -19,6 +19,7 @@ const (
 	ObjEndPoint   ObjType = "endpoints"
 	ObjDNS        ObjType = "dns"
 	ObjVolume     ObjType = "volumes"
+	ObjCsiVolume  ObjType = "csivolumes"
 )
 
 var ObjTypeAll = []string{

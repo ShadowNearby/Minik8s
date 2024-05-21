@@ -29,13 +29,14 @@ func CreateVolume(volume *core.PersistentVolume) (*csi.Volume, error) {
 		Parameters: map[string]string{
 			"server": volume.Spec.Nfs.Server,
 			"share":  volume.Spec.Nfs.Share,
+			"subDir": "",
 		},
 	})
 	if err != nil {
 		logrus.Errorf("failed to create volume: %s", err.Error())
 		return nil, err
 	}
-	logrus.Debugf("resp: %s", utils.JsonMarshal(resp))
+	logrus.Infof("resp: %s", utils.JsonMarshal(resp))
 	return resp.Volume, nil
 }
 
@@ -66,6 +67,7 @@ func NodePublishVolume(volumeId string, targetPath string, objVolume *core.Persi
 		VolumeContext: map[string]string{
 			"server": objVolume.Spec.Nfs.Server,
 			"share":  objVolume.Spec.Nfs.Share,
+			"subdir": "",
 		},
 		Readonly: objVolume.Spec.Nfs.ReadOnly,
 	})
@@ -73,7 +75,7 @@ func NodePublishVolume(volumeId string, targetPath string, objVolume *core.Persi
 		logrus.Errorf("failed to node publish volume: %s", err.Error())
 		return err
 	}
-	logrus.Debugf("resp: %s", utils.JsonMarshal(resp))
+	logrus.Infof("resp: %s", utils.JsonMarshal(resp))
 	return nil
 }
 

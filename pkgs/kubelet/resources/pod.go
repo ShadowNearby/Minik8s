@@ -7,6 +7,7 @@ import (
 	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/constants"
+	"minik8s/pkgs/volume"
 	"minik8s/utils"
 
 	logger "github.com/sirupsen/logrus"
@@ -85,6 +86,8 @@ func CreatePod(podConfig *core.Pod, pStatusChan chan<- core.PodStatus, cStatusCh
 	// create pod containers
 	for _, cConfig := range podConfig.Spec.Containers {
 		// while create containers, add into pause container's namespace
+		volume.HandleMount(cConfig.VolumeMounts)
+
 		cSpec := utils.GenerateContainerSpec(*podConfig, cConfig, linuxNamespace)
 		container, err := ContainerManagerInstance.CreateContainer(ctx, cSpec)
 		if err != nil {
