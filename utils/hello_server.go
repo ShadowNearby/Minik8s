@@ -11,7 +11,7 @@ import (
 func CreateHelloServer(port uint32, i int) error {
 	createArgs := []string{"run", "-itd", "--name", fmt.Sprintf("hello-server%d", i), "-p",
 		fmt.Sprintf("%d:%d", port, port),
-		"hashicorp/http-echo", "-listen=:" + strconv.Itoa(int(port)), fmt.Sprintf("-text=hello server%d", i)}
+		"hashicorp/http-echo:latest", "-listen=:" + strconv.Itoa(int(port)), fmt.Sprintf("-text=hello server%d", i)}
 	output, err := exec.Command("docker", createArgs...).CombinedOutput()
 	if err != nil {
 		logrus.Errorf("can not create image error: %s output: %s", err.Error(), output)
