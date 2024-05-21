@@ -10,6 +10,7 @@ import (
 	"minik8s/utils"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -53,6 +54,7 @@ func TestDNSBasic(t *testing.T) {
 	if err != nil {
 		t.Errorf("error in create hello")
 	}
+	time.Sleep(3 * time.Second)
 	res, err := utils.TestHelloServer(fmt.Sprintf("%s/%s", dnsRecord.Host, path.Path), 0)
 	if err != nil || res != true {
 		t.Errorf("error in test hello")
@@ -90,6 +92,7 @@ func TestDNSApi(t *testing.T) {
 	if err != nil {
 		t.Errorf("error in create hello")
 	}
+	time.Sleep(3 * time.Second)
 	res, err := utils.TestHelloServer(fmt.Sprintf("%s/%s", dnsRecord.Host, path.Path), 0)
 	if err != nil || res != true {
 		t.Errorf("error in test hello")
