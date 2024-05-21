@@ -49,9 +49,14 @@ test-kubeproxy:
 test-dns:
   stage: test
   script:
-    - echo "Running unit tests for kubeproxy..."
+    - echo "Running unit tests for dns..."
     - go test minik8s/test/dns -cover -count=1
 
+test-volume:
+  stage: test
+  script:
+    - echo "Running unit tests for volume..."
+    - go test minik8s/test/volume -cover -count=1
 
 finish:
   stage: finish

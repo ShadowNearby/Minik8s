@@ -13,6 +13,7 @@ import (
 )
 
 func Run() {
+	config.ClusterMasterIP = utils.GetIP()
 	server := server.CreateAPIServer(config.DefaultEtcdEndpoints)
 	var serviceController service.ServiceController
 	go controller.StartController(&serviceController)

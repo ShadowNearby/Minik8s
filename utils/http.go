@@ -2,11 +2,8 @@ package utils
 
 import (
 	"bytes"
-	"fmt"
-	"minik8s/config"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -14,49 +11,6 @@ import (
 
 var Resources = []string{"pod", "service", "endpoint", "replica", "job", "hpa", "dnsrecord"}
 var Globals = []string{"function", "workflow", "node"}
-
-func ParseUrlOne(kind string, name string, ns string) string {
-	// operation: get. eg: "/api/v1/namespaces/{namespace}/pod/{pod_name}"
-	kind = strings.ToLower(kind)
-	name = strings.ToLower(name)
-	var namespace string
-	if ns == "nil" {
-		url := fmt.Sprintf("http://%s/api/v1/%s/%s", config.GetMasterIp(), kind, name)
-		return url
-	}
-	if ns == "" {
-		namespace = "default"
-	} else {
-		namespace = ns
-	}
-	url := fmt.Sprintf("http://%s/api/v1/namespaces/%s/%s/%s", config.GetMasterIp(), namespace, kind, name)
-	return url
-}
-func ParseUrlMany(kind string, ns string) string {
-	// operation: get. eg: GET "/api/v1/namespaces/{namespace}/pods"
-	// operation: create/apply. eg: POST "/api/v1/namespaces/{namespace}/pods"
-	var namespace string
-	if ns == "nil" {
-		url := fmt.Sprintf("http://%s/api/v1/%ss", config.GetMasterIp(), kind)
-		return url
-	}
-	if ns == "" {
-		namespace = "default"
-	} else {
-		namespace = ns
-	}
-	url := fmt.Sprintf("http://%s/api/v1/namespaces/%s/%ss", config.GetMasterIp(), namespace, kind)
-	return url
-}
-
-//func ParseUrlFromJson(_json []byte) string {
-//	// operation: create/apply. eg: POST "/api/v1/namespaces/{namespace}/pods"
-//	kind := strings.ToLower(gjson.Get(string(_json), "kind").String())
-//	namespace := gjson.Get(string(_json), "metadata.namespace")
-//
-//	url := fmt.Sprintf("http://%s/api/v1/namespaces/%s/%ss", config.ApiServerIp, namespace, kind)
-//	return url
-//}
 
 func ParseJson(c *gin.Context) map[string]any {
 	json := make(map[string]any)
