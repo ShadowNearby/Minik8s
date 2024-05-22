@@ -34,7 +34,7 @@ type Resource struct {
 }
 
 type ResourceTarget struct {
-	Type               string `json:"type" yaml:"type"`                             // "Utilization"
+	Type               string `json:"type" yaml:"type"`                             // "Utilization", "Value"
 	Value              uint64 `yaml:"value" json:"value"`                           // absolute value
 	AverageUtilization int    `json:"averageUtilization" yaml:"averageUtilization"` // percentage
 }

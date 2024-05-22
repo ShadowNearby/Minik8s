@@ -99,7 +99,6 @@ func DeletePodHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot del data"})
 		return
 	}
-	// TODO send message to kubelet
 	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelPod, constants.ChannelDelete), utils.JsonMarshal(pod))
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }
@@ -149,6 +148,7 @@ func GetAllPodsHandler(c *gin.Context) {
 }
 
 // ReplacePodHandler POST /api/v1/namespaces/:namespace/pods/:name
+// this function will change ip information so that we need to reschedule
 func ReplacePodHandler(c *gin.Context) {
 	var pod core.Pod
 	var oldPod core.Pod
@@ -174,5 +174,36 @@ func ReplacePodHandler(c *gin.Context) {
 	// need to reschedule
 	pods := []core.Pod{oldPod, pod}
 	storage.RedisInstance.PublishMessage(constants.ChannelPodSchedule, utils.JsonMarshal(pods))
+	c.JSON(http.StatusOK, gin.H{"data": "ok"})
+}
+
+// UpdatePodStatusHandler /api/v1/namespaces/:namespace/pods/:name/status
+// only for update status and owner-reference, will not cause any side effects
+func UpdatePodStatusHandler(c *gin.Context) {
+	var oldPod, pod core.Pod
+	namespace := c.Param("namespace")
+	name := c.Param("name")
+	err := c.Bind(&pod)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "needs pod config type"})
+		return
+	}
+	if namespace != pod.MetaData.Namespace || name != pod.MetaData.Name {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "namespace and name should same as path"})
+		return
+	}
+	key := fmt.Sprintf("/pods/object/%s/%s", pod.MetaData.Namespace, pod.MetaData.Name)
+	err = storage.Get(key, &oldPod)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get old pod"})
+		return
+	}
+	oldPod.MetaData.OwnerReference = pod.MetaData.OwnerReference
+	oldPod.Status = pod.Status
+	err = storage.Put(key, oldPod)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot write status"})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"data": "ok"})
 }

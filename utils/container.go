@@ -64,8 +64,12 @@ func GenerateContainerName(podName string, cName string) string {
 	return fmt.Sprintf("%s-%s", podName, cName)
 }
 
-func GenerateContainerLabel(podName string, containerName string) map[string]string {
-	return map[string]string{constants.MiniK8SPod: podName, constants.NerdctlName: containerName}
+func GenerateContainerLabel(podName, containerName, namespace string) map[string]string {
+	return map[string]string{
+		constants.MiniK8SPod:       podName,
+		constants.NerdctlName:      containerName,
+		constants.MiniK8SNamespace: namespace,
+	}
 }
 
 // GetContainerStatus first return type of this function is nil or containerd.Status

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
@@ -29,6 +30,26 @@ func SetObject(objType core.ObjType, namespace string, name string, obj any) err
 	}
 	return nil
 }
+
+// SetObjectStatus only update status and owner-reference of object, will not create any side effects like channel publish
+func SetObjectStatus(objType core.ObjType, namespace, name string, obj any) error {
+	if namespace == "" {
+		namespace = "default"
+	}
+	if name == "" {
+		return errors.New("expect specific name")
+	}
+	var url string
+	objTxt := JsonMarshal(obj)
+	url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s/%s/status", config.LocalServerIp, config.ApiServerPort, namespace, string(objType), name)
+	if code, info, err := SendRequest("PUT", url, []byte(objTxt)); err != nil || code != http.StatusOK {
+		logger.Errorf("[update object status error]: %s", info)
+		return err
+	}
+	return nil
+}
+
+// SetObjectWONamespace when object do not have namespace, we can use this
 func SetObjectWONamespace(objType core.ObjType, name string, obj any) error {
 	var url string
 	objTxt := JsonMarshal(obj)

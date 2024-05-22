@@ -15,16 +15,16 @@ import (
 )
 
 type Scheduler struct {
-	Policy        string `json:"policy"`
-	rrIdx         int
-	podChannel    <-chan *redis.Message
-	podDelChannel <-chan *redis.Message
+	Policy     string `json:"policy"`
+	rrIdx      int
+	podChannel <-chan *redis.Message
+	//podDelChannel <-chan *redis.Message
 }
 
 func (sched *Scheduler) Run(policy string) {
 	sched.Policy = policy
 	sched.podChannel = storage.RedisInstance.SubscribeChannel(constants.ChannelPodSchedule)
-	sched.podDelChannel = storage.RedisInstance.SubscribeChannel(constants.GenerateChannelName(constants.ChannelPod, constants.ChannelDelete))
+	//sched.podDelChannel = storage.RedisInstance.SubscribeChannel(constants.GenerateChannelName(constants.ChannelPod, constants.ChannelDelete))
 	go func() {
 		for message := range sched.podChannel {
 			msg := message.Payload
@@ -38,20 +38,20 @@ func (sched *Scheduler) Run(policy string) {
 			}
 		}
 	}()
-	go func() {
-		for message := range sched.podDelChannel {
-			msg := message.Payload
-			var pod core.Pod
-			utils.JsonUnMarshal(msg, pod)
-			if pod.Status.HostIP != "" {
-				pod.Status.HostIP = "127.0.0.1" // TODO: should delete
-				utils.SendRequest("DELETE",
-					fmt.Sprintf("http://%s:10250/pod/stop/%s/%s",
-						pod.Status.HostIP, pod.GetNameSpace(), pod.MetaData.Name),
-					nil)
-			}
-		}
-	}()
+	//go func() {
+	//	for message := range sched.podDelChannel {
+	//		msg := message.Payload
+	//		var pod core.Pod
+	//		utils.JsonUnMarshal(msg, pod)
+	//		if pod.Status.HostIP != "" {
+	//			pod.Status.HostIP = "127.0.0.1" // TODO: should delete
+	//			utils.SendRequest("DELETE",
+	//				fmt.Sprintf("http://%s:10250/pod/stop/%s/%s",
+	//					pod.Status.HostIP, pod.GetNameSpace(), pod.MetaData.Name),
+	//				nil)
+	//		}
+	//	}
+	//}()
 	select {}
 }
 

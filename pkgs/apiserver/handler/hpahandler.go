@@ -20,5 +20,5 @@ func UpdateHpaHandler(c *gin.Context) {}
 // GetAllHpaHandler GET /api/v1/hpa
 func GetAllHpaHandler(c *gin.Context) {}
 
-// UpdateHpaStatusHandler PUT /api/v1/hpa/:name/status
+// UpdateHpaStatusHandler PUT /api/v1/namespaces/:namespace/hpa/:name/status
 func UpdateHpaStatusHandler(c *gin.Context) {}

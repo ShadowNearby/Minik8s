@@ -96,7 +96,7 @@ func (rsc *ReplicaSetController) manageUpdateReplicas(oldRs *core.ReplicaSet, ne
 		if err != nil {
 			return err
 		}
-		targets := rsc.filterOwners(&pods, newRs)
+		targets := utils.FilterOwner(&pods, newRs.MetaData.Namespace, newRs.MetaData.Name, core.ObjReplicaSet)
 		newRs.Status.RealReplicas = len(targets)
 		if len(targets) > newRs.Spec.Replicas {
 			// delete pods
@@ -141,7 +141,7 @@ func (rsc *ReplicaSetController) manageDelReplicas(rs *core.ReplicaSet) error {
 	if err != nil {
 		return err
 	}
-	targets := rsc.filterOwners(&pods, rs)
+	targets := utils.FilterOwner(&pods, rs.MetaData.Namespace, rs.MetaData.Name, core.ObjReplicaSet)
 	rs.Status.RealReplicas = len(targets)
 	for _, target := range targets {
 		err = utils.DeleteObject(core.ObjPod, target.MetaData.Namespace, target.MetaData.Name)
@@ -186,21 +186,8 @@ func (rsc *ReplicaSetController) manageCreateReplicas(rs *core.ReplicaSet) error
 			rs.Status.RealReplicas++
 		}
 	}
+	// todo: change existed pods' ownerReference
 	return nil
-}
-
-func (rsc *ReplicaSetController) filterOwners(origin *[]core.Pod, rs *core.ReplicaSet) []core.Pod {
-	result := make([]core.Pod, 0)
-	for _, pod := range *origin {
-		or := pod.MetaData.OwnerReference
-		if or.Controller == true &&
-			or.ObjType == core.ObjReplicaSet &&
-			or.Namespace == rs.MetaData.Namespace &&
-			or.Name == rs.MetaData.Name {
-			result = append(result, pod)
-		}
-	}
-	return result
 }
 
 func (rsc *ReplicaSetController) selectPods(origin *[]core.Pod, rs *core.ReplicaSet) []core.Pod {
@@ -231,5 +218,4 @@ func setController(pod *core.Pod, rs *core.ReplicaSet) {
 	pod.MetaData.OwnerReference.Controller = true
 	pod.MetaData.OwnerReference.ObjType = core.ObjReplicaSet
 	pod.MetaData.OwnerReference.Name = rs.MetaData.Name
-	pod.MetaData.OwnerReference.Namespace = rs.MetaData.Namespace
 }

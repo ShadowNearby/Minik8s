@@ -1,11 +1,22 @@
 package autoscaler
 
+/**
+We implement horizontalPodAutoscaler in this file, it currently supports managing replicaset.
+The HPA will inherent pods managed by replicaset and change their owner-reference when it's created, and when
+HPA is updated, it will first check whether we can rescale and use the algorithm to calculate desired replicas
+before scaling up or scaling down
+By the way, it will start a background thread to periodically(5 minutes) update hpa to meet requirements
+The rule of rescale is that the HPA didn't scale up/down in the last 5 minutes
+The desired replicas refers to this equation: desiredReplicas = ceil[currentReplicas * ( currentMetricValue / desiredMetricValue )]
+Also notice that when abs(desiredReplicas - currentReplicas) < 0.1, we do not rescale
+*/
 import (
+	"errors"
 	"fmt"
 	logger "github.com/sirupsen/logrus"
 	"math"
 	core "minik8s/pkgs/apiobject"
-	"minik8s/pkgs/apiserver/storage"
+	"minik8s/pkgs/constants"
 	"minik8s/utils"
 	"time"
 )
@@ -13,65 +24,246 @@ import (
 type HPAController struct {
 }
 
-func (h *HPAController) Apply(autoscaler core.HorizontalPodAutoscaler) error {
-	//pods, err := findPods(autoscaler.Spec.ScaleTargetRef.Name, autoscaler.Spec.ScaleTargetRef.Namespace)
-	pod, err := findPod(autoscaler.Spec.ScaleTargetRef.Name, autoscaler.Spec.ScaleTargetRef.Namespace)
-	if err != nil {
-		return err
-	}
-	updateHpa(&autoscaler, autoscaler.Spec.MinReplicas, 0) // todo, do not use pods, use rs
-	return scaleUp(0, autoscaler.Spec.MinReplicas, pod, &autoscaler)
+func (h *HPAController) StartBackground() {
+	ticker := time.NewTicker(5 * time.Minute)
+	defer ticker.Stop()
+
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				h.BackgroundWork()
+			}
+		}
+	}()
 }
 
-func (h *HPAController) Update(autoscaler core.HorizontalPodAutoscaler) error {
-	pods, err := findPods(fmt.Sprintf("hpa-%s-", autoscaler.MetaData.Name), autoscaler.Spec.ScaleTargetRef.Namespace)
+func (h *HPAController) GetChannel() string {
+	return constants.ChannelHPA
+}
+
+func (h *HPAController) HandleCreate(message string) error {
+	var hpa core.HorizontalPodAutoscaler
+	utils.JsonUnMarshal(message, &hpa)
+	return h.Apply(hpa)
+}
+
+func (h *HPAController) HandleUpdate(message string) error {
+	hpas := make([]core.HorizontalPodAutoscaler, 2)
+	utils.JsonUnMarshal(message, &hpas)
+	oldHpa := hpas[0]
+	hpa := hpas[1]
+	if hpa.Spec.MinReplicas == oldHpa.Spec.MinReplicas &&
+		hpa.Spec.MaxReplicas == hpa.Spec.MaxReplicas &&
+		hpa.Spec.ScaleTargetRef == hpa.Spec.ScaleTargetRef {
+		// there's no need to rescale
+		return nil
+	}
+	return h.Update(hpa)
+}
+
+func (h *HPAController) HandleDelete(message string) error {
+	var hpa core.HorizontalPodAutoscaler
+	utils.JsonUnMarshal(message, &hpa)
+	return h.Delete(hpa)
+}
+
+func (h *HPAController) BackgroundWork() {
+	// get all hpa
+	var hpas []core.HorizontalPodAutoscaler
+	hpasTxt := utils.GetObject(core.ObjHpa, "default", "")
+	err := utils.JsonUnMarshal(hpasTxt, &hpas)
 	if err != nil {
+		return
+	}
+	// call update function
+	for _, hpa := range hpas {
+		err = h.Update(hpa)
+		if err != nil {
+			logger.Errorf("update hpa :%s error: %s", hpa.MetaData.Name, err.Error())
+		}
+	}
+}
+
+// Apply when create a hpa object, we use apply function
+func (h *HPAController) Apply(autoscaler core.HorizontalPodAutoscaler) error {
+	// find the replicaset
+	var rs core.ReplicaSet
+	rsTxt := utils.GetObject(core.ObjReplicaSet, "", autoscaler.Spec.ScaleTargetRef.Name)
+	utils.JsonUnMarshal(rsTxt, &rs)
+	// change replicaset owner_reference fo rs
+	setRSController(&rs, autoscaler)
+	// write rs information into storage
+	err := utils.SetObjectStatus(core.ObjReplicaSet, "default", rs.MetaData.Namespace, rs)
+	if err != nil {
+		logger.Error("set rs status failed: ", err.Error())
 		return err
 	}
-	desiredReplicas := checkAndUpdateMetrics(pods, &autoscaler)
-	if math.Abs(desiredReplicas-float64(len(pods))) <= 0.1 {
-		desiredReplicas = float64(len(pods))
-	} else {
-		desiredReplicas = math.Ceil(desiredReplicas)
+	// change pods managed by rs owner_reference to hpa
+	pods, err := findRSPods(rs.MetaData.Name)
+	for _, pod := range pods {
+		setPodController(&pod, autoscaler)
+		utils.SetObjectStatus(core.ObjPod, pod.MetaData.Namespace, pod.MetaData.Name, pod)
 	}
-	desiredInt := int(desiredReplicas)
-	// update hpa
-	updateHpa(&autoscaler, desiredInt, len(pods))
+	// decide whether to scale up or scale down
+	desired := checkAndUpdateMetrics(pods, &autoscaler)
+	desiredInt := getRealDesired(desired, len(pods), autoscaler)
+	if len(pods) == desiredInt {
+		return nil
+	} else if len(pods) < desiredInt {
+		if len(pods) > 0 {
+			err = scaleUp(len(pods), desiredInt, pods[0], &autoscaler)
+		} else {
+			pod := core.Pod{
+				ApiVersion: autoscaler.ApiVersion,
+				MetaData:   rs.Spec.Template.MetaData,
+				Spec:       rs.Spec.Template.Spec,
+				Status:     core.PodStatus{},
+			}
+			err = scaleUp(0, desiredInt, pod, &autoscaler)
+		}
+	} else {
+		err = scaleDown(len(pods), desiredInt, pods, &autoscaler)
+	}
+	if err != nil {
+		logger.Errorf("scale error: %s", err.Error())
+		return err
+	}
+	// update last_scale time and other hpa information
+	updateHpa(&autoscaler, desiredInt)
+	// write hpa information into storage
+	return utils.SetObjectStatus(core.ObjHpa, "default", autoscaler.MetaData.Name, autoscaler)
+}
+
+// Update when an hpa object updates, we use update
+func (h *HPAController) Update(autoscaler core.HorizontalPodAutoscaler) error {
+	// check whether we can rescale
+	if !canRescale(autoscaler.Status.LastScaleTime) {
+		logger.Infof("interval too short, do not rescale")
+		return nil
+	}
+	// get all pods managed by hpa
+	pods, err := findHPAPods(autoscaler.MetaData.Name)
+	if err != nil {
+		logger.Errorf("get hpa pods error: %s", err.Error())
+		return err
+	}
+	// decide whether to scale up or scale down
+	desired := checkAndUpdateMetrics(pods, &autoscaler)
+	desiredInt := getRealDesired(desired, len(pods), autoscaler)
+	if desiredInt == len(pods) {
+		return nil
+	} else if desiredInt < len(pods) {
+		if len(pods) == 0 {
+			// get replica first
+			var rs core.ReplicaSet
+			rsTxt := utils.GetObject(core.ObjReplicaSet, "", autoscaler.Spec.ScaleTargetRef.Name)
+			utils.JsonUnMarshal(rsTxt, &rs)
+			pod := core.Pod{
+				ApiVersion: autoscaler.ApiVersion,
+				MetaData:   rs.Spec.Template.MetaData,
+				Spec:       rs.Spec.Template.Spec,
+				Status:     core.PodStatus{},
+			}
+			err = scaleUp(len(pods), desiredInt, pod, &autoscaler)
+		} else {
+			err = scaleUp(len(pods), desiredInt, pods[0], &autoscaler)
+		}
+	} else {
+		err = scaleDown(len(pods), desiredInt, pods, &autoscaler)
+	}
+	if err != nil {
+		logger.Errorf("scale error: %s", err.Error())
+		return err
+	}
+	// update last_scale time and other hpa information
+	updateHpa(&autoscaler, desiredInt)
+	// write hpa information into storage
+	return utils.SetObjectStatus(core.ObjHpa, "default", autoscaler.MetaData.Name, autoscaler)
+}
+
+func (h *HPAController) Delete(autoscaler core.HorizontalPodAutoscaler) error {
+	// get replicaset and delete
+	utils.DeleteObject(core.ObjReplicaSet, "default", autoscaler.Spec.ScaleTargetRef.Name)
+	// get pods and delete
+	pods, err := findHPAPods(autoscaler.MetaData.Name)
+	if err != nil {
+		logger.Error("cannot find hpa pods: ", err.Error())
+		return err
+	}
+	for _, pod := range pods {
+		utils.DeleteObject(core.ObjPod, pod.MetaData.Namespace, pod.MetaData.Name)
+	}
+	return nil
+}
+
+// restrain the desired replica between [min, max] and mitigate the small difference between desired and actual replicas
+func getRealDesired(desired float64, len int, autoscaler core.HorizontalPodAutoscaler) int {
+	if math.Abs(desired-float64(len)) <= 0.1 {
+		desired = float64(len)
+	} else {
+		desired = math.Ceil(desired)
+	}
+	desiredInt := int(desired)
 	if desiredInt > autoscaler.Spec.MaxReplicas {
 		desiredInt = autoscaler.Spec.MaxReplicas
 	} else if desiredInt < autoscaler.Spec.MinReplicas {
 		desiredInt = autoscaler.Spec.MinReplicas
 	}
-	if len(pods) == desiredInt {
-		return nil
-	} else if len(pods) < desiredInt {
-		return scaleUp(len(pods), desiredInt, pods[0], &autoscaler)
-	} else {
-		return scaleDown(len(pods), desiredInt, pods, &autoscaler)
-	}
+	return desiredInt
 }
 
-func updateHpa(autoscaler *core.HorizontalPodAutoscaler, desired, current int) {
+// check whether the time interval is enough for reschedule
+func canRescale(lastScale time.Time) bool {
+	duration := time.Now().Sub(lastScale)
+	if duration < 5*time.Minute {
+		return false
+	}
+	return true
+}
+
+// update desired and last scale time
+func updateHpa(autoscaler *core.HorizontalPodAutoscaler, desired int) {
 	autoscaler.Status.DesiredReplicas = desired
-	autoscaler.Status.CurrentReplicas = current
 	autoscaler.Status.LastScaleTime = time.Now()
 }
 
-func findPod(name, namespace string) (core.Pod, error) {
-	podTxt := utils.GetObject(core.ObjPod, namespace, name)
-	var pod core.Pod
-	err := utils.JsonUnMarshal(podTxt, &pod)
-	return pod, err
+func findRSPods(rsName string) ([]core.Pod, error) {
+	// rsNamespace should be default
+	// get all pods
+	var pods []core.Pod
+	podsTxt := utils.GetObject(core.ObjPod, "", "")
+	if podsTxt == "" {
+		logger.Debugf("not pods found")
+		return nil, nil
+	}
+	utils.JsonUnMarshal(podsTxt, &pods)
+	// filter pods with this rs owner-reference
+	return utils.FilterOwner(&pods, "default", rsName, core.ObjReplicaSet), nil
 }
 
-// findPods find pods required by hpa
-func findPods(prefix, namespace string) ([]core.Pod, error) { // TODO: pod name
+func findHPAPods(hpaName string) ([]core.Pod, error) {
 	var pods []core.Pod
-	err := storage.RangeGet(fmt.Sprintf("/pods/object/%s/%s", namespace, prefix), &pods)
-	if err != nil {
-		return nil, err
+	podsTxt := utils.GetObject(core.ObjPod, "", "")
+	if podsTxt == "" {
+		return nil, errors.New("cannot get pods")
 	}
-	return pods, nil
+	utils.JsonUnMarshal(podsTxt, &pods)
+	return utils.FilterOwner(&pods, "default", hpaName, core.ObjHpa), nil
+}
+
+// set replicaset's owner-reference
+func setRSController(rs *core.ReplicaSet, autoscaler core.HorizontalPodAutoscaler) {
+	rs.MetaData.OwnerReference.Controller = true
+	rs.MetaData.OwnerReference.ObjType = core.ObjHpa
+	rs.MetaData.OwnerReference.Name = autoscaler.MetaData.Name
+}
+
+// set pod's owner-reference
+func setPodController(pod *core.Pod, autoscaler core.HorizontalPodAutoscaler) {
+	pod.MetaData.OwnerReference.Controller = true
+	pod.MetaData.OwnerReference.ObjType = core.ObjHpa
+	pod.MetaData.OwnerReference.Name = autoscaler.MetaData.Name
 }
 
 // scaleDown should delete one or more pods
@@ -94,10 +286,12 @@ func scaleDown(currentReplica, desiredReplica int, currentPods []core.Pod, hpa *
 // scaleUp should create one or more pods
 func scaleUp(currentReplica, desiredReplica int, template core.Pod, hpa *core.HorizontalPodAutoscaler) error {
 	left := desiredReplica - currentReplica
+	setPodController(&template, *hpa)
 	for i := 0; i < left; i++ {
 		newTemplate := template
 		newTemplate.MetaData.UUID = utils.GenerateUUID()
-		newTemplate.MetaData.Name = fmt.Sprintf("hpa-%s-%s", hpa.MetaData.Name, utils.GenerateUUID())
+		newTemplate.MetaData.Namespace = "default"
+		newTemplate.MetaData.Name = fmt.Sprintf("hpa-%s-%s", hpa.MetaData.Name, utils.GenerateUUID(5))
 		err := utils.CreateObject(core.ObjPod, newTemplate.GetNameSpace(), newTemplate)
 		if err != nil {
 			logger.Error(err.Error())
@@ -108,9 +302,13 @@ func scaleUp(currentReplica, desiredReplica int, template core.Pod, hpa *core.Ho
 	return nil
 }
 
-// checkAndUpdateMetrics return desired replicas
+// checkAndUpdateMetrics get all pods' metrics and calculate desired replicas, also update HPA's status
 func checkAndUpdateMetrics(pods []core.Pod, autoscaler *core.HorizontalPodAutoscaler) float64 {
 	//desiredReplicas = ceil[currentReplicas * ( currentMetricValue / desiredMetricValue )]
+	if len(pods) == 0 {
+		// if there's no pod managed by hpa, we just return the minimum expect replicas
+		return float64(autoscaler.Spec.MinReplicas)
+	}
 	var needCpu, needMem bool
 	var desiredAvgCpu, desiredAvgMem int
 	var desiredValCpu, desiredValMem uint64
@@ -131,6 +329,8 @@ func checkAndUpdateMetrics(pods []core.Pod, autoscaler *core.HorizontalPodAutosc
 		}
 	}
 	var retVal float64 = 0
+	var metricsNum = 0
+	// we use the average desired pod number as return value
 	if needCpu == true {
 		var currentUtilization = 0
 		var currentValue uint64 = 0
@@ -141,10 +341,12 @@ func checkAndUpdateMetrics(pods []core.Pod, autoscaler *core.HorizontalPodAutosc
 		currentUtilization /= len(pods)
 		currentValue /= uint64(len(pods))
 		if desiredValCpu != 0 {
-			retVal = float64(len(pods)) * (float64(currentValue) / float64(desiredValCpu))
+			retVal += float64(len(pods)) * (float64(currentValue) / float64(desiredValCpu))
+			metricsNum++
 		}
 		if desiredAvgCpu != 0 {
-			retVal = float64(len(pods)) * (float64(currentUtilization) / float64(desiredAvgCpu))
+			retVal += float64(len(pods)) * (float64(currentUtilization) / float64(desiredAvgCpu))
+			metricsNum++
 		}
 		//return float64(len(pods)) * (float64(currentUtilization) / float64(desiredAvgCpu))
 	}
@@ -158,15 +360,18 @@ func checkAndUpdateMetrics(pods []core.Pod, autoscaler *core.HorizontalPodAutosc
 		currentUtilization /= len(pods)
 		currentVal /= uint64(len(pods))
 		if desiredValMem != 0 {
-			retVal = float64(len(pods)) * float64(currentVal) / float64(desiredValMem)
+			retVal += float64(len(pods)) * float64(currentVal) / float64(desiredValMem)
+			metricsNum++
 		}
 		if desiredAvgMem != 0 {
-			retVal = float64(len(pods)) * float64(currentUtilization) / float64(desiredAvgMem)
+			retVal += float64(len(pods)) * float64(currentUtilization) / float64(desiredAvgMem)
+			metricsNum++
 		}
 		//return float64(len(pods)) * float64(currentUtilization) / float64(desiredAvgMem)
 	}
 	// update metrics
 	autoscaler.Status.CurrentMetrics = allMetrics
+	retVal = retVal / float64(metricsNum)
 	return retVal
 }
 
