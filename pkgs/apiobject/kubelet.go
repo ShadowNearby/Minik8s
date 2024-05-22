@@ -29,6 +29,7 @@ type PodSpec struct {
 	DnsPolicy       dnsPolicy       `json:"dnsPolicy,omitempty" yaml:"dnsPolicy,omitempty"`
 	Selector        Selector        `json:"selector" yaml:"selector"`
 	MinReadySeconds minReadySeconds `json:"minReadySeconds,omitempty" yaml:"minReadySeconds,omitempty"`
+	Volumes         []Volume        `json:"volumes" yaml:"volumes"`
 }
 
 type restartPolicy string
@@ -62,6 +63,7 @@ type Container struct {
 type ImagePullPolicy string
 
 type VolumeMountConfig struct {
+	Name          string `json:"name"`
 	ContainerPath string `json:"container_path"`
 	HostPath      string `json:"mount_path"`
 	ReadOnly      bool   `json:"read_only"`
@@ -80,8 +82,9 @@ type EnvConfig struct {
 }
 
 type ResourceLimit struct {
-	Cpu    string `json:"cpu"`    /* 500m */
-	Memory uint64 `json:"memory"` /* 48Mi */
+	Cpu     string `json:"cpu"` /* 0-3, 0, 1 */
+	Memory  uint64 `json:"memory"`
+	Storage uint64 `json:"storage"`
 }
 
 type ResourcesConfig struct {
@@ -96,6 +99,7 @@ type ContainerdSpec struct {
 	ID             string
 	VolumeMounts   map[string]string
 	Cmd            []string
+	Args           []string
 	Envs           []string
 	Resource       ResourceLimit
 	Labels         map[string]string

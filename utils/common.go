@@ -2,8 +2,9 @@ package utils
 
 import (
 	"encoding/json"
-	logger "github.com/sirupsen/logrus"
 	"net"
+
+	logger "github.com/sirupsen/logrus"
 )
 
 func JsonMarshal(item any) string {
@@ -29,7 +30,7 @@ func GetIP() string {
 		return ""
 	}
 	for _, iface := range interfaces {
-		if iface.Name != "eth0" {
+		if iface.Name != "eth0" && iface.Name != "ens3" {
 			continue
 		}
 		addrs, err := iface.Addrs()

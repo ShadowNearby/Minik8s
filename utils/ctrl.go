@@ -22,6 +22,7 @@ const (
 	NerdStop    string = "stop"
 	NerdRm      string = "rm"
 	NerdInspect string = "inspect"
+	NerdCp      string = "cp"
 )
 
 type Ctr struct {
@@ -39,7 +40,7 @@ const (
 	CtrRm string = "rm"
 )
 
-func NerdTest(args ...string) (string, error) {
+func NerdRun(args ...string) (string, error) {
 	res, err := exec.Command(nerdCtl, args...).CombinedOutput()
 	return string(res), err
 }
@@ -60,6 +61,15 @@ func NerdExec(ctl NerdCtl, args ...string) (string, error) {
 	logger.Debugf("exec: %s", cmd)
 	res, err := exec.Command(nerdCtl, cmd...).CombinedOutput()
 	return string(res), err
+}
+
+func NerdCopy(src string, dst string, namespace string) error {
+	output, err := exec.Command(nerdCtl, NerdCp, src, dst, "--namespace", namespace).CombinedOutput()
+	if err != nil {
+		logger.Errorf("cp %s to %s failed: output: %s err: %s", src, dst, string(output), err.Error())
+		return err
+	}
+	return nil
 }
 
 func CtrExec(ctr Ctr) (string, error) {

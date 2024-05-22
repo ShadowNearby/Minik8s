@@ -1,15 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/kubelet"
+	"minik8s/utils"
 
-	logger "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	logger.SetReportCaller(true)
+	logrus.SetReportCaller(true)
+	logrus.SetFormatter(&utils.CustomFormatter{})
 	var config = core.KubeletConfig{
 		MasterIP:   config.LocalServerIp,
 		MasterPort: config.ApiServerPort,
@@ -17,5 +20,5 @@ func main() {
 			"test": "haha",
 		},
 	}
-	kubelet.Run(config, "127.0.0.1:10250")
+	kubelet.Run(config, fmt.Sprintf("%s:%d", utils.GetIP(), 10250))
 }

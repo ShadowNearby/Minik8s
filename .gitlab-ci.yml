@@ -8,12 +8,11 @@ build:
   script:
     - go mod tidy
     - echo "Compiling the code..."
-    - go build -o ./bin/apiserver ./cmd/apiserver/apiserver.go
-    - go build -o ./bin/kubelet ./cmd/kubelet/kubelet.go
-    - ./bin/apiserver > ./log/apiserver.log 2>&1 &
+    - mkdir build && cd build && cmake .. && make -j`nproc` && cd ..
+    - ./bin/apiserver > /var/log/minik8s/apiserver.log 2>&1 &
     - echo "start apiserver"
-    - sleep 3
-    - ./bin/kubelet > ./log/kubelet.log 2>&1 &
+    - sleep 5
+    - ./bin/kubelet > /var/log/minik8s/kubelet.log 2>&1 &
     - echo "start kubelet"
     - echo "Compile and run complete."
 
@@ -27,28 +26,42 @@ test-apiserver:
   stage: test
   script:
     - echo "Running unit tests for apiserver..."
-    - go test minik8s/test/apiserver -cover
+    - go test minik8s/test/apiserver -cover -count=1
 
 test-kubelet:
   stage: test
   script:
     - echo "Running unit tests for kubelet..."
-    - go test minik8s/test/kubelet -cover
+    - go test minik8s/test/kubelet -cover -count=1
 
 test-kubectl:
   stage: test
   script:
     - echo "Running unit tests for kubectl..."
-    - go test minik8s/test/kubectl -cover
+    - go test minik8s/test/kubectl -cover -count=1
 
 test-kubeproxy:
   stage: test
   script:
     - echo "Running unit tests for kubeproxy..."
-    - go test minik8s/test/kubeproxy -cover
+    - go test minik8s/test/kubeproxy -cover -count=1
+
+test-dns:
+  stage: test
+  script:
+    - echo "Running unit tests for dns..."
+    - go test minik8s/test/dns -cover -count=1
+
+test-volume:
+  stage: test
+  script:
+    - echo "Running unit tests for volume..."
+    - go test minik8s/test/volume -cover -count=1
 
 finish:
   stage: finish
   script:
     - pkill apiserver
     - pkill kubelet
+    - pkill nginx
+    - echo "Finish testing"

@@ -2,13 +2,14 @@ package storage
 
 import (
 	"encoding/json"
+	"minik8s/config"
 	"reflect"
 
 	"github.com/redis/go-redis/v9"
 	logger "github.com/sirupsen/logrus"
 )
 
-var etcdClient = CreateEtcdStorage(DefaultEndpoints)
+var etcdClient = CreateEtcdStorage(config.DefaultEtcdEndpoints)
 var RedisInstance = &Redis{
 	Client:   createRedisClient(),
 	Channels: make(map[string]*redis.PubSub),

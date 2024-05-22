@@ -30,9 +30,14 @@ func (sc *ServiceController) HandleCreate(message string) error {
 		log.Errorf("unmarshal service error: %s", err.Error())
 		return err
 	}
-	clusterIP := FindUnusedIP()
-	service.Spec.ClusterIP = clusterIP
-	utils.SetObject(core.ObjService, service.MetaData.Namespace, service.MetaData.Name, service)
+	var clusterIP string
+	if service.Spec.ClusterIP == "" {
+		clusterIP := FindUnusedIP()
+		service.Spec.ClusterIP = clusterIP
+		utils.SetObject(core.ObjService, service.MetaData.Namespace, service.MetaData.Name, service)
+	} else {
+		clusterIP = service.Spec.ClusterIP
+	}
 
 	// creaete service and alloc ip
 	if service.Spec.Type == core.ServiceTypeClusterIP {
@@ -93,7 +98,10 @@ func (sc *ServiceController) HandleDelete(message string) error {
 		return err
 	}
 	for _, port := range service.Spec.Ports {
-		kubeproxy.DeleteService(service.Spec.ClusterIP, uint32(port.Port))
+		err = kubeproxy.DeleteService(service.Spec.ClusterIP, uint32(port.Port))
+		if err != nil {
+			log.Errorf("error in DeleteService err: %s", err.Error())
+		}
 	}
 	FreeUsedIP(service.Spec.ClusterIP)
 	err = DeleteEndpointObject(service)

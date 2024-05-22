@@ -3,14 +3,15 @@ package resources
 import (
 	"context"
 	"fmt"
-	"github.com/containerd/containerd"
-	"github.com/containerd/containerd/cio"
-	"github.com/containerd/containerd/oci"
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/constants"
 	"minik8s/utils"
 	"strings"
+
+	"github.com/containerd/containerd"
+	"github.com/containerd/containerd/cio"
+	"github.com/containerd/containerd/oci"
+	logger "github.com/sirupsen/logrus"
 )
 
 type ContainerManager struct {
@@ -72,10 +73,9 @@ func (cmg *ContainerManager) CreateContainer(ctx context.Context, config core.Co
 		copts = append(copts, containerd.WithContainerLabels(config.Labels))
 	}
 	// add filter and name labels
-	addLabels := make(map[string]string)
-	addLabels["name"] = config.Name
-	addLabels[constants.MiniK8SPod] = config.PodName
-	addLabels[constants.MiniK8SNamespace] = config.Namespace
+	addLabels := utils.GenerateContainerLabel(config.PodName, config.Name)
+	// TODO: add namespace label
+
 	copts = append(copts, containerd.WithAdditionalContainerLabels(addLabels))
 	// create container
 	container, err := cmg.Client.NewContainer(ctx, config.ID, copts...)

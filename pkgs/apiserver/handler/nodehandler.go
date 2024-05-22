@@ -2,13 +2,14 @@ package handler
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/apiserver/storage"
 	"minik8s/pkgs/constants"
 	"minik8s/utils"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	logger "github.com/sirupsen/logrus"
 )
 
 // CreateNodeHandler POST /api/v1/nodes
@@ -59,6 +60,10 @@ func DeleteNodeHandler(c *gin.Context) {
 	var node core.Node
 	// TODO: all pods on the node should be scheduled
 	err := storage.Get(key, &node)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "cannot get node"})
+		return
+	}
 	err = storage.Del(key)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "cannot delete node"})

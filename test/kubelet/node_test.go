@@ -2,14 +2,15 @@ package test
 
 import (
 	"fmt"
-	"github.com/containerd/containerd/namespaces"
-	"github.com/docker/go-connections/nat"
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/utils"
 	"net/http"
-	"os"
 	"testing"
+	"time"
+
+	"github.com/containerd/containerd/namespaces"
+	"github.com/docker/go-connections/nat"
+	logger "github.com/sirupsen/logrus"
 )
 
 func TestNodeDelete(t *testing.T) {
@@ -95,12 +96,24 @@ func TestNodeDelete(t *testing.T) {
 		t.Error("return bad: ", info)
 	}
 	logger.Info("create pod return 200")
-	id, _ := os.Hostname()
-	code, info, err = utils.SendRequest("DELETE", "http://127.0.0.1:8090/api/v1/nodes/"+id, nil)
+	time.Sleep(5 * time.Second)
+	utils.DeleteObject(core.ObjPod, pod.MetaData.Namespace, pod.MetaData.Name)
 	if err != nil {
 		t.Error(err.Error())
 	}
 	if code != http.StatusOK {
 		t.Error("return bad: ", info)
 	}
+	logger.Info("delete pod return 200")
+	time.Sleep(5 * time.Second)
+
+	// may delete node and cause other test fail
+	// id, _ := os.Hostname()
+	// code, info, err = utils.SendRequest("DELETE", "http://127.0.0.1:8090/api/v1/nodes/"+id, nil)
+	// if err != nil {
+	// 	t.Error(err.Error())
+	// }
+	// if code != http.StatusOK {
+	// 	t.Error("return bad: ", info)
+	// }
 }

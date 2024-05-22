@@ -68,7 +68,7 @@ const (
 	ConContainersReady Condition = "pod containers ready"
 )
 
-const PauseContainerName string = "pause_container"
+const PauseContainerName string = "pause-container"
 const (
 	EmptyCpu    string = ""
 	EmptyMemory uint64 = 0

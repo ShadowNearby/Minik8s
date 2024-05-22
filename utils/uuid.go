@@ -1,22 +1,24 @@
 package utils
 
 import (
+	"strings"
+
 	"github.com/google/uuid"
-	logger "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 // GenerateUUID generate a random uuid
 func GenerateUUID() string {
 	id, err := uuid.NewUUID()
 	if err != nil {
-		logger.Errorf("generate uuid failed: %s", err.Error())
+		logrus.Errorf("generate uuid failed: %s", err.Error())
 		return ""
 	}
-	return id.String()
+	return strings.Replace(id.String(), "-", "", -1)[:12]
 }
 
 // GenerateContainerIDByName receive container name + pod name as param
 func GenerateContainerIDByName(containerName string, podUUID string) string {
 	id := uuid.NewMD5(uuid.NameSpaceDNS, []byte(containerName+podUUID))
-	return id.String()[:12]
+	return strings.Replace(id.String(), "-", "", -1)[:12]
 }

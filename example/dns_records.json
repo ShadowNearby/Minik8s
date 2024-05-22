@@ -1,0 +1,17 @@
+{
+  "apiVersion": "v1",
+  "kind": "DNS",
+  "metadata": {
+    "name": "dns-test1",
+    "namespace": "default"
+  },
+  "host": "node1.com",
+  "paths": [
+      {
+          "path": "service1",
+          "service": "service1",
+          "ip": "localhost",
+          "port": 12333
+      }
+  ]
+}
