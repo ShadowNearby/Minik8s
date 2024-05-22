@@ -17,7 +17,7 @@ func TestServiceController(t *testing.T) {
 	logrus.SetFormatter(&logrus.TextFormatter{DisableTimestamp: true, ForceColors: true})
 	logrus.SetReportCaller(true)
 
-	content, err := os.ReadFile(fmt.Sprintf("%s/%s", utils.ExamplePath, "pods.json"))
+	content, err := os.ReadFile(fmt.Sprintf("%s/%s", utils.ExamplePath, "service_pods.json"))
 	if err != nil {
 		t.Errorf("Error reading file: %s", err.Error())
 	}
@@ -88,7 +88,7 @@ func TestServiceWithDNS(t *testing.T) {
 	logrus.SetFormatter(&logrus.TextFormatter{DisableTimestamp: true, ForceColors: true})
 	logrus.SetReportCaller(true)
 
-	content, err := os.ReadFile(fmt.Sprintf("%s/%s", utils.ExamplePath, "pods.json"))
+	content, err := os.ReadFile(fmt.Sprintf("%s/%s", utils.ExamplePath, "service_pods.json"))
 	if err != nil {
 		t.Errorf("Error reading file: %s", err.Error())
 	}

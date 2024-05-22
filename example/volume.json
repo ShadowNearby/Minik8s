@@ -7,13 +7,13 @@
   "spec": {
     "capacity": {
       "request": {
-        "storage" : 1000000
+        "storage": 1000000
       }
     },
     "accessMode": "ReadWriteMany",
-    "persistentVolumeReclaimPolicy" : "Retain",
+    "persistentVolumeReclaimPolicy": "Retain",
     "storageClassName": "nfs-csi",
-    "nfs":{
+    "nfs": {
       "server": "172.31.184.139",
       "share": "/mnt/ShareFolder"
     }
