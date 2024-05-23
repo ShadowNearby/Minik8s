@@ -39,13 +39,15 @@ func TestHpaBasic(t *testing.T) {
 	if err != nil {
 		t.Errorf("error in create rs: %s", err.Error())
 	}
-	logrus.Infof("create success")
 	// then create hpa
 	err = utils.CreateObject(core.ObjHpa, "default", hpa)
 	if err != nil {
 		t.Errorf("error in create hpa: %s", err.Error())
 	}
-	logrus.Infof("create success")
+	err = utils.DeleteObject(core.ObjHpa, "default", hpa.MetaData.Name)
+	if err != nil {
+		t.Errorf("error in create hpa: %s", err.Error())
+	}
 }
 func TestHpaUpdate(t *testing.T) {
 	logrus.SetFormatter(&logrus.TextFormatter{DisableTimestamp: true, ForceColors: true})
@@ -76,6 +78,7 @@ func TestHpaUpdate(t *testing.T) {
 		t.Errorf("error in create rs: %s", err.Error())
 	}
 	// then create hpa
+	time.Sleep(3 * time.Second)
 	err = utils.CreateObject(core.ObjHpa, "default", hpa)
 	if err != nil {
 		t.Errorf("error in create hpa: %s", err.Error())
@@ -85,6 +88,10 @@ func TestHpaUpdate(t *testing.T) {
 	err = utils.SetObject(core.ObjHpa, "default", hpa.MetaData.Name, hpa)
 	if err != nil {
 		t.Errorf("error in update hpa: %s", err.Error())
+	}
+	err = utils.DeleteObject(core.ObjHpa, "default", hpa.MetaData.Name)
+	if err != nil {
+		t.Errorf("error in create hpa: %s", err.Error())
 	}
 
 }

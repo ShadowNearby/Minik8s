@@ -53,9 +53,10 @@ func (h *HPAController) HandleUpdate(message string) error {
 	oldHpa := hpas[0]
 	hpa := hpas[1]
 	if hpa.Spec.MinReplicas == oldHpa.Spec.MinReplicas &&
-		hpa.Spec.MaxReplicas == hpa.Spec.MaxReplicas &&
-		hpa.Spec.ScaleTargetRef == hpa.Spec.ScaleTargetRef {
+		hpa.Spec.MaxReplicas == oldHpa.Spec.MaxReplicas &&
+		hpa.Spec.ScaleTargetRef == oldHpa.Spec.ScaleTargetRef {
 		// there's no need to rescale
+		logger.Errorf("no need to rescale")
 		return nil
 	}
 	return h.Update(hpa)
@@ -90,11 +91,15 @@ func (h *HPAController) Apply(autoscaler core.HorizontalPodAutoscaler) error {
 	// find the replicaset
 	var rs core.ReplicaSet
 	rsTxt := utils.GetObject(core.ObjReplicaSet, "", autoscaler.Spec.ScaleTargetRef.Name)
-	utils.JsonUnMarshal(rsTxt, &rs)
+	err := utils.JsonUnMarshal(rsTxt, &rs)
+	if err != nil {
+		logger.Errorf("unmarshal rs error: %s", err.Error())
+		return err
+	}
 	// change replicaset owner_reference fo rs
 	setRSController(&rs, autoscaler)
 	// write rs information into storage
-	err := utils.SetObjectStatus(core.ObjReplicaSet, "default", rs.MetaData.Namespace, rs)
+	err = utils.SetObjectStatus(core.ObjReplicaSet, "default", rs.MetaData.Name, rs)
 	if err != nil {
 		logger.Error("set rs status failed: ", err.Error())
 		return err
@@ -270,7 +275,7 @@ func scaleUp(currentReplica, desiredReplica int, template core.Pod, hpa *core.Ho
 		newTemplate := template
 		newTemplate.MetaData.UUID = utils.GenerateUUID()
 		newTemplate.MetaData.Namespace = "default"
-		newTemplate.MetaData.Name = fmt.Sprintf("hpa-%s-%s", hpa.MetaData.Name, utils.GenerateUUID(5))
+		newTemplate.MetaData.Name = fmt.Sprintf("hpa-%s-%s", hpa.Spec.ScaleTargetRef.Name, utils.GenerateUUID(5))
 		err := utils.CreateObject(core.ObjPod, newTemplate.GetNameSpace(), newTemplate)
 		if err != nil {
 			logger.Error(err.Error())

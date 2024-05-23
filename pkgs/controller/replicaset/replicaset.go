@@ -102,11 +102,13 @@ func (rsc *ReplicaSetController) manageUpdateReplicas(oldRs *core.ReplicaSet, ne
 	} else if len(targets) < newRs.Spec.Replicas {
 		// create pods
 		pod := generateRSPod(newRs)
+		templateName := pod.MetaData.Name
 		setController(&pod, newRs)
 		ops := newRs.Spec.Replicas - len(targets)
 		for i := 0; i < ops; i++ {
 			// should regenerate pod uuid
-			pod.MetaData.Name = fmt.Sprintf("rs-%s-%s", pod.MetaData.Name, utils.GenerateUUID(6))
+			pod.MetaData.Name = fmt.Sprintf("rs-%s-%s", templateName, utils.GenerateUUID(6))
+			logger.Infof("pod name: %s", pod.MetaData.Name)
 			pod.MetaData.UUID = utils.GenerateUUID()
 			err = utils.CreateObject(core.ObjPod, newRs.MetaData.Namespace, pod)
 			if err != nil {
@@ -161,11 +163,13 @@ func (rsc *ReplicaSetController) manageCreateReplicas(rs *core.ReplicaSet) error
 	targets := make([]core.Pod, 0)
 	if len(targets) < rs.Spec.Replicas {
 		pod := generateRSPod(rs)
+		templateName := pod.MetaData.Name
 		setController(&pod, rs)
 		ops := rs.Spec.Replicas - len(targets)
 		for i := 0; i < ops; i++ {
 			// should re-generate pod uuid
-			pod.MetaData.Name = fmt.Sprintf("rs-%s-%s", pod.MetaData.Name, utils.GenerateUUID(6))
+			pod.MetaData.Name = fmt.Sprintf("rs-%s-%s", templateName, utils.GenerateUUID(6))
+			logger.Infof("pod name: %s", pod.MetaData.Name)
 			pod.MetaData.UUID = utils.GenerateUUID()
 			err := utils.CreateObject(core.ObjPod, rs.MetaData.Namespace, pod)
 			if err != nil {
@@ -215,7 +219,7 @@ func generateRSPod(rs *core.ReplicaSet) core.Pod {
 		Status:     core.PodStatus{},
 	}
 	// set random replica name and namespace
-	pod.MetaData.Name = fmt.Sprintf("rs-%s-%s", pod.MetaData.Name, utils.GenerateUUID(6))
+	//pod.MetaData.Name = fmt.Sprintf("rs-%s-%s", pod.MetaData.Name, utils.GenerateUUID(6))
 	pod.MetaData.Namespace = "default"
 	pod.MetaData.UUID = utils.GenerateUUID()
 	setController(&pod, rs)

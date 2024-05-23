@@ -92,11 +92,12 @@ func (sched *Scheduler) Schedule(pod core.Pod) (string, error) {
 	// select node over, send message to node
 	response, err := sendCreatePod(selectedIP, pod)
 	if err != nil {
+		logger.Errorf("send create pod error: %s", err.Error())
 		return "", err
 	}
 	utils.JsonUnMarshal(response, &pod.Status)
 	// node register pod over, write back to storage
-	err = utils.SetObject(core.ObjPod, pod.MetaData.Namespace, pod.MetaData.Name, pod)
+	err = utils.SetObjectStatus(core.ObjPod, pod.MetaData.Namespace, pod.MetaData.Name, pod)
 	if err != nil {
 		return "", err
 	}
@@ -133,8 +134,6 @@ func (sched *Scheduler) dispatch(candidates map[string]core.NodeMetrics) string 
 
 func requestNodeInfos(node core.Node) (map[string]string, core.NodeMetrics, error) {
 	url := fmt.Sprintf("http://%s:%s/metrics", node.Spec.NodeIP, config.NodePort)
-	// TODO: using ip
-	// url := fmt.Sprintf("http://%s:%s/metrics", "127.0.0.1", config.NodePort)
 	code, data, err := utils.SendRequest("GET", url, []byte(""))
 	if err != nil || code != http.StatusOK {
 		logger.Error("get metrics error")
@@ -149,9 +148,7 @@ func requestNodeInfos(node core.Node) (map[string]string, core.NodeMetrics, erro
 
 func sendCreatePod(nodeIp string, pod core.Pod) (string, error) {
 	url := fmt.Sprintf("http://%s:%s/pod/create", nodeIp, config.NodePort)
-	// TODO: using ip
 	logger.Info("send create pod")
-	// url := fmt.Sprintf("http://%s:%s/pod/create", "127.0.0.1", config.NodePort)
 	code, info, err := utils.SendRequest("POST", url, []byte(utils.JsonMarshal(pod)))
 	if err != nil {
 		return "", err
@@ -166,9 +163,7 @@ func sendCreatePod(nodeIp string, pod core.Pod) (string, error) {
 
 func sendStopPod(nodeIP string, pod core.Pod) error {
 	url := fmt.Sprintf("http://%s:%s/pod/stop", nodeIP, config.NodePort)
-	// TODO: using ip
 	logger.Info("send stop pod")
-	// url := fmt.Sprintf("http://%s:%s/pod/stop", config.NodeIP, config.NodePort)
 	code, info, err := utils.SendRequest("POST", url, []byte(utils.JsonMarshal(pod)))
 	if err != nil {
 		return nil

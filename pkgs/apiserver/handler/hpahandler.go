@@ -27,7 +27,7 @@ func CreateHpaHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot store data"})
 		return
 	}
-	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelHPA, constants.ChannelCreate), hpa)
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelHPA, constants.ChannelCreate), utils.JsonMarshal(hpa))
 	c.JSON(http.StatusOK, gin.H{"data": "ok"})
 }
 

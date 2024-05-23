@@ -54,7 +54,7 @@ func GetReplicaHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get data"})
 		return
 	}
-	c.JSON(http.StatusOK, utils.JsonMarshal(replica))
+	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(replica)})
 }
 
 // GetReplicaListHandler GET /api/v1/namespaces/:namespace/replicas
@@ -67,7 +67,7 @@ func GetReplicaListHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get data"})
 		return
 	}
-	c.JSON(http.StatusOK, utils.JsonMarshal(replicas))
+	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(replicas)})
 }
 
 // DeleteReplicaHandler DELETE /api/v1/namespaces/:namespace/replicas/:name

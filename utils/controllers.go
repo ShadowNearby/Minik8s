@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 )
@@ -38,7 +37,8 @@ func FindHPAPods(hpaName string) ([]core.Pod, error) {
 	var pods []core.Pod
 	podsTxt := GetObject(core.ObjPod, "", "")
 	if podsTxt == "" {
-		return nil, errors.New("cannot get pods")
+		logger.Errorf("cannot find hpa pods")
+		return nil, nil
 	}
 	JsonUnMarshal(podsTxt, &pods)
 	return FilterOwner(&pods, "default", hpaName, core.ObjHpa), nil
