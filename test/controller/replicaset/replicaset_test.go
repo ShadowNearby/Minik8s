@@ -28,6 +28,11 @@ func TestReplicasetBasic(t *testing.T) {
 	if err != nil {
 		t.Errorf("create rs failed: %s", err.Error())
 	}
+	time.Sleep(5 * time.Second)
+	err = utils.DeleteObject(core.ObjReplicaSet, "default", rs.MetaData.Name)
+	if err != nil {
+		t.Errorf("delete rs failed: %s", err.Error())
+	}
 }
 
 func TestReplicaUpdate(t *testing.T) {
@@ -61,4 +66,9 @@ func TestReplicaUpdate(t *testing.T) {
 		t.Errorf("update rs failed: %s", err.Error())
 	}
 
+	time.Sleep(5 * time.Second)
+	err = utils.DeleteObject(core.ObjReplicaSet, "default", rs.MetaData.Name)
+	if err != nil {
+		t.Errorf("delete rs failed: %s", err.Error())
+	}
 }

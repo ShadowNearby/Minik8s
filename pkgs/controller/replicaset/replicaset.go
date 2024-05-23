@@ -38,6 +38,10 @@ func (rsc *ReplicaSetController) deleteReplicas(info string) error {
 	if err != nil {
 		return err
 	}
+	// if the rs has owner, we don't need to manage it
+	if replica.MetaData.OwnerReference.Controller == true {
+		return nil
+	}
 	err = rsc.manageDelReplicas(&replica)
 	return err
 	//err = storage.Del(fmt.Sprintf("/replicas/object/%s/%s", replica.MetaData.NameSpace, replica.MetaData.Name))
