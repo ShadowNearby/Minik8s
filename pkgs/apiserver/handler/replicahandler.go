@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/apiserver/storage"
 	"minik8s/pkgs/constants"
@@ -13,19 +14,21 @@ import (
 // CreateReplicaHandler POST /api/v1/namespaces/:namespace/replicas
 func CreateReplicaHandler(c *gin.Context) {
 	var replica core.ReplicaSet
-	var replicaOld core.ReplicaSet
+	//var replicaOld core.ReplicaSet
 	err := c.Bind(&replica)
 	namespace := c.Param("namespace")
 	if err != nil {
+		logger.Errorf("bad body")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "expect replica set type"})
 		return
 	}
 	namespace = "default"
 	rsName := fmt.Sprintf("/replicas/object/%s/%s", namespace, replica.MetaData.Name)
-	if err = storage.Get(rsName, &replicaOld); err == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "replica has existed"})
-		return
-	}
+	//if err = storage.Get(rsName, &replicaOld); err == nil {
+	//	logger.Errorf("has existed")
+	//	c.JSON(http.StatusBadRequest, gin.H{"error": "replica has existed"})
+	//	return
+	//}
 	err = storage.Put(rsName, utils.JsonMarshal(replica))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot put data"})

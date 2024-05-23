@@ -5,7 +5,7 @@ import "time"
 type HorizontalPodAutoscaler struct {
 	ApiVersion string    `json:"apiVersion" yaml:"apiVersion"`
 	Kind       string    `json:"kind" yaml:"kind"`
-	MetaData   MetaData  `json:"metaData" yaml:"metaData"`
+	MetaData   MetaData  `json:"metadata" yaml:"metadata"`
 	Spec       HPASpec   `json:"spec" yaml:"spec"`
 	Status     HPAStatus `json:"status" yaml:"status"`
 }

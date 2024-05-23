@@ -11,7 +11,6 @@ The desired replicas refers to this equation: desiredReplicas = ceil[currentRepl
 Also notice that when abs(desiredReplicas - currentReplicas) < 0.1, we do not rescale
 */
 import (
-	"errors"
 	"fmt"
 	logger "github.com/sirupsen/logrus"
 	"math"
@@ -87,6 +86,7 @@ func (h *HPAController) BackgroundWork() {
 
 // Apply when create a hpa object, we use apply function
 func (h *HPAController) Apply(autoscaler core.HorizontalPodAutoscaler) error {
+	logger.Infof("[hpa-create] hpa name: %s", autoscaler.MetaData.Name)
 	// find the replicaset
 	var rs core.ReplicaSet
 	rsTxt := utils.GetObject(core.ObjReplicaSet, "", autoscaler.Spec.ScaleTargetRef.Name)
@@ -100,7 +100,7 @@ func (h *HPAController) Apply(autoscaler core.HorizontalPodAutoscaler) error {
 		return err
 	}
 	// change pods managed by rs owner_reference to hpa
-	pods, err := findRSPods(rs.MetaData.Name)
+	pods, err := utils.FindRSPods(rs.MetaData.Name)
 	for _, pod := range pods {
 		setPodController(&pod, autoscaler)
 		utils.SetObjectStatus(core.ObjPod, pod.MetaData.Namespace, pod.MetaData.Name, pod)
@@ -108,6 +108,7 @@ func (h *HPAController) Apply(autoscaler core.HorizontalPodAutoscaler) error {
 	// decide whether to scale up or scale down
 	desired := checkAndUpdateMetrics(pods, &autoscaler)
 	desiredInt := getRealDesired(desired, len(pods), autoscaler)
+	logger.Infof("desired replica number: %d, real number: %d", desiredInt, len(pods))
 	if len(pods) == desiredInt {
 		return nil
 	} else if len(pods) < desiredInt {
@@ -137,13 +138,14 @@ func (h *HPAController) Apply(autoscaler core.HorizontalPodAutoscaler) error {
 
 // Update when an hpa object updates, we use update
 func (h *HPAController) Update(autoscaler core.HorizontalPodAutoscaler) error {
+	logger.Infof("[hpa update] hpa name: %s", autoscaler.MetaData.Name)
 	// check whether we can rescale
 	if !canRescale(autoscaler.Status.LastScaleTime) {
 		logger.Infof("interval too short, do not rescale")
 		return nil
 	}
 	// get all pods managed by hpa
-	pods, err := findHPAPods(autoscaler.MetaData.Name)
+	pods, err := utils.FindHPAPods(autoscaler.MetaData.Name)
 	if err != nil {
 		logger.Errorf("get hpa pods error: %s", err.Error())
 		return err
@@ -151,6 +153,7 @@ func (h *HPAController) Update(autoscaler core.HorizontalPodAutoscaler) error {
 	// decide whether to scale up or scale down
 	desired := checkAndUpdateMetrics(pods, &autoscaler)
 	desiredInt := getRealDesired(desired, len(pods), autoscaler)
+	logger.Infof("desired replica number: %d, real number: %d", desiredInt, len(pods))
 	if desiredInt == len(pods) {
 		return nil
 	} else if desiredInt < len(pods) {
@@ -186,7 +189,7 @@ func (h *HPAController) Delete(autoscaler core.HorizontalPodAutoscaler) error {
 	// get replicaset and delete
 	utils.DeleteObject(core.ObjReplicaSet, "default", autoscaler.Spec.ScaleTargetRef.Name)
 	// get pods and delete
-	pods, err := findHPAPods(autoscaler.MetaData.Name)
+	pods, err := utils.FindHPAPods(autoscaler.MetaData.Name)
 	if err != nil {
 		logger.Error("cannot find hpa pods: ", err.Error())
 		return err
@@ -226,30 +229,6 @@ func canRescale(lastScale time.Time) bool {
 func updateHpa(autoscaler *core.HorizontalPodAutoscaler, desired int) {
 	autoscaler.Status.DesiredReplicas = desired
 	autoscaler.Status.LastScaleTime = time.Now()
-}
-
-func findRSPods(rsName string) ([]core.Pod, error) {
-	// rsNamespace should be default
-	// get all pods
-	var pods []core.Pod
-	podsTxt := utils.GetObject(core.ObjPod, "", "")
-	if podsTxt == "" {
-		logger.Debugf("not pods found")
-		return nil, nil
-	}
-	utils.JsonUnMarshal(podsTxt, &pods)
-	// filter pods with this rs owner-reference
-	return utils.FilterOwner(&pods, "default", rsName, core.ObjReplicaSet), nil
-}
-
-func findHPAPods(hpaName string) ([]core.Pod, error) {
-	var pods []core.Pod
-	podsTxt := utils.GetObject(core.ObjPod, "", "")
-	if podsTxt == "" {
-		return nil, errors.New("cannot get pods")
-	}
-	utils.JsonUnMarshal(podsTxt, &pods)
-	return utils.FilterOwner(&pods, "default", hpaName, core.ObjHpa), nil
 }
 
 // set replicaset's owner-reference
