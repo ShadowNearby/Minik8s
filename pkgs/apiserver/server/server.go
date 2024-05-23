@@ -17,6 +17,7 @@ type APIServer struct {
 }
 
 func (s *APIServer) Run(addr string) error {
+	handler.PrometheusRegister()
 	for _, route := range handler.RouteTable {
 		route.Register(s.HttpServer)
 	}
