@@ -1,5 +1,10 @@
 package handler
 
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+)
+
 var RouteTable = [...]Route{
 	{Path: "/api/v1/namespaces/:namespace/pods", Method: "POST", Handler: CreatePodHandler},         // POST, create a pod
 	{Path: "/api/v1/namespaces/:namespace/pods/:name", Method: "GET", Handler: GetPodHandler},       // GET, get a pod
@@ -72,4 +77,6 @@ var RouteTable = [...]Route{
 	{Path: "/api/v1/volumes/:name", Method: "GET", Handler: GetVolumeHandler},       // GET, get a volume
 	{Path: "/api/v1/volumes/:name", Method: "DELETE", Handler: DeleteVolumeHandler}, // DELETE, delete a volume
 	{Path: "/api/v1/csivolumes/:name", Method: "GET", Handler: GetCsiVolumeHandler}, // GET, get a csivolume
+
+	{Path: "/metrics", Method: "GET", Handler: gin.WrapH(promhttp.Handler())}, // GET, get metrics
 }
