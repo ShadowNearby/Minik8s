@@ -318,42 +318,61 @@ func checkAndUpdateMetrics(pods []core.Pod, autoscaler *core.HorizontalPodAutosc
 	if needCpu == true {
 		var currentUtilization = 0
 		var currentValue uint64 = 0
+		var skipped = 0
 		for _, metric := range allMetrics {
-			currentValue += metric.Resources[0].Target.Value
-			currentUtilization += metric.Resources[0].Target.AverageUtilization
+			if len(metric.Resources) < 1 {
+				skipped += 1
+			} else {
+				currentValue += metric.Resources[0].Target.Value
+				currentUtilization += metric.Resources[0].Target.AverageUtilization
+			}
 		}
-		currentUtilization /= len(pods)
-		currentValue /= uint64(len(pods))
-		if desiredValCpu != 0 {
-			retVal += float64(len(pods)) * (float64(currentValue) / float64(desiredValCpu))
-			metricsNum++
-		}
-		if desiredAvgCpu != 0 {
-			retVal += float64(len(pods)) * (float64(currentUtilization) / float64(desiredAvgCpu))
-			metricsNum++
+		if len(pods) == skipped {
+			logger.Error("not cpu information")
+		} else {
+			length := len(pods) - skipped
+			currentUtilization /= length
+			currentValue /= uint64(length)
+			if desiredValCpu != 0 {
+				retVal += float64(length) * (float64(currentValue) / float64(desiredValCpu))
+				metricsNum++
+			}
+			if desiredAvgCpu != 0 {
+				retVal += float64(length) * (float64(currentUtilization) / float64(desiredAvgCpu))
+				metricsNum++
+			}
 		}
 		//return float64(len(pods)) * (float64(currentUtilization) / float64(desiredAvgCpu))
 	}
 	if needMem == true {
 		var currentUtilization = 0
 		var currentVal uint64 = 0
+		var skipped = 0
 		for _, metric := range allMetrics {
-			currentVal += metric.Resources[1].Target.Value
-			currentUtilization += metric.Resources[1].Target.AverageUtilization
+			if len(metric.Resources) < 2 {
+				skipped += 1
+			} else {
+				currentVal += metric.Resources[1].Target.Value
+				currentUtilization += metric.Resources[1].Target.AverageUtilization
+			}
 		}
-		currentUtilization /= len(pods)
-		currentVal /= uint64(len(pods))
+		length := len(pods) - skipped
+		currentUtilization /= length
+		currentVal /= uint64(length)
 		if desiredValMem != 0 {
-			retVal += float64(len(pods)) * float64(currentVal) / float64(desiredValMem)
+			retVal += float64(length) * float64(currentVal) / float64(desiredValMem)
 			metricsNum++
 		}
 		if desiredAvgMem != 0 {
-			retVal += float64(len(pods)) * float64(currentUtilization) / float64(desiredAvgMem)
+			retVal += float64(length) * float64(currentUtilization) / float64(desiredAvgMem)
 			metricsNum++
 		}
 		//return float64(len(pods)) * float64(currentUtilization) / float64(desiredAvgMem)
 	}
 	// update metrics
+	if metricsNum == 0 {
+		return float64(autoscaler.Spec.MinReplicas)
+	}
 	autoscaler.Status.CurrentMetrics = allMetrics
 	retVal = retVal / float64(metricsNum)
 	return retVal
