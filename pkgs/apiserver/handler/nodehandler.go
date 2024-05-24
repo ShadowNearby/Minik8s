@@ -70,7 +70,7 @@ func DeleteNodeHandler(c *gin.Context) {
 		return
 	}
 	var pods []core.Pod
-	err = storage.RangeGet(fmt.Sprintf("/pods/object/namespaces"), &pods)
+	err = storage.RangeGet(fmt.Sprintf("/pods/object/"), &pods)
 	if err != nil {
 		logger.Errorf("get error: %s", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get data"})

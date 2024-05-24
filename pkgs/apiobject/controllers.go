@@ -48,7 +48,7 @@ func (p Service) MarshalBinary() ([]byte, error) {
 type ReplicaSet struct {
 	ApiVersion string           `yaml:"apiVersion" json:"apiVersion"`
 	Kind       string           `yaml:"kind,omitempty" json:"kind"`
-	MetaData   MetaData         `yaml:"metaData,omitempty" json:"metaData"`
+	MetaData   MetaData         `yaml:"metadata,omitempty" json:"metadata"`
 	Spec       ReplicaSetSpec   `yaml:"spec,omitempty" json:"spec"`
 	Status     ReplicaSetStatus `yaml:"status,omitempty" json:"status"`
 }
@@ -60,7 +60,7 @@ type ReplicaSetSpec struct {
 }
 
 type ReplicaSetTemplate struct {
-	MetaData MetaData `yaml:"metaData" json:"metaData"`
+	MetaData MetaData `yaml:"metadata" json:"metadata"`
 	Spec     PodSpec  `yaml:"spec" json:"spec"`
 }
 

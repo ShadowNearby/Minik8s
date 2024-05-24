@@ -38,6 +38,10 @@ func (rsc *ReplicaSetController) deleteReplicas(info string) error {
 	if err != nil {
 		return err
 	}
+	// if the rs has owner, we don't need to manage it
+	if replica.MetaData.OwnerReference.Controller == true {
+		return nil
+	}
 	err = rsc.manageDelReplicas(&replica)
 	return err
 	//err = storage.Del(fmt.Sprintf("/replicas/object/%s/%s", replica.MetaData.NameSpace, replica.MetaData.Name))
@@ -54,7 +58,7 @@ func (rsc *ReplicaSetController) createReplicas(info string) error {
 		return err
 	}
 	// update the replicaset status
-	err = utils.SetObject(core.ObjReplicaSet, replica.MetaData.Namespace, replica.MetaData.Name, replica)
+	err = utils.SetObjectStatus(core.ObjReplicaSet, replica.MetaData.Namespace, replica.MetaData.Name, replica)
 	return err
 }
 
@@ -72,58 +76,49 @@ func (rsc *ReplicaSetController) updateReplicas(info string) error {
 	if err != nil {
 		return err
 	}
-	err = utils.SetObject(core.ObjReplicaSet, replicas[1].MetaData.Namespace, replicas[1].MetaData.Name, replicas[1])
+	err = utils.SetObjectStatus(core.ObjReplicaSet, "default", replicas[1].MetaData.Name, replicas[1])
 	return err
 }
 
 func (rsc *ReplicaSetController) manageUpdateReplicas(oldRs *core.ReplicaSet, newRs *core.ReplicaSet) error {
-	if oldRs.MetaData.Namespace != newRs.MetaData.Namespace {
-		err := rsc.manageDelReplicas(oldRs)
-		if err != nil {
-			return err
-		}
-		err = rsc.manageCreateReplicas(newRs)
-		if err != nil {
-			return err
-		}
-	} else {
-		var pods = make([]core.Pod, 0)
-		podsListTxt := utils.GetObject(core.ObjPod, newRs.MetaData.Namespace, "")
-		if podsListTxt == "" {
-			return errors.New("cannot get pods")
-		}
-		err := utils.JsonUnMarshal(podsListTxt, &pods)
-		if err != nil {
-			return err
-		}
-		targets := rsc.filterOwners(&pods, newRs)
-		newRs.Status.RealReplicas = len(targets)
-		if len(targets) > newRs.Spec.Replicas {
-			// delete pods
-			for _, pod := range targets[newRs.Spec.Replicas:] {
-				err := utils.DeleteObject(core.ObjPod, pod.MetaData.Namespace, pod.MetaData.Name)
-				if err != nil {
-					logger.Errorf("delete pod error: %s", err.Error())
-				}
-				newRs.Status.RealReplicas--
+	// firstly, new rs should inherent old rs state
+	newRs.Status = oldRs.Status
+	// if target replica changes we should add or delete pods
+	// if template changes we should delete all existed pods and create new (we don't consider this case currently)
+
+	// get pods managed by this replica
+	pods, err := utils.FindRSPods(newRs.MetaData.Name)
+	if err != nil {
+		logger.Errorf("failed getting rs pods")
+		return err
+	}
+	targets := utils.FilterOwner(&pods, "default", newRs.MetaData.Name, core.ObjReplicaSet)
+	newRs.Status.RealReplicas = len(targets)
+	if len(targets) > newRs.Spec.Replicas {
+		// delete pods
+		for _, pod := range targets[newRs.Spec.Replicas:] {
+			err := utils.DeleteObject(core.ObjPod, pod.MetaData.Namespace, pod.MetaData.Name)
+			if err != nil {
+				logger.Errorf("delete pod error: %s", err.Error())
 			}
-		} else if len(targets) < newRs.Spec.Replicas {
-			// create pods
-			pod := core.Pod{
-				ApiVersion: newRs.ApiVersion,
-				MetaData:   newRs.MetaData,
-				Spec:       newRs.Spec.Template.Spec,
-				Status:     core.PodStatus{},
+			newRs.Status.RealReplicas--
+		}
+	} else if len(targets) < newRs.Spec.Replicas {
+		// create pods
+		pod := generateRSPod(newRs)
+		templateName := pod.MetaData.Name
+		setController(&pod, newRs)
+		ops := newRs.Spec.Replicas - len(targets)
+		for i := 0; i < ops; i++ {
+			// should regenerate pod uuid
+			pod.MetaData.Name = fmt.Sprintf("rs-%s-%s", templateName, utils.GenerateUUID(6))
+			logger.Infof("pod name: %s", pod.MetaData.Name)
+			pod.MetaData.UUID = utils.GenerateUUID()
+			err = utils.CreateObject(core.ObjPod, newRs.MetaData.Namespace, pod)
+			if err != nil {
+				return err
 			}
-			setController(&pod, newRs)
-			ops := newRs.Spec.Replicas - len(targets)
-			for i := 0; i < ops; i++ {
-				err = utils.CreateObject(core.ObjPod, newRs.MetaData.Namespace, pod)
-				if err != nil {
-					return err
-				}
-				newRs.Status.RealReplicas++
-			}
+			newRs.Status.RealReplicas++
 		}
 	}
 	logger.Infof("updated replicas, real replica: %d, spec replica: %d", newRs.Status.RealReplicas, newRs.Spec.Replicas)
@@ -141,7 +136,7 @@ func (rsc *ReplicaSetController) manageDelReplicas(rs *core.ReplicaSet) error {
 	if err != nil {
 		return err
 	}
-	targets := rsc.filterOwners(&pods, rs)
+	targets := utils.FilterOwner(&pods, rs.MetaData.Namespace, rs.MetaData.Name, core.ObjReplicaSet)
 	rs.Status.RealReplicas = len(targets)
 	for _, target := range targets {
 		err = utils.DeleteObject(core.ObjPod, target.MetaData.Namespace, target.MetaData.Name)
@@ -155,31 +150,32 @@ func (rsc *ReplicaSetController) manageDelReplicas(rs *core.ReplicaSet) error {
 }
 
 func (rsc *ReplicaSetController) manageCreateReplicas(rs *core.ReplicaSet) error {
-	// first get pods within the rsc namespace
-	var pods = make([]core.Pod, 0)
-	podsListTxt := utils.GetObject(core.ObjPod, rs.MetaData.Namespace, "")
-	if podsListTxt == "" {
-		return errors.New("cannot get pods")
-	}
-	err := utils.JsonUnMarshal(podsListTxt, &pods)
-	if err != nil {
-		return err
-	}
-	// second filter the pods meets selector and don't have controller
-	targets := rsc.selectPods(&pods, rs)
-	rs.Status.RealReplicas = len(targets)
-	// if not enough, create new pods
+	//// first get pods within the rsc namespace
+	//var pods = make([]core.Pod, 0)
+	//podsListTxt := utils.GetObject(core.ObjPod, rs.MetaData.Namespace, "")
+	//if podsListTxt == "" {
+	//	return errors.New("cannot get pods")
+	//}
+	//err := utils.JsonUnMarshal(podsListTxt, &pods)
+	//if err != nil {
+	//	return err
+	//}
+	//// second filter the pods meets selector and don't have controller
+	//targets := rsc.selectPods(&pods, rs)
+	//rs.Status.RealReplicas = len(targets)
+	// we build a replicaset from scratch, do not consider the existing pods
+	targets := make([]core.Pod, 0)
 	if len(targets) < rs.Spec.Replicas {
-		pod := core.Pod{
-			ApiVersion: rs.ApiVersion,
-			MetaData:   rs.Spec.Template.MetaData,
-			Spec:       rs.Spec.Template.Spec,
-			Status:     core.PodStatus{},
-		}
+		pod := generateRSPod(rs)
+		templateName := pod.MetaData.Name
 		setController(&pod, rs)
 		ops := rs.Spec.Replicas - len(targets)
 		for i := 0; i < ops; i++ {
-			err = utils.CreateObject(core.ObjPod, rs.MetaData.Namespace, pod)
+			// should re-generate pod uuid
+			pod.MetaData.Name = fmt.Sprintf("rs-%s-%s", templateName, utils.GenerateUUID(6))
+			logger.Infof("pod name: %s", pod.MetaData.Name)
+			pod.MetaData.UUID = utils.GenerateUUID()
+			err := utils.CreateObject(core.ObjPod, rs.MetaData.Namespace, pod)
 			if err != nil {
 				return err
 			}
@@ -187,20 +183,6 @@ func (rsc *ReplicaSetController) manageCreateReplicas(rs *core.ReplicaSet) error
 		}
 	}
 	return nil
-}
-
-func (rsc *ReplicaSetController) filterOwners(origin *[]core.Pod, rs *core.ReplicaSet) []core.Pod {
-	result := make([]core.Pod, 0)
-	for _, pod := range *origin {
-		or := pod.MetaData.OwnerReference
-		if or.Controller == true &&
-			or.ObjType == core.ObjReplicaSet &&
-			or.Namespace == rs.MetaData.Namespace &&
-			or.Name == rs.MetaData.Name {
-			result = append(result, pod)
-		}
-	}
-	return result
 }
 
 func (rsc *ReplicaSetController) selectPods(origin *[]core.Pod, rs *core.ReplicaSet) []core.Pod {
@@ -231,5 +213,19 @@ func setController(pod *core.Pod, rs *core.ReplicaSet) {
 	pod.MetaData.OwnerReference.Controller = true
 	pod.MetaData.OwnerReference.ObjType = core.ObjReplicaSet
 	pod.MetaData.OwnerReference.Name = rs.MetaData.Name
-	pod.MetaData.OwnerReference.Namespace = rs.MetaData.Namespace
+}
+
+func generateRSPod(rs *core.ReplicaSet) core.Pod {
+	pod := core.Pod{
+		ApiVersion: rs.ApiVersion,
+		MetaData:   rs.Spec.Template.MetaData,
+		Spec:       rs.Spec.Template.Spec,
+		Status:     core.PodStatus{},
+	}
+	// set random replica name and namespace
+	//pod.MetaData.Name = fmt.Sprintf("rs-%s-%s", pod.MetaData.Name, utils.GenerateUUID(6))
+	pod.MetaData.Namespace = "default"
+	pod.MetaData.UUID = utils.GenerateUUID()
+	setController(&pod, rs)
+	return pod
 }

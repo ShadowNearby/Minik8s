@@ -1,0 +1,36 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "ReplicaSet",
+  "metadata":{
+    "name": "nginx-replicaset",
+    "labels": {
+      "app": "nginx"
+    }
+  },
+  "spec": {
+    "replicas": 2,
+    "selector": {
+      "matchLabels": {
+        "app": "nginx"
+      }
+    },
+    "template": {
+      "metadata":{
+        "name": "ngx",
+        "labels": {
+          "app": "nginx"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "nginx_test",
+            "image": "docker.io/library/nginx:latest",
+            "imagePullPolicy": "IfNotPresent"
+          }
+        ],
+        "restartPolicy": "OnFailure"
+      }
+    }
+  }
+}
