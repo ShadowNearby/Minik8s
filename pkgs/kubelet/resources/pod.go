@@ -156,8 +156,8 @@ func StopPod(podConfig core.Pod) error {
 	return nil
 }
 
-func GetPodMetrics(podConfig *core.Pod) ([]core.ContainerMetrics, error) {
-	containers := ContainerManagerInstance.GetPodContainers(podConfig)
+func GetPodContainersMetrics(pod *core.Pod) ([]core.ContainerMetrics, error) {
+	containers := ContainerManagerInstance.GetPodContainers(pod)
 	if len(containers) == 0 {
 		logger.Errorf("cannot filter pod's containers")
 		return nil, errors.New("cannot filter container")
@@ -171,14 +171,6 @@ func GetPodMetrics(podConfig *core.Pod) ([]core.ContainerMetrics, error) {
 			continue
 		}
 		res = append(res, metric)
-		//logger.Infof("metric: %v", metric)
-		//status, err := utils.GetContainerStatus(container)
-		//if err != nil {
-		//	logger.Errorf("inspect container %s failed: %s", container.ID(), err.Error())
-		//	return err
-		//}
-		////status = status // change type to containerd.PodStatus
-		//logger.Infof("status: %v", status)
 	}
 	return res, nil
 }

@@ -6,13 +6,14 @@ import (
 )
 
 var RouteTable = [...]Route{
-	{Path: "/api/v1/namespaces/:namespace/pods", Method: "POST", Handler: CreatePodHandler},         // POST, create a pod
-	{Path: "/api/v1/namespaces/:namespace/pods/:name", Method: "GET", Handler: GetPodHandler},       // GET, get a pod
-	{Path: "/api/v1/namespaces/:namespace/pods", Method: "GET", Handler: GetPodListHandler},         // GET, list all pods
-	{Path: "/api/v1/namespaces/:namespace/pods/:name", Method: "DELETE", Handler: DeletePodHandler}, // DELETE, delete a pod
-	{Path: "/api/v1/namespaces/:namespace/pods/:name", Method: "PUT", Handler: UpdatePodHandler},    // PUT, update a pod
-	{Path: "/api/v1/pods", Method: "GET", Handler: GetAllPodsHandler},                               // GET, get all pods
-	{Path: "/api/v1/namespaces/:namespace/pods/:name", Method: "POST", Handler: ReplacePodHandler},  // POST, replace a pod
+	{Path: "/api/v1/namespaces/:namespace/pods", Method: "POST", Handler: CreatePodHandler},                   // POST, create a pod
+	{Path: "/api/v1/namespaces/:namespace/pods/:name", Method: "GET", Handler: GetPodHandler},                 // GET, get a pod
+	{Path: "/api/v1/namespaces/:namespace/pods", Method: "GET", Handler: GetPodListHandler},                   // GET, list all pods
+	{Path: "/api/v1/namespaces/:namespace/pods/:name", Method: "DELETE", Handler: DeletePodHandler},           // DELETE, delete a pod
+	{Path: "/api/v1/namespaces/:namespace/pods/:name", Method: "PUT", Handler: UpdatePodHandler},              // PUT, update a pod
+	{Path: "/api/v1/pods", Method: "GET", Handler: GetAllPodsHandler},                                         // GET, get all pods
+	{Path: "/api/v1/namespaces/:namespace/pods/:name", Method: "POST", Handler: ReplacePodHandler},            // POST, replace a pod
+	{Path: "/api/v1/namespaces/:namespace/pods/:name/status", Method: "PUT", Handler: UpdatePodStatusHandler}, // PUT, update pod status
 
 	{Path: "/api/v1/nodes", Method: "POST", Handler: CreateNodeHandler},         // POST, create a node
 	{Path: "/api/v1/nodes", Method: "GET", Handler: GetAllNodesHandler},         // GET, list all nodes
@@ -39,11 +40,12 @@ var RouteTable = [...]Route{
 	{Path: "/api/v1/namespaces/:namespace/dns/:name", Method: "DELETE", Handler: DeleteDNSHandler}, // DELETE, delete a dns
 	{Path: "/api/v1/namespaces/:namespace/dns/:name", Method: "PUT", Handler: UpdateDNSHandler},    // PUT, update a dns
 
-	{Path: "/api/v1/namespaces/:namespace/replicas", Method: "POST", Handler: CreateReplicaHandler},         // POST, create a replica
-	{Path: "/api/v1/namespaces/:namespace/replicas/:name", Method: "GET", Handler: GetReplicaHandler},       // GET, get a replica
-	{Path: "/api/v1/namespaces/:namespace/replicas", Method: "GET", Handler: GetReplicaListHandler},         // GET, list all replicas
-	{Path: "/api/v1/namespaces/:namespace/replicas/:name", Method: "DELETE", Handler: DeleteReplicaHandler}, // DELETE, delete a replica
-	{Path: "/api/v1/namespaces/:namespace/replicas/:name", Method: "PUT", Handler: UpdateReplicaHandler},    // PUT, update a replica
+	{Path: "/api/v1/namespaces/:namespace/replicas", Method: "POST", Handler: CreateReplicaHandler},                   // POST, create a replica
+	{Path: "/api/v1/namespaces/:namespace/replicas/:name", Method: "GET", Handler: GetReplicaHandler},                 // GET, get a replica
+	{Path: "/api/v1/namespaces/:namespace/replicas", Method: "GET", Handler: GetReplicaListHandler},                   // GET, list all replicas
+	{Path: "/api/v1/namespaces/:namespace/replicas/:name", Method: "DELETE", Handler: DeleteReplicaHandler},           // DELETE, delete a replica
+	{Path: "/api/v1/namespaces/:namespace/replicas/:name", Method: "PUT", Handler: UpdateReplicaHandler},              // PUT, update a replica
+	{Path: "/api/v1/namespaces/:namespace/replicas/:name/status", Method: "PUT", Handler: UpdateReplicaStatusHandler}, // PUT, update replica status | owner-reference
 
 	{Path: "/api/v1/namespaces/:namespace/jobs", Method: "POST", Handler: CreateJobHandler},         // POST, create a Job
 	{Path: "/api/v1/namespaces/:namespace/jobs/:name", Method: "GET", Handler: GetJobHandler},       // GET, get a Job

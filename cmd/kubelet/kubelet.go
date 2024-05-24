@@ -18,6 +18,7 @@ func main() {
 		MasterPort: config.ApiServerPort,
 		Labels: map[string]string{
 			"test": "haha",
+			"app":  "nginx",
 		},
 	}
 	kubelet.Run(config, fmt.Sprintf("%s:%d", utils.GetIP(), 10250))

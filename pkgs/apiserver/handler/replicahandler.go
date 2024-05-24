@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/apiserver/storage"
 	"minik8s/pkgs/constants"
@@ -13,18 +14,21 @@ import (
 // CreateReplicaHandler POST /api/v1/namespaces/:namespace/replicas
 func CreateReplicaHandler(c *gin.Context) {
 	var replica core.ReplicaSet
-	var replicaOld core.ReplicaSet
+	//var replicaOld core.ReplicaSet
 	err := c.Bind(&replica)
 	namespace := c.Param("namespace")
 	if err != nil {
+		logger.Errorf("bad body")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "expect replica set type"})
 		return
 	}
+	namespace = "default"
 	rsName := fmt.Sprintf("/replicas/object/%s/%s", namespace, replica.MetaData.Name)
-	if err = storage.Get(rsName, &replicaOld); err == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "replica has existed"})
-		return
-	}
+	//if err = storage.Get(rsName, &replicaOld); err == nil {
+	//	logger.Errorf("has existed")
+	//	c.JSON(http.StatusBadRequest, gin.H{"error": "replica has existed"})
+	//	return
+	//}
 	err = storage.Put(rsName, utils.JsonMarshal(replica))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot put data"})
@@ -39,9 +43,7 @@ func CreateReplicaHandler(c *gin.Context) {
 func GetReplicaHandler(c *gin.Context) {
 	namespace := c.Param("namespace")
 	name := c.Param("name")
-	if namespace == "" {
-		namespace = "default"
-	}
+	namespace = "default"
 	if name == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "expect name in path"})
 		return
@@ -52,31 +54,27 @@ func GetReplicaHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get data"})
 		return
 	}
-	c.JSON(http.StatusOK, utils.JsonMarshal(replica))
+	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(replica)})
 }
 
 // GetReplicaListHandler GET /api/v1/namespaces/:namespace/replicas
 func GetReplicaListHandler(c *gin.Context) {
 	namespace := c.Param("namespace")
-	if namespace == "" {
-		namespace = "default"
-	}
+	namespace = "default"
 	var replicas []core.ReplicaSet
 	err := storage.RangeGet(fmt.Sprintf("/replicas/object/%s", namespace), &replicas)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get data"})
 		return
 	}
-	c.JSON(http.StatusOK, utils.JsonMarshal(replicas))
+	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(replicas)})
 }
 
 // DeleteReplicaHandler DELETE /api/v1/namespaces/:namespace/replicas/:name
 func DeleteReplicaHandler(c *gin.Context) {
 	namespace := c.Param("namespace")
 	name := c.Param("name")
-	if namespace == "" {
-		namespace = "default"
-	}
+	namespace = "default"
 	if name == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "expect replica set name in path"})
 		return
@@ -107,11 +105,9 @@ func UpdateReplicaHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "expect replica set type"})
 		return
 	}
-	if namespace == "" {
-		namespace = "default"
-	}
+	namespace = "default" // namespace should be default
 	// check
-	if namespace != newReplica.MetaData.Namespace || name != newReplica.MetaData.Name {
+	if name != newReplica.MetaData.Name {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "path info should same as replica info"})
 		return
 	}
@@ -132,4 +128,38 @@ func UpdateReplicaHandler(c *gin.Context) {
 	replicas[1] = newReplica
 	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelReplica, constants.ChannelUpdate), utils.JsonMarshal(replicas))
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
+}
+
+// UpdateReplicaStatusHandler  PUT /api/v1/namespaces/:namespace/replicas/:name/status
+func UpdateReplicaStatusHandler(c *gin.Context) {
+	// just for update status or owner-reference
+	var oldReplica, replica core.ReplicaSet
+	namespace := c.Param("namespace")
+	name := c.Param("name")
+	err := c.Bind(&replica)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "expect replicaset in body"})
+		return
+	}
+	namespace = "default" // namespace should be default
+	if name != replica.MetaData.Name {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "expect same name"})
+		return
+	}
+	key := fmt.Sprintf("/replicas/object/%s/%s", namespace, name)
+	err = storage.Get(key, &oldReplica)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get old replicaset"})
+		return
+	}
+	// update replica owner-reference
+	oldReplica.MetaData.OwnerReference = replica.MetaData.OwnerReference
+	// update replica status
+	oldReplica.Status = replica.Status
+	err = storage.Put(key, oldReplica)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot update "})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": "ok"})
 }

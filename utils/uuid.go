@@ -8,13 +8,17 @@ import (
 )
 
 // GenerateUUID generate a random uuid
-func GenerateUUID() string {
+func GenerateUUID(length ...int) string {
 	id, err := uuid.NewUUID()
 	if err != nil {
 		logrus.Errorf("generate uuid failed: %s", err.Error())
 		return ""
 	}
-	return strings.Replace(id.String(), "-", "", -1)[:12]
+	if len(length) == 0 {
+		return strings.Replace(id.String(), "-", "", -1)[:12]
+	} else {
+		return strings.Replace(id.String(), "-", "", -1)[:length[0]]
+	}
 }
 
 // GenerateContainerIDByName receive container name + pod name as param

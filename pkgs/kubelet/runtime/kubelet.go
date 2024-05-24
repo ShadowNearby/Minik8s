@@ -18,6 +18,8 @@ type Kubelet struct {
 	PodConfigMap map[string]core.Pod
 	Server       *gin.Engine
 	IDtoName     map[string]string
+	NumCores     int
+	MemCapacity  uint64
 }
 
 var KubeletInstance Kubelet
