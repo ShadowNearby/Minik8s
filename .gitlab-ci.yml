@@ -8,7 +8,7 @@ build:
   script:
     - go mod tidy
     - echo "Compiling the code..."
-    - mkdir build
+    - bash ./script/clean.sh
     - bash ./script/build.sh CI
     - bash ./script/start.sh CI
     - echo "Compile and run complete."
