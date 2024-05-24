@@ -8,6 +8,7 @@ build:
   script:
     - go mod tidy
     - echo "Compiling the code..."
+    - nerdctl stop `nerdctl ps -aq` && nerdctl rm `nerdctl ps -aq`
     - mkdir build && cd build && cmake .. && make -j`nproc` && cd ..
     - ./bin/apiserver > /var/log/minik8s/apiserver.log 2>&1 &
     - echo "start apiserver"
