@@ -8,13 +8,9 @@ build:
   script:
     - go mod tidy
     - echo "Compiling the code..."
-    - nerdctl stop `nerdctl ps -aq` && nerdctl rm `nerdctl ps -aq`
-    - mkdir build && cd build && cmake .. && make -j`nproc` && cd ..
-    - ./bin/apiserver > /var/log/minik8s/apiserver.log 2>&1 &
-    - echo "start apiserver"
-    - sleep 5
-    - ./bin/kubelet > /var/log/minik8s/kubelet.log 2>&1 &
-    - echo "start kubelet"
+    - bash ./script/clean.sh
+    - bash ./script/build.sh CI
+    - bash ./script/start.sh CI
     - echo "Compile and run complete."
 
 test-static-analysis:
@@ -74,7 +70,5 @@ test-hpa:
 finish:
   stage: finish
   script:
-    - pkill apiserver
-    - pkill kubelet
-    - pkill nginx
+    - ./script/stop.sh CI
     - echo "Finish testing"
