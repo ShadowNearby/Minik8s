@@ -4,6 +4,7 @@ ENV=$1
 LOGDIR=$(pwd)/log
 PIDDIR=/var/run/minik8s
 BUILDDIR=$(pwd)/build
+CONFDIR=$(pwd)/config
 
 if [ "$ENV" = "CI" ]; then
   LOGDIR=/var/log/minik8s

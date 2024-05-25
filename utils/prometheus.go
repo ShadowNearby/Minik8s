@@ -11,8 +11,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-
-
 func GeneratePrometheusNodeFile() error {
 	nodes := []core.Node{}
 	content := GetObjectWONamespace(core.ObjNode, "")
@@ -25,9 +23,10 @@ func GeneratePrometheusNodeFile() error {
 	configs := []core.PrometheusSdConfig{}
 	for _, node := range nodes {
 		configs = append(configs, core.PrometheusSdConfig{
-			Targets: []string{fmt.Sprintf("%s:%d", node.Spec.NodeIP, 8080)},
+			Targets: []string{fmt.Sprintf("%s:%d", node.Spec.NodeIP, 8080), fmt.Sprintf("%s:%d", node.Spec.NodeIP, 9100)},
 			Labels: map[string]string{
-				"job": "node",
+				"job":  "node",
+				"host": fmt.Sprintf("%s:%d", node.Spec.NodeIP, 9100),
 			},
 		})
 	}

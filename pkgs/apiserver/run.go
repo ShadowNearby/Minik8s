@@ -3,7 +3,6 @@ package apiserver
 import (
 	"fmt"
 	"minik8s/config"
-	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/apiserver/server"
 	"minik8s/pkgs/controller"
 	"minik8s/pkgs/controller/autoscaler"
@@ -29,9 +28,6 @@ func Run() {
 	go controller.StartController(&hpa)
 	// start hpa background work
 	go hpa.StartBackground()
-
-	utils.GenerateNginxFile([]core.DNSRecord{})
-	utils.StartNginx()
 
 	server.Run(fmt.Sprintf("%s:%s", config.LocalServerIp, config.ApiServerPort))
 }

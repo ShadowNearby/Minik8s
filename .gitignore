@@ -22,4 +22,5 @@ bin/
 build
 
 config/nginx.conf
+config/prometheus/*.json
 go.sum
