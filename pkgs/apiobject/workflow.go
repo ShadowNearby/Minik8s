@@ -1,81 +1,124 @@
 package core
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"github.com/tidwall/gjson"
+)
 
-type WorkflowSpec struct {
-	EntryParams   string         `json:"entryParams" yaml:"entryParams"`
-	EntryNodeName string         `json:"entryNodeName" yaml:"entryNodeName"`
-	WorkflowNodes []WorkflowNode `json:"workflowNodes" yaml:"workflowNodes"`
+type WorkState interface {
 }
+
+type TaskState struct {
+	Type       StateType `json:"type"`
+	InputPath  string    `json:"inputPath,omitempty"`
+	ResultPath string    `json:"outputPath,omitempty"`
+	Next       string    `json:"next,omitempty"`
+	End        bool      `json:"end,omitempty"`
+}
+
+type FailState struct {
+	Type  StateType `json:"type"`
+	Error string    `json:"error"`
+	Cause string    `json:"cause"`
+}
+
+type ChoiceState struct {
+	Type    StateType    `json:"type"`
+	Choices []ChoiceItem `json:"choices"`
+	Default string       `json:"default,omitempty"`
+}
+type ChoiceItem struct {
+	Variable                  string `json:"variable"`
+	NumericEquals             *int   `json:"NumericEqual,omitempty"`
+	NumericNotEquals          *int   `json:"NumericNotEqual,omitempty"`
+	NumericLessThan           *int   `json:"NumericLessThan,omitempty"`
+	NumericGreaterThan        *int   `json:"NumericGreaterThan,omitempty"`
+	NumericLessThanOrEqual    *int   `json:"NumericLessThanOrEqual,omitempty"`
+	NumericGreaterThanOrEqual *int   `json:"NumericGreaterThanOrEqual,omitempty"`
+
+	StringEquals             *string `json:"StringEquals,omitempty"`
+	StringNotEquals          *string `json:"StringNotEquals,omitempty"`
+	StringLessThan           *string `json:"StringLessThan,omitempty"`
+	StringGreaterThan        *string `json:"StringGreaterThan,omitempty"`
+	StringLessThanOrEqual    *string `json:"StringLessThanOrEqual,omitempty"`
+	StringGreaterThanOrEqual *string `json:"StringGreaterThanOrEqual,omitempty"`
+	Next                     string  `json:"next"`
+}
+
+type StateType string
+
+const (
+	Task     StateType = "TaskState"
+	Choice   StateType = "ChoiceState"
+	Parallel StateType = "Parallel"
+	Wait     StateType = "Wait"
+	Fail     StateType = "FailState"
+	Succeed  StateType = "Succeed"
+)
 
 type Workflow struct {
-	BasicInfo `json:",inline" yaml:",inline"`
-	Spec      WorkflowSpec `json:"spec" yaml:"spec"`
+	APIVersion string `json:"apiVersion,omitempty"`
+
+	Name    string       `json:"name"`
+	Status  VersionLabel `json:"status,omitempty"`
+	StartAt string       `json:"startAt"`
+
+	States map[string]WorkState `json:"states"`
+
+	Comment string `json:"comment,omitempty"`
 }
 
-func (p Workflow) MarshalBinary() ([]byte, error) {
-	return json.Marshal(p)
+func (w *Workflow) MarshalJSON() ([]byte, error) {
+	type Alias Workflow
+	return json.Marshal(
+		&struct {
+			*Alias
+		}{
+			Alias: (*Alias)(w),
+		})
 }
+func (w *Workflow) UnMarshalJSON() (data []byte) {
+	w.APIVersion = gjson.Get(string(data), "apiVersion").String()
+	w.Name = gjson.Get(string(data), "name").String()
+	status := gjson.Get(string(data), "status")
+	if status.Exists() {
+		w.Status = VersionLabel(status.String())
+	}
+	w.StartAt = gjson.Get(string(data), "startAt").String()
+	comment := gjson.Get(string(data), "comment")
+	if comment.Exists() {
+		w.Comment = comment.String()
+	}
+	states := gjson.Get(string(data), "states")
+	if states.Exists() {
+		w.States = make(map[string]WorkState)
+		states.ForEach(func(key, value gjson.Result) bool {
+			stateType := gjson.Get(value.String(), "type").String()
+			switch stateType {
+			case "Task":
+				var taskState TaskState
+				err := json.Unmarshal([]byte(value.String()), &taskState)
+				if err != nil {
+					return false
+				}
+				w.States[key.String()] = taskState
+			case "Choice":
+				var choiceState ChoiceState
+				err := json.Unmarshal([]byte(value.String()), &choiceState)
+				if err != nil {
+					return false
+				}
+				w.States[key.String()] = choiceState
+			case "Fail":
+				var failState FailState
+				err := json.Unmarshal([]byte(value.String()), &failState)
+				if err != nil {
+					return false
+				}
+			}
+			return true
+		})
+	}
 
-type WorkflowNode struct {
-	Name       string             `json:"name" yaml:"name"`
-	Type       WorkflowNodeType   `json:"type" yaml:"type"`
-	FuncData   WorkflowFuncData   `json:"funcData" yaml:"funcData"`
-	ChoiceData WorkflowChoiceData `json:"choiceData" yaml:"choiceData"`
-}
-
-type WorkflowChoiceData struct {
-	TrueNextNodeName  string `json:"trueNextNodeName" yaml:"trueNextNodeName"`
-	FalseNextNodeName string `json:"falseNextNodeName" yaml:"falseNextNodeName"`
-
-	CheckType    ChoiceCheckType `json:"checkType" yaml:"checkType"`
-	CheckVarName string          `json:"checkVarName" yaml:"checkVarName"`
-	// 需要保证能够从上一个结果中获取到,填写json的key
-
-	CompareValue string `json:"compareValue" yaml:"compareValue"` // 需要比较的值(无论是数字还是字符串，都需要转化为字符串)
-}
-
-type WorkflowNodeType string
-
-const (
-	WorkflowNodeTypeFunc   WorkflowNodeType = "func"
-	WorkflowNodeTypeChoice WorkflowNodeType = "choice"
-
-	WorkflowRunning   string = "running"
-	WorkflowCompleted string = "completed"
-)
-
-type ChoiceCheckType string
-
-const (
-	ChoiceCheckTypeNumEqual               ChoiceCheckType = "numEqual"
-	ChoiceCheckTypeNumNotEqual            ChoiceCheckType = "numNotEqual"
-	ChoiceCheckTypeNumGreaterThan         ChoiceCheckType = "numGreaterThan"
-	ChoiceCheckTypeNumLessThan            ChoiceCheckType = "numLessThan"
-	ChoiceCheckTypeNumGreaterAndEqualThan ChoiceCheckType = "numGreaterAndEqualThan"
-	ChoiceCheckTypeNumLessAndEqualThan    ChoiceCheckType = "numLessAndEqualThan"
-
-	ChoiceCheckTypeStrEqual               ChoiceCheckType = "strEqual"
-	ChoiceCheckTypeStrNotEqual            ChoiceCheckType = "strNotEqual"
-	ChoiceCheckTypeStrGreaterThan         ChoiceCheckType = "strGreaterThan"
-	ChoiceCheckTypeStrLessThan            ChoiceCheckType = "strLessThan"
-	ChoiceCheckTypeStrGreaterAndEqualThan ChoiceCheckType = "strGreaterAndEqualThan"
-	ChoiceCheckTypeStrLessAndEqualThan    ChoiceCheckType = "strLessAndEqualThan"
-)
-
-type WorkflowFuncData struct {
-	FuncName      string `json:"funcName" yaml:"funcName"`
-	FuncNamespace string `json:"funcNamespace" yaml:"funcNamespace"`
-	NextNodeName  string `json:"nextNodeName" yaml:"nextNodeName"`
-}
-
-type WorkflowStatus struct {
-	Phase  string `json:"phase" yaml:"phase"`
-	Result string `json:"result" yaml:"result"`
-}
-
-type WorkflowStore struct {
-	BasicInfo `json:",inline" yaml:",inline"`
-	Spec      WorkflowSpec   `json:"spec" yaml:"spec"`
-	Status    WorkflowStatus `json:"status" yaml:"status"`
+	return nil
 }

@@ -1,11 +1,12 @@
 package config
 
 const (
-	LocalServerIp = "127.0.0.1"
-
-	ApiServerPort  = "8090"
-	etcdServerPort = "2380"
-	clusterMode    = true
+	LocalServerIp      = "127.0.0.1"
+	FunctionServerPort = "8081"
+	ApiServerPort      = "8090"
+	etcdServerPort     = "2380"
+	clusterMode        = true
+	FunctionPod        = "5000"
 )
 
 var ClusterMasterIP = "172.31.184.139"

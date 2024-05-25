@@ -49,7 +49,7 @@ func applyHandler(cmd *cobra.Command, args []string) {
 	object := reflect.New(structType).Interface().(core.ApiObjectKind)
 	err = yaml.Unmarshal(fileContent, object)
 	nameSpace := object.GetNameSpace()
-	log.Debugln(object)
+	log.Infoln(object)
 	err = utils.CreateObject(objType, nameSpace, object)
 	if err != nil {
 		log.Fatal(err)

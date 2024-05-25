@@ -55,8 +55,8 @@ func (p *Pod) GetNameSpace() string {
 func (n *Node) GetNameSpace() string {
 	return n.NodeMetaData.Namespace
 }
-func (w *WorkflowStore) GetNameSpace() string {
-	return w.MetaData.Namespace
+func (w *Workflow) GetNameSpace() string {
+	return "workflow"
 }
 func (f *ReplicaSet) GetNameSpace() string {
 	return f.MetaData.Namespace

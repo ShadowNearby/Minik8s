@@ -3,17 +3,19 @@ package constants
 import "fmt"
 
 const (
-	ChannelNode    string = "NODE"
-	ChannelPod     string = "POD"
-	ChannelService string = "SERVICE"
-	ChannelReplica string = "REPLICASET"
-	ChannelHPA     string = "HPA"
+	ChannelNode     string = "NODE"
+	ChannelPod      string = "POD"
+	ChannelService  string = "SERVICE"
+	ChannelReplica  string = "REPLICASET"
+	ChannelFunction string = "FUNCTION"
+	ChannelHPA      string = "HPA"
 )
 
 const (
-	ChannelCreate string = "CREATE"
-	ChannelUpdate string = "UPDATE"
-	ChannelDelete string = "DELETE"
+	ChannelCreate  string = "CREATE"
+	ChannelUpdate  string = "UPDATE"
+	ChannelDelete  string = "DELETE"
+	ChannelTrigger string = "TRIGGER"
 )
 
 var Channels = []string{ChannelNode, ChannelPod, ChannelService, ChannelReplica, ChannelHPA}

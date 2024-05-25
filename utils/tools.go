@@ -63,13 +63,16 @@ func SetObjectWONamespace(objType core.ObjType, name string, obj any) error {
 		logger.Errorf("[set obj error]: %s", info)
 		return err
 	}
+	logger.Infof("[set obj success]: %s", obj)
 	return nil
 }
+
 func GetObject(objType core.ObjType, namespace string, name string) string {
 	if namespace == "" {
 		namespace = "default"
 	}
 	var url string
+
 	if name == "" {
 		url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s",
 			config.LocalServerIp, config.ApiServerPort, namespace, string(objType))
@@ -119,6 +122,22 @@ func CreateObject(objType core.ObjType, namespace string, object any) error {
 	url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s",
 		config.LocalServerIp, config.ApiServerPort, namespace, objType)
 	if code, info, err := SendRequest("POST", url, []byte(objectTxt)); err != nil || code != http.StatusOK {
+		logger.Errorf("[create obj error]: %s", info)
+		return err
+	} else {
+		return nil
+	}
+}
+func UpdateObject(objType core.ObjType, namespace string, object any) error {
+	if namespace == "" {
+		namespace = "default"
+	}
+	var url string
+	objectTxt := JsonMarshal(object)
+	logger.Debugln(objectTxt)
+	url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s",
+		config.LocalServerIp, config.ApiServerPort, namespace, objType)
+	if code, info, err := SendRequest("PUT", url, []byte(objectTxt)); err != nil || code != http.StatusOK {
 		logger.Errorf("[create obj error]: %s", info)
 		return err
 	} else {
@@ -176,4 +195,17 @@ func SplitChannelInfo(key string) (namespace, name string, err error) {
 	}
 
 	return "", "", fmt.Errorf("unexpected key format: %q", key)
+}
+func TriggerFunction(name string, object any) (string, error) {
+	//"/api/v1/functions/:name/trigger"
+	url := fmt.Sprintf("http://%s:%s/api/v1/function/%s/trigger",
+		config.LocalServerIp, config.ApiServerPort, name)
+	var retInfo core.InfoType
+	if code, info, err := SendRequest("POST", url, make([]byte, 0)); err != nil || code != http.StatusOK {
+		logger.Errorf("[delete object error]: %s", info)
+		err = JsonUnMarshal(info, &retInfo)
+		return retInfo.Data, err
+	} else {
+		return "", err
+	}
 }

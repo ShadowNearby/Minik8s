@@ -2,9 +2,9 @@ package utils
 
 import (
 	"encoding/json"
-	"net"
-
 	logger "github.com/sirupsen/logrus"
+	core "minik8s/pkgs/apiobject"
+	"net"
 )
 
 func JsonMarshal(item any) string {
@@ -59,4 +59,10 @@ func MatchLabel(l map[string]string, r map[string]string) bool {
 		}
 	}
 	return true
+}
+func GetPodListFromRS(rs *core.ReplicaSet) []*core.Pod {
+	var podList []*core.Pod
+	info := []byte(GetObject(core.ObjPod, rs.MetaData.Namespace, ""))
+	json.Unmarshal(info, &podList)
+	return podList
 }

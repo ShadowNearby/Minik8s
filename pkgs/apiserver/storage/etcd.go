@@ -4,10 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"reflect"
-
 	log "github.com/sirupsen/logrus"
 	clientv3 "go.etcd.io/etcd/client/v3"
+	"reflect"
 )
 
 type EtcdStorage struct {

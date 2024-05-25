@@ -36,6 +36,7 @@ func CreatePodHandler(c *gin.Context) {
 	}
 	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelPod, constants.ChannelCreate), pod)
 	pods := []core.Pod{core.Pod{}, pod}
+	logger.Infof("[create pods successfully]: %v", pods)
 	storage.RedisInstance.PublishMessage(constants.ChannelPodSchedule, utils.JsonMarshal(pods))
 	c.JSON(http.StatusOK, gin.H{})
 }
