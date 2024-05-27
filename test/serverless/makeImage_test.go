@@ -12,9 +12,11 @@ import (
 //		serverless.Run()
 //	}
 func TestCreateImage(t *testing.T) {
-	function.CreateImage(utils.ExamplePath+"", "serverless_example")
+	function.CreateImage(utils.ExamplePath+"/serverless", "serverless_example")
 }
-
+func TestRunImage(t *testing.T) {
+	function.RunImage("serverless_example")
+}
 func TestDeleteImage(t *testing.T) {
 	err := function.DeleteImage("serverless_example")
 	if err != nil {
