@@ -25,7 +25,7 @@ const (
 var ObjTypeAll = []string{
 	"pod",
 	"node",
-	"replicaset",
+	"replica",
 	"service",
 	"deployment",
 	"job",
@@ -58,6 +58,9 @@ func (n *Node) GetNameSpace() string {
 func (w *Workflow) GetNameSpace() string {
 	return "workflow"
 }
-func (f *ReplicaSet) GetNameSpace() string {
-	return f.MetaData.Namespace
+func (r *ReplicaSet) GetNameSpace() string {
+	return r.MetaData.Namespace
+}
+func (s *Service) GetNameSpace() string {
+	return s.MetaData.Namespace
 }

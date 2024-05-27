@@ -18,7 +18,7 @@ const (
 	ChannelTrigger string = "TRIGGER"
 )
 
-var Channels = []string{ChannelNode, ChannelPod, ChannelService, ChannelReplica, ChannelHPA}
+var Channels = []string{ChannelNode, ChannelPod, ChannelService, ChannelReplica, ChannelHPA, ChannelFunction}
 var Operations = []string{ChannelCreate, ChannelUpdate, ChannelDelete}
 var OtherChannels = []string{ChannelPodSchedule}
 

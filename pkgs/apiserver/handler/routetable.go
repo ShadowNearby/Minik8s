@@ -11,7 +11,7 @@ var RouteTable = [...]Route{
 	{Path: "/api/v1/namespaces/:namespace/pods", Method: "GET", Handler: GetPodListHandler},                   // GET, list all pods
 	{Path: "/api/v1/namespaces/:namespace/pods/:name", Method: "DELETE", Handler: DeletePodHandler},           // DELETE, delete a pod
 	{Path: "/api/v1/namespaces/:namespace/pods/:name", Method: "PUT", Handler: UpdatePodHandler},              // PUT, update a pod
-	{Path: "/api/v1/pods", Method: "GET", Handler: GetAllPodsHandler},                                         // GET, get all pods
+	{Path: "/api/v1/pods", Method: "GET", Handler: GetAllPodsHandler},                                         // GET, get alwatchPodl pods
 	{Path: "/api/v1/namespaces/:namespace/pods/:name", Method: "POST", Handler: ReplacePodHandler},            // POST, replace a pod
 	{Path: "/api/v1/namespaces/:namespace/pods/:name/status", Method: "PUT", Handler: UpdatePodStatusHandler}, // PUT, update pod status
 
@@ -79,6 +79,6 @@ var RouteTable = [...]Route{
 	{Path: "/api/v1/volumes/:name", Method: "GET", Handler: GetVolumeHandler},       // GET, get a volume
 	{Path: "/api/v1/volumes/:name", Method: "DELETE", Handler: DeleteVolumeHandler}, // DELETE, delete a volume
 	{Path: "/api/v1/csivolumes/:name", Method: "GET", Handler: GetCsiVolumeHandler}, // GET, get a csivolume
-
-	{Path: "/metrics", Method: "GET", Handler: gin.WrapH(promhttp.Handler())}, // GET, get metrics
+	{Path: "/api/v1/watch/:name", Method: "GET", Handler: GetDNSHandler},            // get a DNS watcj
+	{Path: "/metrics", Method: "GET", Handler: gin.WrapH(promhttp.Handler())},       // GET, get metrics
 }

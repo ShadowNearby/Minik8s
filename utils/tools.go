@@ -80,7 +80,7 @@ func GetObject(objType core.ObjType, namespace string, name string) string {
 		url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s/%s",
 			config.LocalServerIp, config.ApiServerPort, namespace, string(objType), name)
 	}
-
+	logger.Infof("[getting obj]: %s", url)
 	var retInfo core.InfoType
 	if code, info, err := SendRequest("GET", url, make([]byte, 0)); err != nil || code != http.StatusOK {
 		_ = JsonUnMarshal(info, &retInfo)
@@ -100,7 +100,6 @@ func GetObjectWONamespace(objType core.ObjType, name string) string {
 		url = fmt.Sprintf("http://%s:%s/api/v1/%s/%s",
 			config.LocalServerIp, config.ApiServerPort, string(objType), name)
 	}
-
 	var retInfo core.InfoType
 	if code, info, err := SendRequest("GET", url, make([]byte, 0)); err != nil || code != http.StatusOK {
 		_ = JsonUnMarshal(info, &retInfo)
@@ -196,9 +195,35 @@ func SplitChannelInfo(key string) (namespace, name string, err error) {
 
 	return "", "", fmt.Errorf("unexpected key format: %q", key)
 }
+func CreateFunction(objType core.ObjType, object any) error {
+	var url string
+	objectTxt := JsonMarshal(object)
+	logger.Debugln(objectTxt)
+	url = fmt.Sprintf("http://%s:%s/api/v1/functions",
+		config.LocalServerIp, config.ApiServerPort)
+	if code, info, err := SendRequest("PUT", url, []byte(objectTxt)); err != nil || code != http.StatusOK {
+		logger.Errorf("[create obj error]: %s", info)
+		return err
+	} else {
+		return nil
+	}
+}
+func GetFunction(name string) (string, error) {
+	url := fmt.Sprintf("http://%s:%s/api/v1/functions/%s",
+		config.LocalServerIp, config.ApiServerPort, name)
+	var retInfo core.InfoType
+	if code, info, err := SendRequest("GET", url, make([]byte, 0)); err != nil || code != http.StatusOK {
+		logger.Errorf("[delete object error]: %s", info)
+		err = JsonUnMarshal(info, &retInfo)
+		return retInfo.Data, err
+	} else {
+		return "", err
+	}
+
+}
 func TriggerFunction(name string, object any) (string, error) {
 	//"/api/v1/functions/:name/trigger"
-	url := fmt.Sprintf("http://%s:%s/api/v1/function/%s/trigger",
+	url := fmt.Sprintf("http://%s:%s/api/v1/functions/%s/trigger",
 		config.LocalServerIp, config.ApiServerPort, name)
 	var retInfo core.InfoType
 	if code, info, err := SendRequest("POST", url, make([]byte, 0)); err != nil || code != http.StatusOK {

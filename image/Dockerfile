@@ -7,9 +7,10 @@ ENTRYPOINT ["top", "-b"]
 # set workdir
 WORKDIR /app
 COPY . .
+
 RUN apt-get update && \
     apt-get install -y python3-venv && \
-    python3 -m venv /app/venv \
+    python3 -m venv /app/venv
 
 
 EXPOSE 8090

@@ -12,15 +12,20 @@ import (
 	"net/http"
 )
 
+func FunctionKeyPrefix(name string) string {
+	return fmt.Sprintf("/registry/functions/%s", name)
+}
+
 // CreateFunctionHandler POST /api/v1/functions
 func CreateFunctionHandler(c *gin.Context) {
 	var function core.Function
+
 	err := c.Bind(&function)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	logger.Info("[FuntionCreateHandler] function: ", function)
+	logger.Info("[FunctionCreateHandler] function: ", function)
 	// check the parameters
 	if function.Name == "" {
 		logger.Errorf("put error: %s", err.Error())
@@ -32,9 +37,9 @@ func CreateFunctionHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"create": "function path is empty"})
 		return
 	}
-	key := fmt.Sprintf("/registry/functions/%s", function.Name)
+	key := FunctionKeyPrefix(function.Name)
 	err = storage.Put(key, function)
-	logger.Info("[FuntionCreateHandler] init function finished")
+	logger.Info("[FunctionCreateHandler] init function finished")
 	if err != nil {
 		logger.Error("[FunctionCreateHandler] error: ", err.Error())
 		c.JSON(http.StatusInternalServerError, []byte("create: "+err.Error()))
@@ -55,7 +60,7 @@ func GetFunctionHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "function name is empty"})
 	}
 	var function core.Function
-	functionName := fmt.Sprintf("/registry/functions/%s", name)
+	functionName := FunctionKeyPrefix(name)
 	err := storage.Get(functionName, &function)
 	if err != nil {
 		logger.Errorf("get error: %s", err.Error())
@@ -72,7 +77,7 @@ func DeleteFunctionHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "function name is empty"})
 	}
 	var function core.Function
-	functionName := fmt.Sprintf("/registry/functions/%s", name)
+	functionName := FunctionKeyPrefix(name)
 	err := storage.Get(functionName, &function)
 	if err != nil {
 		logger.Errorf("get error: %s", err.Error())
@@ -99,7 +104,7 @@ func UpdateFunctionHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	functionName := fmt.Sprintf("/registry/functions/%s", name)
+	functionName := FunctionKeyPrefix(name)
 	preFunctionConfig := &core.Function{}
 	if err := storage.Get(functionName, &preFunctionConfig); err != nil {
 		logger.Errorf("get error: %s", err.Error())
@@ -120,7 +125,7 @@ func UpdateFunctionHandler(c *gin.Context) {
 // TriggerFunctionHandler POST /api/v1/functions/:name/trigger
 func TriggerFunctionHandler(c *gin.Context) {
 	name := c.Param("name")
-	functionName := fmt.Sprintf("/registry/functions/%s", name)
+	functionName := FunctionKeyPrefix(name)
 	var function core.Function
 	if err := storage.Get(functionName, &function); err != nil {
 		logger.Errorf("get error: %s", err.Error())

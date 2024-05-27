@@ -3,9 +3,9 @@ package autoscaler
 import "sync"
 
 type Record struct {
-	// Name is the name of the function
+	/* Name is the name of the function */
 	Name string `json:"name"`
-	// the current replica number of the function
+	/* current replica number of the function */
 	Replicas int32 `json:"replicas"`
 	// the podIps that the function has deployed on
 	PodIps map[string]int32 `json:"podIps"`

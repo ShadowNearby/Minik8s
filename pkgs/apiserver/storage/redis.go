@@ -34,7 +34,9 @@ func createRedisClient() *redis.Client {
 func (r *Redis) InitChannels() {
 	for _, channel := range constants.Channels {
 		for _, operation := range constants.Operations {
-			r.CreateChannel(constants.GenerateChannelName(channel, operation))
+			name := constants.GenerateChannelName(channel, operation)
+			r.CreateChannel(name)
+			logger.Infof("channel %s created", name)
 		}
 	}
 	for _, channel := range constants.OtherChannels {
@@ -116,6 +118,7 @@ func (r *Redis) CreateChannel(channel string) {
 }
 
 func (r *Redis) SubscribeChannel(channel string) <-chan *redis.Message {
+	logger.Infoln("Subscribe channel:", channel)
 	ch := r.Channels[channel].Channel()
 	return ch
 }

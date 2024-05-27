@@ -56,5 +56,4 @@ func TestGetObjectFromYamlFile(t *testing.T) {
 	}
 	obj := api.ParseApiObjectFromYamlFile(content, kind)
 	log.Println(obj)
-
 }

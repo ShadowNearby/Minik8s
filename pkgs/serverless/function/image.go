@@ -123,6 +123,9 @@ func RunImage(name string) error {
 	imageName := fmt.Sprintf("%s/%s:v1", ImagePath, name)
 	// 1. run the image
 	cmd := exec.Command("docker", "run", "-d", "--name", name, imageName)
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	if err != nil {
 		log.Error("[RunImage] run image error: ", err)

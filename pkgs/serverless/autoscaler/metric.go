@@ -30,7 +30,8 @@ func QueryPodIps() (map[string][]string, error) {
 	return result, nil
 }
 
-// PeriodicMetric check the invoke frequency periodically, delete the function if it is not invoked for a long time
+// PeriodicMetric check the invoke frequency periodically,
+// // delete the function if it is not invoked for a long time
 func PeriodicMetric(timeInterval int) {
 	for {
 		response := utils.GetObject(core.ObjReplicaSet, "serverless", "")

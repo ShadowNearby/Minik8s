@@ -48,6 +48,7 @@ func InitNodes(storage *storage.EtcdStorage) {
 }
 
 func CreateAPIServer(endpoints []string) *APIServer {
+
 	s := storage.CreateEtcdStorage(endpoints)
 	if s == nil {
 		return nil
