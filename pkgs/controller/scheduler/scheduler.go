@@ -30,7 +30,7 @@ func (sched *Scheduler) Run(policy string) {
 			msg := message.Payload
 			pods := make([]core.Pod, 2)
 			utils.JsonUnMarshal(msg, &pods)
-			logger.Debugf("old:%s\nnew:%s", utils.JsonMarshal(pods[0].Status), utils.JsonMarshal(pods[1].Status))
+			logger.Debugf("old:%s\nnew:%s\n", utils.JsonMarshal(pods[0].Status), utils.JsonMarshal(pods[1].Status))
 			pods[1].Status.HostIP = pods[0].Status.HostIP
 			_, err := sched.Schedule(pods[1])
 			if err != nil {

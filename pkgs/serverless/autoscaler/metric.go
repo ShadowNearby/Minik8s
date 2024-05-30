@@ -36,9 +36,10 @@ func PeriodicMetric(timeInterval int) {
 	for {
 		response := utils.GetObject(core.ObjReplicaSet, "serverless", "")
 		// get all replicas
-
 		replicaList := &[]core.ReplicaSet{}
 		err := json.Unmarshal([]byte(response), replicaList)
+		log.Info(response)
+
 		if err != nil {
 			log.Error("[PeriodicMetric] error unmarshalling replicas: ", err)
 			continue

@@ -1,6 +1,7 @@
 package serverless
 
 import (
+	"minik8s/pkgs/serverless/activator"
 	"minik8s/pkgs/serverless/function"
 	"minik8s/utils"
 	"os/exec"
@@ -9,27 +10,29 @@ import (
 )
 
 //	func TestAll(t *testing.T) {
-//		serverless.Run()
+//		serverless.Run()sudo rm -rf /var/lib/docker
+//
+// sudo systemctl restart docker
+//
 //	}
 func TestCreateImage(t *testing.T) {
-	function.CreateImage(utils.ExamplePath+"/serverless", "serverless_example")
+	activator.InitFunc("activate", utils.ExamplePath+"/serverless/func.py")
 }
 func TestRunImage(t *testing.T) {
-	function.RunImage("serverless_example")
+	function.RunImage("activate")
 }
+
 func TestDeleteImage(t *testing.T) {
-	err := function.DeleteImage("serverless_example")
+	err := function.DeleteImage("activate")
 	if err != nil {
 		t.Errorf("DeleteImage failed, error: %s", err)
 	}
-
 	// search the image
 	cmd := exec.Command("docker", "images")
 	out, err := cmd.Output()
 	if err != nil {
 		t.Errorf("DeleteImage failed, error: %s", err)
 	}
-
 	outputStr := string(out)
 	imageName := "localhost:5000/test:latest"
 	if strings.Contains(outputStr, imageName) {

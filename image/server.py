@@ -1,28 +1,53 @@
-from flask import Flask, request, Response
+import os
 import func
+import json
+
+from flask import Flask, request
 
 app = Flask(__name__)
+host_conf = "0.0.0.0"
+port_conf = os.environ.get('PORT', 18080)
 
 
-@app.route('/', methods=['POST'])
-def handle_request():
-    # `params` is a dict
-    params = request.json
-    headers = {'Content-Type': 'text/plain'}
+@app.route('/', methods=['GET'])
+def welecome():
+    welecomeWords = "Welcome to use this server!"
+    usage = "Usage: send put/post request to this url!"
+    return welecomeWords + '\n' + usage
+
+@app.route("/", methods=['POST'])
+def callCloudFuncByPost():
     try:
-        result = func.run(**params)
-        response = Response(str(result), headers=headers, status=200)
-        return response
-    except TypeError as e:
-        response = Response("", headers=headers, status=200)
-        return response
-    except Exception as e:
-        response = Response(str(e), headers=headers, status=500)
-        return str(e)
+        userparams = json.loads(request.get_data())
+    except json.JSONDecodeError:
+        userparams = ""
+    finally:
+        res = func.main(userparams)
+    return json.dumps(res)
+
+@app.route("/", methods=['PUT'])
+def callCloudFuncByPut():
+    try:
+        userparams = json.loads(request.get_data())
+    except json.JSONDecodeError:
+        userparams = ""
+    finally:
+        res = func.main(userparams)
+    return json.dumps(res)
+
+# @app.route("/test", methods=['GET'])
+# def test():
+#     userparams = "json.loads(request.get_data())"
+#     res = func.main(userparams)
+#     return json.dumps(res)
+
+@app.route("/config", methods=['GET'])
+def getConfig():
+    config = {
+        "host": host_conf,
+        "port": port_conf,
+    }
+    return json.dumps(config)
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=8081, debug=True)
-
-
-
-
+    app.run(host=host_conf, port=port_conf, debug=False)

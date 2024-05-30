@@ -2,7 +2,6 @@ package core
 
 import (
 	"encoding/json"
-
 	"github.com/docker/go-connections/nat"
 )
 
