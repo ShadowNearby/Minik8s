@@ -2,12 +2,12 @@ package cmd
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"github.com/wxnacy/wgo/arrays"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/utils"
 	"strings"
+
+	"github.com/spf13/cobra"
+	"github.com/wxnacy/wgo/arrays"
 )
 
 var describeCmd = &cobra.Command{
@@ -27,7 +27,7 @@ func describeHandler(cmd *cobra.Command, args []string) {
 		if idx := arrays.ContainsString(core.ObjTypeAll, kind); idx != -1 {
 			objType := core.ObjType(kind + "s")
 			res := utils.GetObject(objType, "", name)
-			log.Infoln(res)
+			fmt.Println(res)
 		} else if len(args) == 1 {
 			kind = strings.ToLower(args[0])
 			kind = kind[0 : len(kind)-1]
@@ -35,7 +35,7 @@ func describeHandler(cmd *cobra.Command, args []string) {
 			if idx := arrays.ContainsString(core.ObjTypeAll, kind); idx != -1 {
 				objType := core.ObjType(kind)
 				res := utils.GetObject(objType, "", "")
-				log.Infoln(res)
+				fmt.Println(res)
 			}
 		} else {
 			fmt.Printf("error: the server doesn't have a resource type \"%s\"", kind)

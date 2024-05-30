@@ -106,15 +106,15 @@ func (sched *Scheduler) Schedule(pod core.Pod) (string, error) {
 
 func (sched *Scheduler) dispatch(candidates map[string]core.NodeMetrics) string {
 	switch sched.Policy {
-	case config.PolicyCPU:
+	case constants.PolicyCPU:
 		{
 			return cpuPolicy(candidates)
 		}
-	case config.PolicyMemory:
+	case constants.PolicyMemory:
 		{
 			return memPolicy(candidates)
 		}
-	case config.PolicyDisk:
+	case constants.PolicyDisk:
 		{
 			return diskPolicy(candidates)
 		}

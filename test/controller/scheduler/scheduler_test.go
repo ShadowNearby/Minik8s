@@ -1,8 +1,8 @@
 package scheduler
 
 import (
-	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
+	"minik8s/pkgs/constants"
 	scheduler "minik8s/pkgs/controller/scheduler"
 	"minik8s/utils"
 	"testing"
@@ -12,7 +12,7 @@ func TestSchedule(t *testing.T) {
 	var mockPod = utils.GeneratePodConfigPy()
 	mockPod.Spec.Selector = core.Selector{MatchLabels: map[string]string{"test": "haha"}}
 	var myScheduler = scheduler.Scheduler{
-		Policy: config.PolicyCPU,
+		Policy: constants.PolicyCPU,
 	}
 	ip, err := myScheduler.Schedule(mockPod)
 	if err != nil {

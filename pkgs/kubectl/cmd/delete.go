@@ -1,13 +1,14 @@
 package cmd
 
 import (
-	log "github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/kubectl/api"
 	"minik8s/utils"
 	"os"
 	"reflect"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 )
 
 var deleteCmd = &cobra.Command{
@@ -52,5 +53,7 @@ func deleteHandler(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 	err = utils.DeleteObject(objType, object.GetNameSpace(), object.GetNameSpace())
-
+	if err != nil {
+		log.Fatal(err)
+	}
 }

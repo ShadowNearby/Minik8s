@@ -1,15 +1,7 @@
 package main
 
-import (
-	"minik8s/pkgs/monitor"
-	"minik8s/utils"
-
-	"github.com/sirupsen/logrus"
-)
+import "minik8s/pkgs/monitor"
 
 func main() {
-	logrus.SetReportCaller(true)
-	logrus.SetFormatter(&utils.CustomFormatter{})
-	logrus.SetLevel(logrus.InfoLevel)
-	monitor.Run()
+	monitor.Execute()
 }

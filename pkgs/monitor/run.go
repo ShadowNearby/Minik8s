@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 )
 
 func Run() {
@@ -20,4 +21,28 @@ func Run() {
 		}
 		time.Sleep(config.PrometheusScrapeInterval)
 	}
+}
+
+var cfgFile string
+
+var rootCmd = &cobra.Command{
+	Use:   "monitor",
+	Short: "",
+	Long:  "",
+	Run: func(cmd *cobra.Command, args []string) {
+		logrus.SetReportCaller(true)
+		logrus.SetFormatter(&utils.CustomFormatter{})
+		logrus.SetLevel(logrus.InfoLevel)
+		Run()
+	},
+}
+
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		logrus.Fatal(err)
+	}
+}
+
+func init() {
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "./config/config.json", "config file (default is ./config/config.json)")
 }

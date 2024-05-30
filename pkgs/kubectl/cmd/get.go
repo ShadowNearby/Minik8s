@@ -2,12 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"github.com/wxnacy/wgo/arrays"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/utils"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"github.com/wxnacy/wgo/arrays"
 )
 
 var getCmd = &cobra.Command{
@@ -24,24 +25,20 @@ func getHandler(cmd *cobra.Command, args []string) {
 	if len(args) == 2 {
 		kind = strings.ToLower(args[0])
 		name := strings.ToLower(args[1])
-		log.Infoln(kind, name)
 		/* validate if `kind` is in the resource list */
 		if idx := arrays.ContainsString(core.ObjTypeAll, kind); idx != -1 {
 			objType := core.ObjType(kind + "s")
-			log.Infoln(objType)
 			res := utils.GetObject(objType, "", name)
-			log.Infoln(res)
+			fmt.Println(res)
 		}
 	} else if len(args) == 1 {
 		kind = strings.ToLower(args[0])
-		log.Infoln(kind)
 		kind = kind[0 : len(kind)-1]
 		/* validate if `kind` is in the resource list */
 		if idx := arrays.ContainsString(core.ObjTypeAll, kind); idx != -1 {
 			objType := core.ObjType(kind + "s")
-			log.Infoln(objType)
 			res := utils.GetObject(objType, "", "")
-			log.Infoln(res)
+			fmt.Println(res)
 		}
 	} else {
 		fmt.Printf("error: the server doesn't have a resource type \"%s\"", kind)

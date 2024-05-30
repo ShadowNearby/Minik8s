@@ -1,14 +1,15 @@
 package cmd
 
 import (
-	log "github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/kubectl/api"
 	"minik8s/utils"
 	"os"
 	"reflect"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 var applyCmd = &cobra.Command{
@@ -48,8 +49,10 @@ func applyHandler(cmd *cobra.Command, args []string) {
 	}
 	object := reflect.New(structType).Interface().(core.ApiObjectKind)
 	err = yaml.Unmarshal(fileContent, object)
+	if err != nil {
+		log.Fatal(err)
+	}
 	nameSpace := object.GetNameSpace()
-	log.Infoln(object)
 	err = utils.CreateObject(objType, nameSpace, object)
 	if err != nil {
 		log.Fatal(err)

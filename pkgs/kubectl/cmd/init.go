@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"os"
+
+	"github.com/spf13/cobra"
 )
 
 /*
@@ -32,10 +33,11 @@ var NameSpace string
 var filePath string
 
 func init() {
-	RootCommand.PersistentFlags().StringVarP(&NameSpace, "nameSpace", "n", "default", "kubectl (-n NAMESPACE)")
+	RootCommand.PersistentFlags().StringVarP(&NameSpace, "namespace", "n", "default", "kubectl (-n NAMESPACE)")
 	applyCmd.Flags().StringVarP(&filePath, "filePath", "f", "", "kubectl apply -f <FILENAME>")
 	applyCmd.MarkFlagRequired("filePath")
 	RootCommand.AddCommand(applyCmd)
 	RootCommand.AddCommand(deleteCmd)
 	RootCommand.AddCommand(getCmd)
+	RootCommand.AddCommand(describeCmd)
 }
