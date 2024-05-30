@@ -30,6 +30,13 @@ func createRedisClient() *redis.Client {
 		DB:       0,  // use default DB
 	})
 }
+func createFunctionClient() *redis.Client {
+	return redis.NewClient(&redis.Options{
+		Addr:     "localhost:8070",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+}
 
 func (r *Redis) InitChannels() {
 	for _, channel := range constants.Channels {
@@ -124,6 +131,7 @@ func (r *Redis) SubscribeChannel(channel string) <-chan *redis.Message {
 }
 
 func (r *Redis) PublishMessage(channel string, message any) {
+	logger.Infoln("[", channel, "]\t", message)
 	r.Client.Publish(ctx, channel, message)
 }
 

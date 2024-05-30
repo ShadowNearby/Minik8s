@@ -14,6 +14,10 @@ var RedisInstance = &Redis{
 	Client:   createRedisClient(),
 	Channels: make(map[string]*redis.PubSub),
 }
+var FunctionInstance = &Redis{
+	Client:   createFunctionClient(),
+	Channels: make(map[string]*redis.PubSub),
+}
 
 func Put(key string, val any) error {
 	err := RedisInstance.redisSet(key, val)

@@ -13,6 +13,7 @@ import (
 )
 
 func DNSKeyPrefix(namespace string, name string) string {
+
 	return fmt.Sprintf("/dns/object/%s/%s", namespace, name)
 }
 

@@ -24,39 +24,64 @@ func FunctionSync(target string) {
 
 func connect(target string) error {
 	// establish websocket connection
+
 	createChannel := constants.GenerateChannelName(constants.ChannelFunction, constants.ChannelCreate)
 	updateChannel := constants.GenerateChannelName(constants.ChannelFunction, constants.ChannelUpdate)
 	deleteChannel := constants.GenerateChannelName(constants.ChannelFunction, constants.ChannelDelete)
-	functionChannel := storage.RedisInstance.SubscribeChannel(createChannel)
-	functionChannel = storage.RedisInstance.SubscribeChannel(updateChannel)
-	functionChannel = storage.RedisInstance.SubscribeChannel(deleteChannel)
+	triggerChannel := constants.GenerateChannelName(constants.ChannelFunction, constants.ChannelTrigger)
+	functionCreateChannel := storage.RedisInstance.SubscribeChannel(createChannel)
+	functionUpdateChannel := storage.RedisInstance.SubscribeChannel(updateChannel)
+	functionDeleteChannel := storage.RedisInstance.SubscribeChannel(deleteChannel)
+	functionTriggerChannel := storage.RedisInstance.SubscribeChannel(triggerChannel)
 	go func() {
-		for message := range functionChannel {
-
-			msg := message.Payload
-			if len(msg) == 0 {
-				continue
+		for {
+			for message := range functionCreateChannel {
+				log.Info("[FunctionSync] Create Channel: ", message.Channel)
+				msg := message.Payload
+				if len(msg) == 0 {
+					continue
+				}
+				fmt.Printf("[client %s] %s\n", target, message)
+				go FunctionCreateHandler(msg)
 			}
-			fmt.Printf("[client %s] %s\n", target, message)
-			op := gjson.Get(msg, "status")
-			// function trigger
-			if !op.Exists() {
+		}
+	}()
+	go func() {
+		for {
+			for message := range functionDeleteChannel {
+				log.Info("[FunctionSync] Delete Channel: ", message.Channel)
+				msg := message.Payload
+				if len(msg) == 0 {
+					continue
+				}
+				fmt.Printf("[client %s] %s\n", target, message)
+				go FunctionDeleteHandler(msg)
+			}
+		}
+	}()
+	go func() {
+		for {
+			for message := range functionUpdateChannel {
+				log.Info("[FunctionSync] Update Channel: ", message.Channel)
+				msg := message.Payload
+				if len(msg) == 0 {
+					continue
+				}
+				fmt.Printf("[client %s] %s\n", target, message)
+				go FunctionUpdateHandler(msg)
+			}
+		}
+	}()
+	go func() {
+		for {
+			for message := range functionTriggerChannel {
+				log.Info("[FunctionSync] Trigger Channel: ", message.Channel)
+				msg := message.Payload
+				if len(msg) == 0 {
+					continue
+				}
+				fmt.Printf("[client %s] %s\n", target, message)
 				go FunctionTriggerHandler(msg)
-				continue
-			}
-			switch op.String() {
-			case "create":
-				{
-					go FunctionCreateHandler(msg)
-				}
-			case "delete":
-				{
-					go FunctionDeleteHandler(msg)
-				}
-			case "update":
-				{
-					go FunctionUpdateHandler(msg)
-				}
 			}
 		}
 	}()
@@ -70,7 +95,6 @@ func FunctionTriggerHandler(message string) {
 		log.Errorf("execute: " + "function name is empty")
 		return
 	}
-
 	name := nameField.String()
 	paramsField := gjson.Get(message, "params")
 	if !paramsField.Exists() {
@@ -133,6 +157,7 @@ func FunctionUpdateHandler(message string) {
 }
 
 func FunctionCreateHandler(message string) {
+	log.Infoln(message)
 	function := &core.Function{}
 	function.UnMarshalJSON([]byte(message))
 	log.Info("[FunctionCreateHandler] function: ", function)

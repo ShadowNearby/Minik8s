@@ -23,20 +23,19 @@ func CreateImage(path string, name string) error {
 		return err
 	}
 	defer srcFile.Close()
-
 	dstFile, err := os.OpenFile(utils.RootPath+"/image/func.py", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		log.Error("[CreateImage] open dst file error: ", err)
 		return err
 	}
 	defer dstFile.Close()
-
 	_, err = io.Copy(dstFile, srcFile)
+	log.Info(srcFile.Name(), "      ", dstFile.Name())
 	if err != nil {
 		log.Error("[CreateImage] copy file error: ", err)
 		return err
 	}
-	log.Info("[CreateImage] copy file success")
+
 	// 1.2 create the image
 	//sudo usermod -aG docker $USER
 	cmd := exec.Command("docker", "build", "-t", name, utils.RootPath+"/image/")
@@ -68,6 +67,7 @@ func SaveImage(name string) error {
 		log.Error("[SaveImage] push image ", name, " error: ", err)
 		return err
 	}
+	log.Info("[SaveImage] save image ", name, " success")
 	return nil
 }
 
@@ -122,6 +122,7 @@ func DeleteImage(name string) error {
 func RunImage(name string) error {
 	imageName := fmt.Sprintf("%s/%s:v1", ImagePath, name)
 	// 1. run the image
+	log.Info("[RunImage] run image ", name, " to start serverless")
 	cmd := exec.Command("docker", "run", "-d", "--name", name, imageName)
 
 	cmd.Stdout = os.Stdout

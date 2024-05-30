@@ -10,6 +10,7 @@ import (
 type FunctionController struct{}
 
 func (f *FunctionController) GetChannel() string {
+
 	return constants.ChannelFunction
 }
 func (f *FunctionController) HandleCreate(info string) error {

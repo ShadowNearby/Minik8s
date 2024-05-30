@@ -1,28 +1,17 @@
-# Use the official Python image from the Docker Hub
-FROM python:3.9-slim
-LABEL authors="xinyun"
+FROM python:3.8-slim
 
-ENTRYPOINT ["top", "-b"]
-# use basic image
-# set workdir
+COPY ./  /app
+
 WORKDIR /app
-COPY . .
+# 换成中国的源
+RUN pip3 config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 
-RUN apt-get update && \
-    apt-get install -y python3-venv && \
-    python3 -m venv /app/venv
+RUN pip3 install -r ./requirements.txt
 
+EXPOSE 18080
 
-EXPOSE 8090
+ENTRYPOINT ["python3"]
 
+CMD ["server.py"]
 
-# copy file into workdir
-copy . .
-# install dependencies from requirements.txt
-RUN pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple --default-timeout=60 --no-cache-dir -r ./requirements.txt
-
-# set env
-ENV PATH="/usr/local/bin:${PATH}"
-
-# run server.py, start the function server
-CMD ["python3", "server.py"]
+# docker build -t musicminion/func-server:latest .
