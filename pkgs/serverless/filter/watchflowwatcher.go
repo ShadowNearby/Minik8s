@@ -23,7 +23,7 @@ func WorkFlowSync(target string) {
 	}
 }
 func workflowConnect(target string) error {
-	url := fmt.Sprintf("ws://%s/api/v1/watch/%s", config.LocalServerIp, target)
+	url := fmt.Sprintf("ws://%s/api/v1/watch/%s", config.ClusterMasterIP, target)
 	headers := http.Header{}
 	headers.Set("X-Source", "workflows")
 	conn, _, err := websocket.DefaultDialer.Dial(url, headers)

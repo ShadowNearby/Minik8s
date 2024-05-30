@@ -3,8 +3,6 @@ package workflow
 import (
 	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/tidwall/gjson"
 	"math"
 	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
@@ -12,12 +10,15 @@ import (
 	"minik8s/utils"
 	"reflect"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/tidwall/gjson"
 )
 
 const epsilon = 10e-4
 
 func CheckNode(nodeName string) bool {
-	url := fmt.Sprintf("http://%s:%s/api/v1/functions/%s", config.LocalServerIp, config.ApiServerPort, nodeName)
+	url := fmt.Sprintf("http://%s:%s/api/v1/functions/%s", config.ClusterMasterIP, config.ApiServerPort, nodeName)
 
 	_, _, err := utils.SendRequest("GET", url, nil)
 	log.Error("CheckNode ", err)

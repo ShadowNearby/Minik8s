@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/serverless/autoscaler"
@@ -14,6 +13,8 @@ import (
 	"net"
 	"sort"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // GenerateReplicaSet  Generate Replicaset to save function*/
@@ -84,7 +85,7 @@ func getPodIpList(pods []*core.Pod) []string {
 	return result
 }
 func CheckConnection(ip string) error {
-	timer := time.NewTimer(config.FunctionConnectTime * time.Second)
+	timer := time.NewTimer(config.FunctionConnectTime)
 	for {
 		select {
 		case <-timer.C:
@@ -151,7 +152,7 @@ func IfDeployed(name string) ([]string, error) {
 	retry := config.FunctionRetryTimes
 	firstTry := true
 	for retry > 0 {
-		timer := time.NewTimer(2 * config.FunctionConnectTime * time.Second)
+		timer := time.NewTimer(2 * config.FunctionConnectTime)
 		deployed := false
 		retry--
 		for {

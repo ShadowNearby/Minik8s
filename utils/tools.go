@@ -19,10 +19,10 @@ func SetObject(objType core.ObjType, namespace string, name string, obj any) err
 	var url string
 	objTxt := JsonMarshal(obj)
 	if name == "" {
-		url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s", config.LocalServerIp, config.ApiServerPort, namespace, string(objType))
+		url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s", config.ClusterMasterIP, config.ApiServerPort, namespace, string(objType))
 
 	} else {
-		url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s/%s", config.LocalServerIp, config.ApiServerPort, namespace, string(objType), name)
+		url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s/%s", config.ClusterMasterIP, config.ApiServerPort, namespace, string(objType), name)
 	}
 	if code, info, err := SendRequest("PUT", url, []byte(objTxt)); err != nil || code != http.StatusOK {
 		logger.Errorf("[set obj error]: %s", info)
@@ -41,7 +41,7 @@ func SetObjectStatus(objType core.ObjType, namespace, name string, obj any) erro
 	}
 	var url string
 	objTxt := JsonMarshal(obj)
-	url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s/%s/status", config.LocalServerIp, config.ApiServerPort, namespace, string(objType), name)
+	url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s/%s/status", config.ClusterMasterIP, config.ApiServerPort, namespace, string(objType), name)
 	if code, info, err := SendRequest("PUT", url, []byte(objTxt)); err != nil || code != http.StatusOK {
 		logger.Errorf("[update object status error]: %s", info)
 		return err
@@ -54,10 +54,10 @@ func SetObjectWONamespace(objType core.ObjType, name string, obj any) error {
 	var url string
 	objTxt := JsonMarshal(obj)
 	if name == "" {
-		url = fmt.Sprintf("http://%s:%s/api/v1/%s", config.LocalServerIp, config.ApiServerPort, string(objType))
+		url = fmt.Sprintf("http://%s:%s/api/v1/%s", config.ClusterMasterIP, config.ApiServerPort, string(objType))
 
 	} else {
-		url = fmt.Sprintf("http://%s:%s/api/v1/%s/%s", config.LocalServerIp, config.ApiServerPort, string(objType), name)
+		url = fmt.Sprintf("http://%s:%s/api/v1/%s/%s", config.ClusterMasterIP, config.ApiServerPort, string(objType), name)
 	}
 	if code, info, err := SendRequest("PUT", url, []byte(objTxt)); err != nil || code != http.StatusOK {
 		logger.Errorf("[set obj error]: %s", info)
@@ -75,10 +75,10 @@ func GetObject(objType core.ObjType, namespace string, name string) string {
 
 	if name == "" {
 		url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s",
-			config.LocalServerIp, config.ApiServerPort, namespace, string(objType))
+			config.ClusterMasterIP, config.ApiServerPort, namespace, string(objType))
 	} else {
 		url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s/%s",
-			config.LocalServerIp, config.ApiServerPort, namespace, string(objType), name)
+			config.ClusterMasterIP, config.ApiServerPort, namespace, string(objType), name)
 	}
 	logger.Infof("[getting obj]: %s", url)
 	var retInfo core.InfoType
@@ -95,10 +95,10 @@ func GetObjectWONamespace(objType core.ObjType, name string) string {
 	var url string
 	if name == "" {
 		url = fmt.Sprintf("http://%s:%s/api/v1/%s",
-			config.LocalServerIp, config.ApiServerPort, string(objType))
+			config.ClusterMasterIP, config.ApiServerPort, string(objType))
 	} else {
 		url = fmt.Sprintf("http://%s:%s/api/v1/%s/%s",
-			config.LocalServerIp, config.ApiServerPort, string(objType), name)
+			config.ClusterMasterIP, config.ApiServerPort, string(objType), name)
 	}
 	var retInfo core.InfoType
 	if code, info, err := SendRequest("GET", url, make([]byte, 0)); err != nil || code != http.StatusOK {
@@ -119,7 +119,7 @@ func CreateObject(objType core.ObjType, namespace string, object any) error {
 	objectTxt := JsonMarshal(object)
 	logger.Debugln(objectTxt)
 	url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s",
-		config.LocalServerIp, config.ApiServerPort, namespace, objType)
+		config.ClusterMasterIP, config.ApiServerPort, namespace, objType)
 	if code, info, err := SendRequest("POST", url, []byte(objectTxt)); err != nil || code != http.StatusOK {
 		logger.Errorf("[create obj error]: %s", info)
 		return err
@@ -135,7 +135,7 @@ func UpdateObject(objType core.ObjType, namespace string, object any) error {
 	objectTxt := JsonMarshal(object)
 	logger.Debugln(objectTxt)
 	url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s",
-		config.LocalServerIp, config.ApiServerPort, namespace, objType)
+		config.ClusterMasterIP, config.ApiServerPort, namespace, objType)
 	if code, info, err := SendRequest("PUT", url, []byte(objectTxt)); err != nil || code != http.StatusOK {
 		logger.Errorf("[create obj error]: %s", info)
 		return err
@@ -149,7 +149,7 @@ func CreateObjectWONamespace(objType core.ObjType, object any) error {
 	objectTxt := JsonMarshal(object)
 	logger.Debugln(objectTxt)
 	url = fmt.Sprintf("http://%s:%s/api/v1/%s",
-		config.LocalServerIp, config.ApiServerPort, objType)
+		config.ClusterMasterIP, config.ApiServerPort, objType)
 	if code, info, err := SendRequest("POST", url, []byte(objectTxt)); err != nil || code != http.StatusOK {
 		logger.Errorf("[create obj error]: %s", info)
 		return err
@@ -162,7 +162,7 @@ func DeleteObject(objType core.ObjType, namespace string, name string) error {
 		namespace = "default"
 	}
 	url := fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s/%s",
-		config.LocalServerIp, config.ApiServerPort, namespace, objType, name)
+		config.ClusterMasterIP, config.ApiServerPort, namespace, objType, name)
 	if code, info, err := SendRequest("DELETE", url, make([]byte, 0)); err != nil || code != http.StatusOK {
 		logger.Errorf("[delete object error]: %s", info)
 		return err
@@ -173,7 +173,7 @@ func DeleteObject(objType core.ObjType, namespace string, name string) error {
 
 func DeleteObjectWONamespace(objType core.ObjType, name string) error {
 	url := fmt.Sprintf("http://%s:%s/api/v1/%s/%s",
-		config.LocalServerIp, config.ApiServerPort, objType, name)
+		config.ClusterMasterIP, config.ApiServerPort, objType, name)
 	if code, info, err := SendRequest("DELETE", url, make([]byte, 0)); err != nil || code != http.StatusOK {
 		logger.Errorf("[delete object error]: %s", info)
 		return err
@@ -200,7 +200,7 @@ func CreateFunction(objType core.ObjType, object any) error {
 	objectTxt := JsonMarshal(object)
 	logger.Debugln(objectTxt)
 	url = fmt.Sprintf("http://%s:%s/api/v1/functions",
-		config.LocalServerIp, config.ApiServerPort)
+		config.ClusterMasterIP, config.ApiServerPort)
 	if code, info, err := SendRequest("PUT", url, []byte(objectTxt)); err != nil || code != http.StatusOK {
 		logger.Errorf("[create obj error]: %s", info)
 		return err
@@ -210,7 +210,7 @@ func CreateFunction(objType core.ObjType, object any) error {
 }
 func GetFunction(name string) (string, error) {
 	url := fmt.Sprintf("http://%s:%s/api/v1/functions/%s",
-		config.LocalServerIp, config.ApiServerPort, name)
+		config.ClusterMasterIP, config.ApiServerPort, name)
 	var retInfo core.InfoType
 	if code, info, err := SendRequest("GET", url, make([]byte, 0)); err != nil || code != http.StatusOK {
 		logger.Errorf("[delete object error]: %s", info)
@@ -224,7 +224,7 @@ func GetFunction(name string) (string, error) {
 func TriggerFunction(name string, object any) (string, error) {
 	//"/api/v1/functions/:name/trigger"
 	url := fmt.Sprintf("http://%s:%s/api/v1/functions/%s/trigger",
-		config.LocalServerIp, config.ApiServerPort, name)
+		config.ClusterMasterIP, config.ApiServerPort, name)
 	var retInfo core.InfoType
 	if code, info, err := SendRequest("POST", url, make([]byte, 0)); err != nil || code != http.StatusOK {
 		logger.Errorf("[delete object error]: %s", info)
