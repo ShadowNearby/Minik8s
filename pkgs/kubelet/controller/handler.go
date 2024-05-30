@@ -38,10 +38,9 @@ func CreatePod(pConfig *core.Pod) error {
 		case cStatus := <-cStatusChan:
 			pStat.ContainersStatus = append(pStat.ContainersStatus, cStatus)
 		case done := <-doneChan:
-			if done == true {
+			if done {
 				pStat.StartTime = time.Now()
-				pStat.Condition = core.ConReady
-				break
+				pStat.Condition = core.CondRunning
 			} else {
 				return errors.New("create pod failed")
 			}

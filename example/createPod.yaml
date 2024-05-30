@@ -6,8 +6,6 @@ metadata:
   name: example-pod2
 spec:
   containers:
-    - image: nginx
+    - image: docker.io/library/nginx:latest
       name: example-container
-      ports:
-        - port: 80
-          target_port : 8080
+      imagePullPolicy: IfNotPresent

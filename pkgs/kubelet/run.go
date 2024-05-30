@@ -24,6 +24,7 @@ func Run(config core.KubeletConfig, addr string) {
 			err := runtime.KubeletInstance.Server.Run(addr)
 			if err != nil {
 				logger.Errorf("server run error: %s", err.Error())
+				return
 			}
 		}
 	}()
@@ -48,6 +49,9 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		logrus.SetReportCaller(true)
 		logrus.SetFormatter(&utils.CustomFormatter{})
+		if err := config.InitConfig(cfgFile); err != nil {
+			logrus.Fatalf("Error initializing config: %s", err.Error())
+		}
 		var cfg = core.KubeletConfig{
 			MasterIP:   config.ClusterMasterIP,
 			MasterPort: config.ApiServerPort,

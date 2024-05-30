@@ -32,12 +32,6 @@ func CreateEndpointHandler(c *gin.Context) {
 		return
 	}
 	key := EndpointKeyPrefix(namespace, endpointConfig.MetaData.Name)
-	existEndpointConfig := core.Endpoint{}
-	if err := storage.Get(key, &existEndpointConfig); err != nil {
-		log.Errorf("endpoint %s:%s already exist", namespace, endpointConfig.MetaData.Name)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "endpoint already exist"})
-		return
-	}
 	if err := storage.Put(key, endpointConfig); err != nil {
 		log.Errorf("save endpoint error %s", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

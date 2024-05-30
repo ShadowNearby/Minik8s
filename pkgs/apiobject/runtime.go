@@ -62,10 +62,10 @@ type Status struct {
 type Condition string
 
 const (
-	ConScheduled       Condition = "pod scheduled"
-	ConInitialized     Condition = "pod initialized"
-	ConReady           Condition = "pod ready"
-	ConContainersReady Condition = "pod containers ready"
+	CondPending   Condition = "Pending"
+	CondRunning   Condition = "Running"
+	CondSucceeded Condition = "Succeeded"
+	CondFailed    Condition = "Failed"
 )
 
 const PauseContainerName string = "pause-container"

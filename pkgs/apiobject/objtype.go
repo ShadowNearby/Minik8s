@@ -23,16 +23,18 @@ const (
 )
 
 var ObjTypeAll = []string{
-	"pod",
-	"node",
-	"replica",
-	"service",
+	"pods",
+	"nodes",
+	"replicas",
+	"services",
+	"endpoints",
 	"deployment",
-	"job",
+	"jobs",
 	"hpa",
-	"function",
-	"workflow",
+	"functions",
+	"workflows",
 	"dns",
+	"volumes",
 }
 
 var ObjTypeToCoreObjMap = map[ObjType]reflect.Type{

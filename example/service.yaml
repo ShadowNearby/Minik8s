@@ -1,19 +1,16 @@
-kind: Service
 apiVersion: v1
+kind: Service
 metadata:
-  # Unique key of the Service instance
-  name: service-example
+  name: service-practice
+  namespace: default
 spec:
-  ports:
-    # Accept traffic sent to port 80
-    - name: http
-      port: 80
-      targetPort: 80
   selector:
-    # Loadbalance traffic across Pods matching
-    # this label selector
-    app: nginx
-  # Create an HA proxy in the cloud provider
-  # with an External IP address - *Only supported
-  # by some cloud providers*
-  type: LoadBalance
+    app: deploy-1
+  type: ClusterIP
+  ports:
+  - name: service-port1
+    protocol: TCP
+    port: 30000
+    targetPort: p1
+  clusterIP: 10.10.0.2
+  

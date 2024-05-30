@@ -3,8 +3,7 @@
         "apiVersion": "v1",
         "kind": "Service",
         "metadata": {
-            "name": "service-practice",
-            "resourcesVersion": "UPDATE"
+            "name": "service-practice"
         },
         "spec": {
             "selector": {
