@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: workflow
+name: workflow-example
+startAt: getsum
+comment: An example of basic workflow.
+states:
+  getsum:
+    type: TaskState
+    inputPath: "$.x,$.y"
+    next: judgesum
+  judgesum:
+    type: ChoiceState
+    choices:
+    - variable: "$.z"
+      NumericGreaterThan: 5
+      next: printsum
+    - variable: "$.z"
+      NumericLessThan: 5
+      next: getdiff
+    default: printerror
+  printsum:
+    type: TaskState
+    inputPath: "$.z"
+    resultPath: "$.str"
+    end: true
+  getdiff:
+    type: TaskState
+    inputPath: "$.x,$.y,$.z"
+    next: printdiff
+  printdiff:
+    type: TaskState
+    inputPath: "$.z"
+    resultPath: "$.str"
+    end: true
+  printerror:
+    type: FailState
+    error: DefaultStateError
+    cause: No Matches!

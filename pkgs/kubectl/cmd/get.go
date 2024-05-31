@@ -26,6 +26,7 @@ func getHandler(cmd *cobra.Command, args []string) {
 	var name string
 	var objType core.ObjType
 	logrus.Debugln(args)
+	wrongType := true
 	if len(args) == 2 {
 		kind = strings.ToLower(args[0])
 		name = strings.ToLower(args[1])
@@ -34,6 +35,7 @@ func getHandler(cmd *cobra.Command, args []string) {
 				continue
 			}
 			objType = core.ObjType(ty)
+			wrongType = false
 		}
 	} else if len(args) == 1 {
 		kind := strings.ToLower(args[0])
@@ -42,11 +44,17 @@ func getHandler(cmd *cobra.Command, args []string) {
 				continue
 			}
 			objType = core.ObjType(ty)
+			wrongType = false
 		}
 	} else {
 		fmt.Printf("error: the server doesn't have a resource type %s\n", kind)
 		return
 	}
+
+	if wrongType {
+		fmt.Printf("wrong type")
+	}
+
 	haveNamespace, ok := core.ObjTypeNamespace[objType]
 	if !ok {
 		fmt.Printf("wrong type %s", objType)

@@ -1,48 +1,44 @@
 package core
 
-import (
-	"encoding/json"
-	"github.com/tidwall/gjson"
-)
-
 type WorkState interface {
 }
 
 type TaskState struct {
-	Type       StateType `json:"type"`
-	InputPath  string    `json:"inputPath,omitempty"`
-	ResultPath string    `json:"outputPath,omitempty"`
-	Next       string    `json:"next,omitempty"`
-	End        bool      `json:"end,omitempty"`
+	Type       StateType `json:"type" yaml:"type"`
+	InputPath  string    `json:"inputPath,omitempty" yaml:"inputPath,omitempty"`
+	ResultPath string    `json:"outputPath,omitempty" yaml:"outputPath,omitempty"`
+	Next       string    `json:"next,omitempty" yaml:"next,omitempty"`
+	End        bool      `json:"end,omitempty" yaml:"end,omitempty"`
 }
 
 type FailState struct {
-	Type  StateType `json:"type"`
-	Error string    `json:"error"`
-	Cause string    `json:"cause"`
+	Type  StateType `json:"type" yaml:"type"`
+	Error string    `json:"error" yaml:"error"`
+	Cause string    `json:"cause" yaml:"cause"`
 }
 
 type ChoiceState struct {
-	Type    StateType    `json:"type"`
-	Choices []ChoiceItem `json:"choices"`
-	Default string       `json:"default,omitempty"`
+	Type    StateType    `json:"type" yaml:"type"`
+	Choices []ChoiceItem `json:"choices" yaml:"choices"`
+	Default string       `json:"default,omitempty" yaml:"default,omitempty"`
 }
-type ChoiceItem struct {
-	Variable                  string `json:"variable"`
-	NumericEquals             *int   `json:"NumericEqual,omitempty"`
-	NumericNotEquals          *int   `json:"NumericNotEqual,omitempty"`
-	NumericLessThan           *int   `json:"NumericLessThan,omitempty"`
-	NumericGreaterThan        *int   `json:"NumericGreaterThan,omitempty"`
-	NumericLessThanOrEqual    *int   `json:"NumericLessThanOrEqual,omitempty"`
-	NumericGreaterThanOrEqual *int   `json:"NumericGreaterThanOrEqual,omitempty"`
 
-	StringEquals             *string `json:"StringEquals,omitempty"`
-	StringNotEquals          *string `json:"StringNotEquals,omitempty"`
-	StringLessThan           *string `json:"StringLessThan,omitempty"`
-	StringGreaterThan        *string `json:"StringGreaterThan,omitempty"`
-	StringLessThanOrEqual    *string `json:"StringLessThanOrEqual,omitempty"`
-	StringGreaterThanOrEqual *string `json:"StringGreaterThanOrEqual,omitempty"`
-	Next                     string  `json:"next"`
+type ChoiceItem struct {
+	Variable                  string `json:"variable" yaml:"variable"`
+	NumericEquals             *int   `json:"NumericEqual,omitempty" yaml:"NumericEqual,omitempty"`
+	NumericNotEquals          *int   `json:"NumericNotEqual,omitempty" yaml:"NumericNotEqual,omitempty"`
+	NumericLessThan           *int   `json:"NumericLessThan,omitempty" yaml:"NumericLessThan,omitempty"`
+	NumericGreaterThan        *int   `json:"NumericGreaterThan,omitempty" yaml:"NumericGreaterThan,omitempty"`
+	NumericLessThanOrEqual    *int   `json:"NumericLessThanOrEqual,omitempty" yaml:"NumericLessThanOrEqual,omitempty"`
+	NumericGreaterThanOrEqual *int   `json:"NumericGreaterThanOrEqual,omitempty" yaml:"NumericGreaterThanOrEqual,omitempty"`
+
+	StringEquals             *string `json:"StringEquals,omitempty" yaml:"StringEquals,omitempty"`
+	StringNotEquals          *string `json:"StringNotEquals,omitempty" yaml:"StringNotEquals,omitempty"`
+	StringLessThan           *string `json:"StringLessThan,omitempty" yaml:"StringLessThan,omitempty"`
+	StringGreaterThan        *string `json:"StringGreaterThan,omitempty" yaml:"StringGreaterThan,omitempty"`
+	StringLessThanOrEqual    *string `json:"StringLessThanOrEqual,omitempty" yaml:"StringLessThanOrEqual,omitempty"`
+	StringGreaterThanOrEqual *string `json:"StringGreaterThanOrEqual,omitempty" yaml:"StringGreaterThanOrEqual,omitempty"`
+	Next                     string  `json:"next" yaml:"next"`
 }
 
 type StateType string
@@ -57,68 +53,13 @@ const (
 )
 
 type Workflow struct {
-	APIVersion string `json:"apiVersion,omitempty"`
+	APIVersion string       `json:"apiVersion" yaml:"apiVersion"`
+	Kind       string       `json:"kind" yaml:"kind"`
+	Name       string       `json:"name" yaml:"name"`
+	Status     VersionLabel `json:"status,omitempty" yaml:"status,omitempty"`
+	StartAt    string       `json:"startAt" yaml:"startAt"`
 
-	Name    string       `json:"name"`
-	Status  VersionLabel `json:"status,omitempty"`
-	StartAt string       `json:"startAt"`
+	States map[string]WorkState `json:"states" yaml:"states"`
 
-	States map[string]WorkState `json:"states"`
-
-	Comment string `json:"comment,omitempty"`
-}
-
-func (w *Workflow) MarshalJSON() ([]byte, error) {
-	type Alias Workflow
-	return json.Marshal(
-		&struct {
-			*Alias
-		}{
-			Alias: (*Alias)(w),
-		})
-}
-func (w *Workflow) UnMarshalJSON() (data []byte) {
-	w.APIVersion = gjson.Get(string(data), "apiVersion").String()
-	w.Name = gjson.Get(string(data), "name").String()
-	status := gjson.Get(string(data), "status")
-	if status.Exists() {
-		w.Status = VersionLabel(status.String())
-	}
-	w.StartAt = gjson.Get(string(data), "startAt").String()
-	comment := gjson.Get(string(data), "comment")
-	if comment.Exists() {
-		w.Comment = comment.String()
-	}
-	states := gjson.Get(string(data), "states")
-	if states.Exists() {
-		w.States = make(map[string]WorkState)
-		states.ForEach(func(key, value gjson.Result) bool {
-			stateType := gjson.Get(value.String(), "type").String()
-			switch stateType {
-			case "Task":
-				var taskState TaskState
-				err := json.Unmarshal([]byte(value.String()), &taskState)
-				if err != nil {
-					return false
-				}
-				w.States[key.String()] = taskState
-			case "Choice":
-				var choiceState ChoiceState
-				err := json.Unmarshal([]byte(value.String()), &choiceState)
-				if err != nil {
-					return false
-				}
-				w.States[key.String()] = choiceState
-			case "Fail":
-				var failState FailState
-				err := json.Unmarshal([]byte(value.String()), &failState)
-				if err != nil {
-					return false
-				}
-			}
-			return true
-		})
-	}
-
-	return nil
+	Comment string `json:"comment,omitempty" yaml:"comment,omitempty"`
 }

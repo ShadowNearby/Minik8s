@@ -15,7 +15,6 @@ const (
 	ObjHpa        ObjType = "hpa"
 	ObjFunction   ObjType = "functions"
 	ObjWorkflow   ObjType = "workflows"
-	ObjDeployment ObjType = "deployment"
 	ObjEndPoint   ObjType = "endpoints"
 	ObjDNS        ObjType = "dns"
 	ObjVolume     ObjType = "volumes"
@@ -42,9 +41,12 @@ var ObjTypeToCoreObjMap = map[ObjType]reflect.Type{
 	ObjNode:       reflect.TypeOf(&Node{}).Elem(),
 	ObjReplicaSet: reflect.TypeOf(&ReplicaSet{}).Elem(),
 	ObjService:    reflect.TypeOf(&Service{}).Elem(),
-	ObjDeployment: reflect.TypeOf(&ReplicaSet{}).Elem(),
+	ObjHpa:        reflect.TypeOf(&HorizontalPodAutoscaler{}).Elem(),
+	ObjFunction:   reflect.TypeOf(&Function{}).Elem(),
+	ObjWorkflow:   reflect.TypeOf(&Workflow{}).Elem(),
 	ObjEndPoint:   reflect.TypeOf(&Endpoint{}).Elem(),
 	ObjDNS:        reflect.TypeOf(&DNSRecord{}).Elem(),
+	ObjVolume:     reflect.TypeOf(&PersistentVolume{}).Elem(),
 }
 
 var ObjTypeNamespace = map[ObjType]bool{
@@ -57,7 +59,6 @@ var ObjTypeNamespace = map[ObjType]bool{
 	ObjPod:        true,
 	ObjReplicaSet: true,
 	ObjService:    true,
-	ObjJob:        true,
 	ObjHpa:        true,
 	ObjEndPoint:   true,
 	ObjDNS:        true,
@@ -75,12 +76,15 @@ func (p *Pod) GetNamespace() string {
 func (n *Node) GetNamespace() string {
 	return n.NodeMetaData.Namespace
 }
-func (w *Workflow) GetNamespace() string {
-	return "workflow"
-}
 func (r *ReplicaSet) GetNamespace() string {
 	return r.MetaData.Namespace
 }
-func (s *Service) GetNamespace() string {
+func (s *HorizontalPodAutoscaler) GetNamespace() string {
+	return s.MetaData.Namespace
+}
+func (s *Endpoint) GetNamespace() string {
+	return s.MetaData.Namespace
+}
+func (s *DNSRecord) GetNamespace() string {
 	return s.MetaData.Namespace
 }

@@ -31,11 +31,6 @@ func GetObjTypeFromYamlFile(fileContent []byte) (core.ObjType, error) {
 	return objType, nil
 }
 
-func GetCoreObjFromObjType(objType core.ObjType) (interface{}, bool) {
-	obj, exists := core.ObjTypeToCoreObjMap[objType]
-	return obj, exists
-}
-
 func ParseApiObjectFromYamlFile(fileContent []byte, obj interface{}) error {
 	log.Debugln(fileContent)
 	err := yaml.Unmarshal(fileContent, &obj)
