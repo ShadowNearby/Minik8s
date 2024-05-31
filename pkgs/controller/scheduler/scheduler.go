@@ -74,7 +74,9 @@ func (sched *Scheduler) Schedule(pod core.Pod) (string, error) {
 			continue
 		}
 		flag := true
+		logger.Infof("podSelector:%s", utils.JsonMarshal(podSelector))
 		for key, val := range podSelector {
+			logger.Infof("key: %s val:%s nodeLabels:%s", key, val, utils.JsonMarshal(nodeLabels))
 			if v, ok := nodeLabels[key]; !ok || v != val {
 				flag = false
 				break

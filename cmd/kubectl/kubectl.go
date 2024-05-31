@@ -7,6 +7,6 @@ import (
 )
 
 func main() {
-	logrus.SetLevel(logrus.DebugLevel)
+	logrus.SetLevel(logrus.InfoLevel)
 	cmd.Execute()
 }

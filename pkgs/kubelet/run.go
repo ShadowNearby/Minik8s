@@ -7,6 +7,7 @@ import (
 	kubeletcontroller "minik8s/pkgs/kubelet/controller"
 	"minik8s/pkgs/kubelet/runtime"
 	"minik8s/utils"
+	"os"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -57,12 +58,14 @@ var rootCmd = &cobra.Command{
 		if err := config.InitConfig(cfgFile); err != nil {
 			logrus.Fatalf("Error initializing config: %s", err.Error())
 		}
+		host, _ := os.Hostname()
 		var cfg = core.KubeletConfig{
 			MasterIP:   config.ClusterMasterIP,
 			MasterPort: config.ApiServerPort,
 			Labels: map[string]string{
 				"test": "haha",
 				"app":  "nginx",
+				"host": host,
 			},
 		}
 		Run(cfg, fmt.Sprintf("%s:%s", utils.GetIP(), config.NodePort))

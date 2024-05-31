@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: example-pod1
+  name: service-pod
   namespace: default
   labels:
     app: deploy-1

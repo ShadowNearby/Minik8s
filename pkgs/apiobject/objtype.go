@@ -73,9 +73,6 @@ type ApiObjectKind interface {
 func (p *Pod) GetNamespace() string {
 	return p.MetaData.Namespace
 }
-func (n *Node) GetNamespace() string {
-	return n.NodeMetaData.Namespace
-}
 func (r *ReplicaSet) GetNamespace() string {
 	return r.MetaData.Namespace
 }
@@ -86,5 +83,8 @@ func (s *Endpoint) GetNamespace() string {
 	return s.MetaData.Namespace
 }
 func (s *DNSRecord) GetNamespace() string {
+	return s.MetaData.Namespace
+}
+func (s *Service) GetNamespace() string {
 	return s.MetaData.Namespace
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	core "minik8s/pkgs/apiobject"
+	"minik8s/pkgs/constants"
 	"minik8s/pkgs/kubeproxy"
 	"minik8s/utils"
 	"strconv"
@@ -97,7 +98,7 @@ func CreateEndpointObject(service *core.Service) error {
 				Namespace: service.MetaData.Namespace,
 			},
 		}
-		NodeIP := utils.GetIP()
+		NodeIP := constants.Localhost
 		for _, port := range service.Spec.Ports {
 			Destinations := []core.EndpointDestination{}
 			for _, pod := range selectedPods {

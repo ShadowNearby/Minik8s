@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
+	"minik8s/pkgs/constants"
 	"os"
 	"os/exec"
 	"strings"
@@ -34,7 +35,7 @@ func GetServiceAddress(namespace string, name string) (string, uint32, error) {
 	if service.Spec.ClusterIP != "" {
 		return service.Spec.ClusterIP, service.Spec.Ports[0].Port, nil
 	}
-	NodeIP := GetIP()
+	NodeIP := constants.Localhost
 	return NodeIP, service.Spec.Ports[0].NodePort, nil
 }
 

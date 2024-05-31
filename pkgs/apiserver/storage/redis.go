@@ -131,7 +131,7 @@ func (r *Redis) SubscribeChannel(channel string) <-chan *redis.Message {
 }
 
 func (r *Redis) PublishMessage(channel string, message any) {
-	logger.Infoln("[", channel, "]\t", message)
+	// logger.Infoln("[", channel, "]\t", message)
 	r.Client.Publish(ctx, channel, message)
 }
 

@@ -134,7 +134,7 @@ func getHandler(cmd *cobra.Command, args []string) {
 			}
 		}
 	case core.ObjService:
-		t.AppendHeader(table.Row{"NAME", "TYPE", "CLUSTER-IP", "PORT(S)"})
+		t.AppendHeader(table.Row{"NAME", "TYPE", "SELECTOR", "CLUSTER-IP", "PORT(S)"})
 		services := []core.Service{}
 		if resp != "" {
 			if name == "" {
@@ -161,7 +161,11 @@ func getHandler(cmd *cobra.Command, args []string) {
 						portStrs = append(portStrs, fmt.Sprintf("%d/%s", port.Port, port.Protocol))
 					}
 				}
-				t.AppendRow(table.Row{service.MetaData.Name, service.Spec.Type, service.Spec.ClusterIP, strings.Join(portStrs, " ")})
+				selector := []string{}
+				for k, v := range service.Spec.Selector.MatchLabels {
+					selector = append(selector, fmt.Sprintf("%s=%s", k, v))
+				}
+				t.AppendRow(table.Row{service.MetaData.Name, service.Spec.Type, strings.Join(selector, ","), service.Spec.ClusterIP, strings.Join(portStrs, " ")})
 			}
 		}
 	case core.ObjJob:
