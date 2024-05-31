@@ -47,7 +47,16 @@ func getHandler(cmd *cobra.Command, args []string) {
 		fmt.Printf("error: the server doesn't have a resource type %s\n", kind)
 		return
 	}
-	resp := utils.GetObject(objType, namespace, name)
+	haveNamespace, ok := core.ObjTypeNamespace[objType]
+	if !ok {
+		fmt.Printf("wrong type %s", objType)
+	}
+	var resp string
+	if haveNamespace {
+		resp = utils.GetObject(objType, namespace, name)
+	} else {
+		resp = utils.GetObjectWONamespace(objType, name)
+	}
 
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)

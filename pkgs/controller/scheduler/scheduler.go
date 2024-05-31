@@ -47,7 +47,7 @@ func (sched *Scheduler) Run(policy string) {
 	//			pod.Status.HostIP = "127.0.0.1" // TODO: should delete
 	//			utils.SendRequest("DELETE",
 	//				fmt.Sprintf("http://%s:10250/pod/stop/%s/%s",
-	//					pod.Status.HostIP, pod.GetNameSpace(), pod.MetaData.Name),
+	//					pod.Status.HostIP, pod.GetNamespace(), pod.MetaData.Name),
 	//				nil)
 	//		}
 	//	}

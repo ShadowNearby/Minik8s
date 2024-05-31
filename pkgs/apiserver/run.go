@@ -3,6 +3,7 @@ package apiserver
 import (
 	"fmt"
 	"minik8s/config"
+	"minik8s/pkgs/apiserver/heartbeat"
 	"minik8s/pkgs/apiserver/server"
 	"minik8s/pkgs/constants"
 	"minik8s/pkgs/controller"
@@ -31,6 +32,8 @@ func Run() {
 	go controller.StartController(&hpa)
 	// start hpa background work
 	go hpa.StartBackground()
+	// start heartbeat
+	go heartbeat.Run()
 
 	server.Run(fmt.Sprintf("%s:%s", config.ClusterMasterIP, config.ApiServerPort))
 }

@@ -7,15 +7,20 @@ import (
 	kubeletcontroller "minik8s/pkgs/kubelet/controller"
 	"minik8s/pkgs/kubelet/runtime"
 	"minik8s/utils"
+	"time"
 
 	"github.com/sirupsen/logrus"
-	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
-func Run(config core.KubeletConfig, addr string) {
-	runtime.KubeletInstance.InitKubelet(config)
-	runtime.KubeletInstance.RegisterNode()
+func Run(kconfig core.KubeletConfig, addr string) {
+	runtime.KubeletInstance.InitKubelet(kconfig)
+	go func() {
+		for {
+			runtime.KubeletInstance.RegisterNode()
+			time.Sleep(config.HeartbeatInterval)
+		}
+	}()
 	for _, route := range kubeletcontroller.KubeletRouter {
 		route.Register(runtime.KubeletInstance.Server)
 	}
@@ -23,7 +28,7 @@ func Run(config core.KubeletConfig, addr string) {
 		for {
 			err := runtime.KubeletInstance.Server.Run(addr)
 			if err != nil {
-				logger.Errorf("server run error: %s", err.Error())
+				logrus.Errorf("server run error: %s", err.Error())
 				return
 			}
 		}

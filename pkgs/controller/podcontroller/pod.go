@@ -33,7 +33,7 @@ func (pc *PodController) HandleDelete(message string) error {
 		return err
 	}
 	log.Infof("delete pod: %s:%s", pod.MetaData.Namespace, pod.MetaData.Name)
-	_, _, err = utils.SendRequest("DELETE", fmt.Sprintf("http://%s:%s/pod/stop/%s/%s", pod.Status.HostIP, config.NodePort, pod.GetNameSpace(), pod.MetaData.Name), nil)
+	_, _, err = utils.SendRequest("DELETE", fmt.Sprintf("http://%s:%s/pod/stop/%s/%s", pod.Status.HostIP, config.NodePort, pod.GetNamespace(), pod.MetaData.Name), nil)
 	if err != nil {
 		log.Errorf("delete pod error: %s", err.Error())
 		return err

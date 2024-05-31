@@ -47,22 +47,40 @@ var ObjTypeToCoreObjMap = map[ObjType]reflect.Type{
 	ObjDNS:        reflect.TypeOf(&DNSRecord{}).Elem(),
 }
 
-type ApiObjectKind interface {
-	GetNameSpace() string
+var ObjTypeNamespace = map[ObjType]bool{
+	ObjNode:      false,
+	ObjFunction:  false,
+	ObjWorkflow:  false,
+	ObjVolume:    false,
+	ObjCsiVolume: false,
+
+	ObjPod:        true,
+	ObjReplicaSet: true,
+	ObjService:    true,
+	ObjJob:        true,
+	ObjHpa:        true,
+	ObjEndPoint:   true,
+	ObjDNS:        true,
 }
 
-func (p *Pod) GetNameSpace() string {
+// {ObjNode, ObjFunction, ObjWorkflow, ObjVolume, ObjCsiVolume}
+
+type ApiObjectKind interface {
+	GetNamespace() string
+}
+
+func (p *Pod) GetNamespace() string {
 	return p.MetaData.Namespace
 }
-func (n *Node) GetNameSpace() string {
+func (n *Node) GetNamespace() string {
 	return n.NodeMetaData.Namespace
 }
-func (w *Workflow) GetNameSpace() string {
+func (w *Workflow) GetNamespace() string {
 	return "workflow"
 }
-func (r *ReplicaSet) GetNameSpace() string {
+func (r *ReplicaSet) GetNamespace() string {
 	return r.MetaData.Namespace
 }
-func (s *Service) GetNameSpace() string {
+func (s *Service) GetNamespace() string {
 	return s.MetaData.Namespace
 }

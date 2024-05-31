@@ -52,7 +52,7 @@ func applyHandler(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	nameSpace := object.GetNameSpace()
+	nameSpace := object.GetNamespace()
 	err = utils.CreateObject(objType, nameSpace, object)
 	if err != nil {
 		log.Fatal(err)

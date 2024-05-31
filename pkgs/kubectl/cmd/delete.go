@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -36,8 +35,17 @@ func deleteHandler(cmd *cobra.Command, args []string) {
 		fmt.Printf("error: the server doesn't have a resource type %s\n", kind)
 		return
 	}
-	err := utils.DeleteObject(objType, namespace, name)
+	haveNamespace, ok := core.ObjTypeNamespace[objType]
+	if !ok {
+		fmt.Printf("wrong type %s", objType)
+	}
+	var err error
+	if haveNamespace {
+		err = utils.DeleteObject(objType, namespace, name)
+	} else {
+		err = utils.DeleteObjectWONamespace(objType, name)
+	}
 	if err != nil {
-		log.Fatal(err)
+		fmt.Print(err.Error())
 	}
 }

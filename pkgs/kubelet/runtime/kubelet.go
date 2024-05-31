@@ -2,12 +2,13 @@ package runtime
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	logger "github.com/sirupsen/logrus"
 	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/utils"
 	"os"
+
+	"github.com/gin-gonic/gin"
+	logger "github.com/sirupsen/logrus"
 )
 
 type Kubelet struct {
@@ -35,7 +36,6 @@ func (k *Kubelet) InitKubelet(config core.KubeletConfig) {
 
 func (k *Kubelet) RegisterNode() {
 	name, _ := os.Hostname()
-	logger.Infof(name)
 	nodeInfo := core.Node{
 		ApiVersion: "v1",
 		Kind:       "Node",

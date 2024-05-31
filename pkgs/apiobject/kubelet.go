@@ -2,6 +2,8 @@ package core
 
 import (
 	"encoding/json"
+	"time"
+
 	"github.com/docker/go-connections/nat"
 )
 
@@ -152,12 +154,13 @@ type KubeletConfig struct {
 }
 
 type NodeStatus struct {
-	Phase NodeStatusPhase `json:"phase"`
+	Phase         NodeStatusPhase `json:"phase"`
+	LastHeartbeat time.Time       `json:"lastHeartbeat"`
 }
 
 type NodeStatusPhase string
 
 const (
-	Ready              NodeStatusPhase = "Ready"
-	NetworkUnavailable NodeStatusPhase = "NetworkUnavailable"
+	NodeReady              NodeStatusPhase = "Ready"
+	NodeNetworkUnavailable NodeStatusPhase = "NetworkUnavailable"
 )
