@@ -18,7 +18,7 @@
               "volumeMounts": [
                   {
                       "name": "test-pv",
-                      "container_path": "/mount"
+                      "containerPath": "/mount"
                   }
               ]
           }

@@ -77,6 +77,7 @@ var RouteTable = [...]Route{
 
 	{Path: "/api/v1/volumes", Method: "POST", Handler: CreateVolumeHandler},         // POST, create a volume
 	{Path: "/api/v1/volumes/:name", Method: "GET", Handler: GetVolumeHandler},       // GET, get a volume
+	{Path: "/api/v1/volumes", Method: "GET", Handler: GetAllVolumeHandler},          // GET, get all volume
 	{Path: "/api/v1/volumes/:name", Method: "DELETE", Handler: DeleteVolumeHandler}, // DELETE, delete a volume
 	{Path: "/api/v1/csivolumes/:name", Method: "GET", Handler: GetCsiVolumeHandler}, // GET, get a csivolume
 	{Path: "/api/v1/watch/:name", Method: "GET", Handler: GetDNSHandler},            // get a DNS watcj

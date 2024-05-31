@@ -64,10 +64,10 @@ type Container struct {
 type ImagePullPolicy string
 
 type VolumeMountConfig struct {
-	Name          string `json:"name"`
-	ContainerPath string `json:"container_path"`
-	HostPath      string `json:"mount_path"`
-	ReadOnly      bool   `json:"read_only"`
+	Name          string `json:"name" yaml:"name"`
+	ContainerPath string `json:"containerPath" yaml:"containerPath"`
+	HostPath      string `json:"mountPath" yaml:"mountPath"`
+	ReadOnly      bool   `json:"readOnly" yaml:"readOnly"`
 }
 
 type PortConfig struct {

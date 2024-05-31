@@ -71,7 +71,7 @@ func getHandler(cmd *cobra.Command, args []string) {
 
 	switch objType {
 	case core.ObjPod:
-		t.AppendHeader(table.Row{"NAME", "STATUS", "AGE", "POD-IP"})
+		t.AppendHeader(table.Row{"NAME", "STATUS", "AGE", "POD-IP", "HOST"})
 		pods := []core.Pod{}
 		if resp != "" {
 			if name == "" {
@@ -88,7 +88,7 @@ func getHandler(cmd *cobra.Command, args []string) {
 				pods = append(pods, pod)
 			}
 			for _, pod := range pods {
-				t.AppendRow(table.Row{pod.MetaData.Name, pod.Status.Condition, time.Since(pod.Status.StartTime).Round(time.Second), pod.Status.PodIP})
+				t.AppendRow(table.Row{pod.MetaData.Name, pod.Status.Condition, time.Since(pod.Status.StartTime).Round(time.Second), pod.Status.PodIP, pod.Status.HostIP})
 			}
 		}
 	case core.ObjNode:
