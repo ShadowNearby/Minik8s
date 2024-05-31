@@ -23,8 +23,7 @@ func FunctionSync(target string) {
 }
 
 func connect(target string) error {
-	// establish websocket connection
-
+	/* establish connect through channel*/
 	createChannel := constants.GenerateChannelName(constants.ChannelFunction, constants.ChannelCreate)
 	updateChannel := constants.GenerateChannelName(constants.ChannelFunction, constants.ChannelUpdate)
 	deleteChannel := constants.GenerateChannelName(constants.ChannelFunction, constants.ChannelDelete)
@@ -38,6 +37,7 @@ func connect(target string) error {
 			for message := range functionCreateChannel {
 				log.Info("[FunctionSync] Create Channel: ", message.Channel)
 				msg := message.Payload
+				log.Info("[FunctionSync] Create Channel: ", msg)
 				if len(msg) == 0 {
 					continue
 				}

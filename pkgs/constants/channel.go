@@ -19,7 +19,7 @@ const (
 )
 
 var Channels = []string{ChannelNode, ChannelPod, ChannelService, ChannelReplica, ChannelHPA, ChannelFunction}
-var Operations = []string{ChannelCreate, ChannelUpdate, ChannelDelete}
+var Operations = []string{ChannelCreate, ChannelUpdate, ChannelDelete, ChannelTrigger}
 var OtherChannels = []string{ChannelPodSchedule}
 
 func GenerateChannelName(object string, chanType string) string {

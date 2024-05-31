@@ -125,8 +125,9 @@ func (r *Redis) CreateChannel(channel string) {
 }
 
 func (r *Redis) SubscribeChannel(channel string) <-chan *redis.Message {
-	logger.Infoln("Subscribe channel:", channel)
+	logger.Infoln("Subscribe channel: ", channel)
 	ch := r.Channels[channel].Channel()
+	logger.Infoln("Subscribe channel successful: ", channel)
 	return ch
 }
 

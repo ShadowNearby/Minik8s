@@ -20,6 +20,9 @@ func (pc *PodController) GetChannel() string {
 func (pc *PodController) HandleCreate(message string) error {
 	return nil
 }
+func (pc *PodController) HandleTrigger(message string) error {
+	return nil
+}
 
 func (pc *PodController) HandleUpdate(message string) error {
 	return nil

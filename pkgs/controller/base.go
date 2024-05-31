@@ -12,18 +12,18 @@ type IController interface {
 	HandleCreate(message string) error
 	HandleUpdate(message string) error
 	HandleDelete(message string) error
-	//HandleTrigger(message string) error
+	HandleTrigger(message string) error
 }
 
 func StartController(controller IController) {
 	createChannel := constants.GenerateChannelName(controller.GetChannel(), constants.ChannelCreate)
 	updateChannel := constants.GenerateChannelName(controller.GetChannel(), constants.ChannelUpdate)
 	deleteChannel := constants.GenerateChannelName(controller.GetChannel(), constants.ChannelDelete)
-	//triggerChannel := constants.GenerateChannelName(controller.GetChannel(), constants.ChannelTrigger)
+	triggerChannel := constants.GenerateChannelName(controller.GetChannel(), constants.ChannelTrigger)
 	createMessages := storage.RedisInstance.SubscribeChannel(createChannel)
 	updateMessages := storage.RedisInstance.SubscribeChannel(updateChannel)
 	deleteMessages := storage.RedisInstance.SubscribeChannel(deleteChannel)
-	//triggerMessages := storage.RedisInstance.SubscribeChannel(triggerChannel)
+	triggerMessages := storage.RedisInstance.SubscribeChannel(triggerChannel)
 	go func() {
 		for {
 			for message := range createMessages {
@@ -54,5 +54,12 @@ func StartController(controller IController) {
 			}
 		}
 	}()
-
+	go func() {
+		for message := range triggerMessages {
+			err := controller.HandleTrigger(message.Payload)
+			if err != nil {
+				log.Errorf("handle trigger error: %s", err.Error())
+			}
+		}
+	}()
 }

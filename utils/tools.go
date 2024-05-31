@@ -170,7 +170,6 @@ func DeleteObject(objType core.ObjType, namespace string, name string) error {
 		return nil
 	}
 }
-
 func DeleteObjectWONamespace(objType core.ObjType, name string) error {
 	url := fmt.Sprintf("http://%s:%s/api/v1/%s/%s",
 		config.ClusterMasterIP, config.ApiServerPort, objType, name)
@@ -194,32 +193,6 @@ func SplitChannelInfo(key string) (namespace, name string, err error) {
 	}
 
 	return "", "", fmt.Errorf("unexpected key format: %q", key)
-}
-func CreateFunction(objType core.ObjType, object any) error {
-	var url string
-	objectTxt := JsonMarshal(object)
-	logger.Debugln(objectTxt)
-	url = fmt.Sprintf("http://%s:%s/api/v1/functions",
-		config.ClusterMasterIP, config.ApiServerPort)
-	if code, info, err := SendRequest("PUT", url, []byte(objectTxt)); err != nil || code != http.StatusOK {
-		logger.Errorf("[create obj error]: %s", info)
-		return err
-	} else {
-		return nil
-	}
-}
-func GetFunction(name string) (string, error) {
-	url := fmt.Sprintf("http://%s:%s/api/v1/functions/%s",
-		config.ClusterMasterIP, config.ApiServerPort, name)
-	var retInfo core.InfoType
-	if code, info, err := SendRequest("GET", url, make([]byte, 0)); err != nil || code != http.StatusOK {
-		logger.Errorf("[delete object error]: %s", info)
-		err = JsonUnMarshal(info, &retInfo)
-		return retInfo.Data, err
-	} else {
-		return "", err
-	}
-
 }
 func TriggerFunction(name string, object any) (string, error) {
 	//"/api/v1/functions/:name/trigger"

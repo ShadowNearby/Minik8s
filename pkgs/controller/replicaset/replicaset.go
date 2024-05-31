@@ -27,6 +27,9 @@ func (rsc *ReplicaSetController) HandleUpdate(key string) error {
 	err := rsc.updateReplicas(key)
 	return err
 }
+func (rsc *ReplicaSetController) HandleTrigger(key string) error {
+	return nil
+}
 func (rsc *ReplicaSetController) HandleDelete(key string) error {
 	err := rsc.deleteReplicas(key)
 	return err
