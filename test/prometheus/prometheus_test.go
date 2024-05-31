@@ -17,7 +17,7 @@ func TestPrometheusPod(t *testing.T) {
 	logrus.SetLevel(logrus.DebugLevel)
 
 	pod := &core.Pod{}
-	path := fmt.Sprintf("%s/%s", utils.ExamplePath, "prometheus_pod.json")
+	path := fmt.Sprintf("%s/%s", utils.ExamplePath, "monitor/prometheus_pod.json")
 	content, err := os.ReadFile(path)
 	if err != nil {
 		logrus.Errorf("error in read file %s err: %s", path, err.Error())
