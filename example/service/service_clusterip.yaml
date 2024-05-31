@@ -13,5 +13,4 @@ spec:
     protocol: TCP
     port: 29999
     targetPort: p1
-  clusterIP: 10.10.0.2
   

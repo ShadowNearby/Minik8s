@@ -1,23 +1,68 @@
-package service
+package kubeproxy
 
 import (
 	"encoding/json"
 	"fmt"
 	core "minik8s/pkgs/apiobject"
+	"minik8s/pkgs/apiserver/storage"
 	"minik8s/pkgs/constants"
-	"minik8s/pkgs/kubeproxy"
 	"minik8s/utils"
 
+	"github.com/redis/go-redis/v9"
 	log "github.com/sirupsen/logrus"
 )
 
-const TotalIP = (1 << 8)
-
-var UsedIP = [TotalIP]bool{}
-
-const IPPrefix = "10.10.0."
-
 type ServiceController struct{}
+
+func (sc *ServiceController) Run() {
+	var redisInstance = &storage.Redis{
+		Client:   storage.CreateRedisClient(),
+		Channels: make(map[string]*redis.PubSub),
+	}
+
+	createChannel := constants.GenerateChannelName(sc.GetChannel(), constants.ChannelCreate)
+	updateChannel := constants.GenerateChannelName(sc.GetChannel(), constants.ChannelUpdate)
+	deleteChannel := constants.GenerateChannelName(sc.GetChannel(), constants.ChannelDelete)
+
+	redisInstance.CreateChannel(createChannel)
+	redisInstance.CreateChannel(updateChannel)
+	redisInstance.CreateChannel(deleteChannel)
+
+	createMessages := redisInstance.SubscribeChannel(createChannel)
+	updateMessages := redisInstance.SubscribeChannel(updateChannel)
+	deleteMessages := redisInstance.SubscribeChannel(deleteChannel)
+
+	go func() {
+		for {
+			for message := range createMessages {
+				err := sc.HandleCreate(message.Payload)
+				if err != nil {
+					log.Errorf("handle create error: %s", err.Error())
+				}
+			}
+		}
+	}()
+	go func() {
+		for {
+			for message := range updateMessages {
+				err := sc.HandleUpdate(message.Payload)
+				if err != nil {
+					log.Errorf("handle update error: %s", err.Error())
+				}
+			}
+		}
+	}()
+	go func() {
+		for {
+			for message := range deleteMessages {
+				err := sc.HandleDelete(message.Payload)
+				if err != nil {
+					log.Errorf("handle delete error: %s", err.Error())
+				}
+			}
+		}
+	}()
+}
 
 func (sc *ServiceController) GetChannel() string {
 	return constants.ChannelService
@@ -32,7 +77,7 @@ func (sc *ServiceController) HandleCreate(message string) error {
 	}
 	var clusterIP string
 	if service.Spec.ClusterIP == "" {
-		clusterIP := FindUnusedIP()
+		clusterIP := FindUnusedIP(service.MetaData.Namespace, service.MetaData.Name)
 		service.Spec.ClusterIP = clusterIP
 		utils.SetObject(core.ObjService, service.MetaData.Namespace, service.MetaData.Name, service)
 	} else {
@@ -42,12 +87,12 @@ func (sc *ServiceController) HandleCreate(message string) error {
 	// creaete service and alloc ip
 	if service.Spec.Type == core.ServiceTypeClusterIP {
 		for _, port := range service.Spec.Ports {
-			kubeproxy.CreateService(clusterIP, port.Port)
+			CreateService(clusterIP, port.Port)
 		}
 	} else if service.Spec.Type == core.ServiceTypeNodePort {
 		NodeIP := utils.GetIP()
 		for _, port := range service.Spec.Ports {
-			kubeproxy.CreateService(NodeIP, port.NodePort)
+			CreateService(NodeIP, port.NodePort)
 		}
 	}
 
@@ -98,12 +143,12 @@ func (sc *ServiceController) HandleDelete(message string) error {
 		return err
 	}
 	for _, port := range service.Spec.Ports {
-		err = kubeproxy.DeleteService(service.Spec.ClusterIP, uint32(port.Port))
+		err = DeleteService(service.Spec.ClusterIP, uint32(port.Port))
 		if err != nil {
 			log.Errorf("error in DeleteService err: %s", err.Error())
 		}
 	}
-	FreeUsedIP(service.Spec.ClusterIP)
+	FreeUsedIP(service.MetaData.Namespace, service.MetaData.Name)
 	err = DeleteEndpointObject(service)
 	if err != nil {
 		log.Errorf("error in DeleteEndpointObject")

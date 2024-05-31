@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"minik8s/config"
 	"minik8s/pkgs/constants"
 	"minik8s/utils"
 
@@ -23,9 +24,9 @@ const (
 	OpGet string = "get"
 )
 
-func createRedisClient() *redis.Client {
+func CreateRedisClient() *redis.Client {
 	return redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     fmt.Sprintf("%s:6379", config.ClusterMasterIP),
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})

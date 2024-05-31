@@ -10,5 +10,6 @@ nginx -c $CONFDIR/nginx.conf
 nohup ./bin/apiserver > $LOGDIR/apiserver.log 2>&1 & 
 sleep 3
 nohup ./bin/kubelet > $LOGDIR/kubelet.log 2>&1 &
+nohup ./bin/kubeproxy > $LOGDIR/kubeproxy.log 2>&1 &
 nohup prometheus --config.file $CONFDIR/prometheus/prometheus.yml > $LOGDIR/prometheus.log 2>&1 & 
 nohup ./bin/monitor > $LOGDIR/monitor.log 2>&1 &

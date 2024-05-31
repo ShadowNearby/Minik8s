@@ -6,6 +6,9 @@ metadata:
   labels:
     app: deploy-1
 spec:
+  selector:
+    matchLabels:
+     host: k8s-1
   containers:
   - name: example-container
     image: docker.io/hashicorp/http-echo:latest

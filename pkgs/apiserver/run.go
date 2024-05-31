@@ -11,7 +11,6 @@ import (
 	"minik8s/pkgs/controller/podcontroller"
 	rsc "minik8s/pkgs/controller/replicaset"
 	scheduler "minik8s/pkgs/controller/scheduler"
-	"minik8s/pkgs/controller/service"
 	"minik8s/utils"
 
 	"github.com/sirupsen/logrus"
@@ -20,8 +19,6 @@ import (
 
 func Run() {
 	server := server.CreateAPIServer(config.DefaultEtcdEndpoints)
-	var serviceController service.ServiceController
-	go controller.StartController(&serviceController)
 	var schedulerController scheduler.Scheduler
 	go schedulerController.Run(constants.PolicyCPU)
 	var podcontroller podcontroller.PodController

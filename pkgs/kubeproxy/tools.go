@@ -1,38 +1,43 @@
-package service
+package kubeproxy
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/constants"
-	"minik8s/pkgs/kubeproxy"
 	"minik8s/utils"
-	"strconv"
-	"strings"
 
 	log "github.com/sirupsen/logrus"
 )
 
-func FindUnusedIP() string {
-	for i, used := range UsedIP {
-		if i == 0 || used {
-			continue
-		}
-		return fmt.Sprintf("%s%d", IPPrefix, i)
+func FindUnusedIP(namespace string, name string) string {
+	url := fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/services/%s/clusterip", config.ClusterMasterIP, config.ApiServerPort, namespace, name)
+	_, resp, err := utils.SendRequest("GET", url, []byte{})
+	if err != nil || resp == "" {
+		log.Errorf("error in get new ClusterIP")
+		return ""
 	}
-	log.Errorf("No IP available")
-	return ""
+	info := core.InfoType{}
+	err = utils.JsonUnMarshal(resp, &info)
+	if err != nil {
+		log.Errorf("error in unmarshal clusterIP")
+		return ""
+	}
+	if info.Data == "" {
+		log.Errorf("error in get new clusterIP")
+		return ""
+	}
+	return info.Data
 }
 
-func FreeUsedIP(ip string) {
-	indexs := strings.SplitN(ip, ".", -1)
-	index := indexs[len(indexs)-1]
-	ret, err := strconv.Atoi(index)
+func FreeUsedIP(namespace string, name string) {
+	url := fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/services/%s/clusterip", config.ClusterMasterIP, config.ApiServerPort, namespace, name)
+	_, _, err := utils.SendRequest("DELETE", url, []byte{})
 	if err != nil {
-		log.Errorf("ip index to int error ip %s index %s", ip, index)
+		log.Errorf("error in free ClusterIP")
 	}
-	UsedIP[ret] = false
 }
 
 func FindDestPort(targetPort string, containers []core.Container) uint32 {
@@ -83,7 +88,7 @@ func CreateEndpointObject(service *core.Service) error {
 					IP:   pod.Status.PodIP,
 					Port: destPort,
 				})
-				kubeproxy.BindEndpoint(service.Spec.ClusterIP, port.Port, pod.Status.PodIP, destPort)
+				BindEndpoint(service.Spec.ClusterIP, port.Port, pod.Status.PodIP, destPort)
 				log.Infof("create endpoint: %s:%d -> %s:%d", service.Spec.ClusterIP, port.Port, pod.Status.PodIP, destPort)
 			}
 			endpoint.Binds = append(endpoint.Binds, core.EndpointBind{
@@ -107,7 +112,7 @@ func CreateEndpointObject(service *core.Service) error {
 					IP:   NodeIP,
 					Port: destPort,
 				})
-				kubeproxy.BindEndpoint(NodeIP, port.NodePort, pod.Status.PodIP, destPort)
+				BindEndpoint(NodeIP, port.NodePort, pod.Status.PodIP, destPort)
 				log.Infof("create endpoint: %s:%d -> %s:%d", NodeIP, port.NodePort, pod.Status.PodIP, destPort)
 			}
 			endpoint.Binds = append(endpoint.Binds, core.EndpointBind{
@@ -146,7 +151,7 @@ func UpdateEndpointObjectByPodCreate(service *core.Service, pod *core.Pod) error
 	}
 	for _, port := range service.Spec.Ports {
 		destPort := FindDestPort(port.TargetPort, pod.Spec.Containers)
-		kubeproxy.BindEndpoint(service.Spec.ClusterIP, port.Port, pod.Status.PodIP, destPort)
+		BindEndpoint(service.Spec.ClusterIP, port.Port, pod.Status.PodIP, destPort)
 		log.Infof("bind endpoint: %s:%d -> %s:%d", service.Spec.ClusterIP, port.Port, pod.Status.PodIP, destPort)
 
 		AddBinds(&endpoint.Binds, port.Port, core.EndpointDestination{
@@ -172,7 +177,7 @@ func UpdateEndpointObjectByPodDelete(service *core.Service, pod *core.Pod) error
 	}
 	for _, port := range service.Spec.Ports {
 		destPort := FindDestPort(port.TargetPort, pod.Spec.Containers)
-		kubeproxy.UnbindEndpoint(service.Spec.ClusterIP, port.Port, pod.Status.PodIP, destPort)
+		UnbindEndpoint(service.Spec.ClusterIP, port.Port, pod.Status.PodIP, destPort)
 		log.Infof("delete endpoint: %s:%d -> %s:%d", service.Spec.ClusterIP, port.Port, pod.Status.PodIP, destPort)
 
 		RemoveBinds(&endpoint.Binds, port.Port, core.EndpointDestination{
