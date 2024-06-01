@@ -25,3 +25,12 @@ nerdctl exec -it pod-on-worker-test-container /bin/bash
 ./bin/kubectl delete service service-nodeport
 ./bin/kubectl delete pod service-pod
 ./bin/kubectl delete pod pod-on-worker
+
+./bin/kubectl apply -f ./example/replicaset/replicaset.yaml
+./bin/kubectl get pod
+./bin/kubectl get replicas
+./bin/kubectl apply -f ./example/replicaset/rs_service.yaml
+./bin/kubectl apply -f ./example/replicaset/replicaset.yaml -u ip-return-deployment
+./bin/kubectl get service
+./bin/kubectl delete replicas ip-return-deployment
+./bin/kubectl delete service rs-service

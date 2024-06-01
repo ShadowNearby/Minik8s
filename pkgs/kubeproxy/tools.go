@@ -29,6 +29,7 @@ func FindUnusedIP(namespace string, name string) string {
 		log.Errorf("error in get new clusterIP")
 		return ""
 	}
+	log.Info(info.Data)
 	return info.Data
 }
 

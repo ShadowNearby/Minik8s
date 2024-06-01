@@ -57,7 +57,7 @@ func GetIP() string {
 }
 
 func GenerateNewClusterIP() string {
-	return fmt.Sprintf("%s.%d.%d", constants.IPPrefix, rand.Uint32()%256, rand.Uint32()%256)
+	return fmt.Sprintf("%s.%d", constants.IPPrefix, rand.Uint32()%256)
 }
 
 func MatchLabel(l map[string]string, r map[string]string) bool {

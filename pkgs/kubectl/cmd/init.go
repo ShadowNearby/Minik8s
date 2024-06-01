@@ -34,11 +34,14 @@ func runRoot(cmd *cobra.Command, args []string) {
 var namespace string
 var filePath string
 var cfgFile string
+var update string
 
 func init() {
+	logrus.SetLevel(logrus.InfoLevel)
 	RootCommand.PersistentFlags().StringVarP(&namespace, "namespace", "n", "default", "kubectl (-n NAMESPACE)")
 	RootCommand.PersistentFlags().StringVar(&cfgFile, "config", "./config/config.json", "config file (default is ./config/config.json)")
 	applyCmd.Flags().StringVarP(&filePath, "filePath", "f", "", "kubectl apply -f <FILENAME>")
+	applyCmd.Flags().StringVarP(&update, "update", "u", "", "update (default is false)")
 	applyCmd.MarkFlagRequired("filePath")
 	if err := config.InitConfig(cfgFile); err != nil {
 		logrus.Fatalf("Error initializing config: %s", err.Error())

@@ -1,8 +1,9 @@
 package utils
 
 import (
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
+
+	logger "github.com/sirupsen/logrus"
 )
 
 // FilterOwner give original pods, returns pods owned by controller<kind-namespace-name>
@@ -10,7 +11,7 @@ func FilterOwner(origin *[]core.Pod, namespace, name string, kind core.ObjType) 
 	result := make([]core.Pod, 0)
 	for _, pod := range *origin {
 		or := pod.MetaData.OwnerReference
-		if or.Controller == true &&
+		if or.Controller &&
 			or.ObjType == kind &&
 			or.Name == name {
 			result = append(result, pod)

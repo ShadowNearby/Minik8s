@@ -8,16 +8,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func Init() {
-
-}
-
 // CreateService 创建虚拟节点，serviceIP 和 servicePort 代表虚拟节点的 IP 和端口，将虚拟节点添加到本地flannel网卡，添加SNAT功能
 func CreateService(serviceIP string, servicePort uint32) error {
 	createIPArgs := []string{"-A", "-t", fmt.Sprintf("%s:%d", serviceIP, servicePort), "-s", "rr"}
 	output, err := exec.Command("ipvsadm", createIPArgs...).CombinedOutput()
 	if err != nil {
-		log.Errorf("failed to create ip: %s output: %s", err.Error(), output)
+		log.Errorf("failed to create ip: %s output: %s\naddr:%s:%d", err.Error(), output, serviceIP, servicePort)
 		return err
 	}
 

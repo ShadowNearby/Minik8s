@@ -77,7 +77,7 @@ func (sc *ServiceController) HandleCreate(message string) error {
 	}
 	var clusterIP string
 	if service.Spec.ClusterIP == "" {
-		clusterIP := FindUnusedIP(service.MetaData.Namespace, service.MetaData.Name)
+		clusterIP = FindUnusedIP(service.MetaData.Namespace, service.MetaData.Name)
 		service.Spec.ClusterIP = clusterIP
 		utils.SetObject(core.ObjService, service.MetaData.Namespace, service.MetaData.Name, service)
 	} else {

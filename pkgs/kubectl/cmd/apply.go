@@ -60,9 +60,17 @@ func applyHandler(cmd *cobra.Command, args []string) {
 	if haveNamespace {
 		objectWnamespace := object.(core.ApiObjectKind)
 		namespace := objectWnamespace.GetNamespace()
-		err = utils.CreateObject(objType, namespace, object)
+		if update != "" {
+			err = utils.SetObject(objType, namespace, update, object)
+		} else {
+			err = utils.CreateObject(objType, namespace, object)
+		}
 	} else {
-		err = utils.CreateObjectWONamespace(objType, object)
+		if update != "" {
+			err = utils.SetObjectWONamespace(objType, update, object)
+		} else {
+			err = utils.CreateObjectWONamespace(objType, object)
+		}
 	}
 	if err != nil {
 		log.Fatal(err)
