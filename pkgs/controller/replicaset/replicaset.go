@@ -3,10 +3,11 @@ package rsc
 import (
 	"errors"
 	"fmt"
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/constants"
 	"minik8s/utils"
+
+	logger "github.com/sirupsen/logrus"
 )
 
 type ReplicaSetController struct {
@@ -67,6 +68,7 @@ func (rsc *ReplicaSetController) updateReplicas(info string) error {
 	err := utils.JsonUnMarshal(info, &replicas)
 
 	if err != nil {
+		logger.Errorf("unmarshal replicas error: %s", err.Error())
 		return err
 	}
 	if len(replicas) < 2 {

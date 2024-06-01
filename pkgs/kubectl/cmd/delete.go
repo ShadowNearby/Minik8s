@@ -1,13 +1,12 @@
 package cmd
 
 import (
+	"fmt"
 	core "minik8s/pkgs/apiobject"
-	"minik8s/pkgs/kubectl/api"
 	"minik8s/utils"
-	"os"
-	"reflect"
+	"strings"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -15,45 +14,38 @@ var deleteCmd = &cobra.Command{
 	Use:   "delete <resource> <name>",
 	Short: "Kubectl can delete resources and names",
 	Long:  "Kubectl can delete resources and names",
-	Run:   applyHandler,
+	Run:   deleteHandler,
 }
 
 func deleteHandler(cmd *cobra.Command, args []string) {
-	if len(args) != 1 {
-		cmd.Usage()
+	var kind string
+	var name string
+	var objType core.ObjType
+	logrus.Debugln(args)
+	if len(args) == 2 {
+		kind = strings.ToLower(args[0])
+		name = strings.ToLower(args[1])
+		for _, ty := range core.ObjTypeAll {
+			if !strings.Contains(ty, kind) {
+				continue
+			}
+			objType = core.ObjType(ty)
+		}
+	} else {
+		fmt.Printf("error: the server doesn't have a resource type %s\n", kind)
 		return
 	}
-	fileInfo, err := os.Stat(args[0])
+	haveNamespace, ok := core.ObjTypeNamespace[objType]
+	if !ok {
+		fmt.Printf("wrong type %s", objType)
+	}
+	var err error
+	if haveNamespace {
+		err = utils.DeleteObject(objType, namespace, name)
+	} else {
+		err = utils.DeleteObjectWONamespace(objType, name)
+	}
 	if err != nil {
-		log.Fatal(err)
-	}
-	if fileInfo.IsDir() {
-		log.Errorf("%s is not a file", args[0])
-		cmd.Usage()
-		return
-	}
-	fileContent, err := utils.ReadFile(args[0])
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	objType, err := api.GetObjTypeFromYamlFile(fileContent)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	structType, res := core.ObjTypeToCoreObjMap[objType]
-	if !res {
-		log.Error("Unsupported struct", objType)
-		return
-	}
-	object := reflect.New(structType).Interface().(core.ApiObjectKind)
-	err = api.ParseApiObjectFromYamlFile(fileContent, object)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = utils.DeleteObject(objType, object.GetNameSpace(), object.GetNameSpace())
-	if err != nil {
-		log.Fatal(err)
+		fmt.Print(err.Error())
 	}
 }

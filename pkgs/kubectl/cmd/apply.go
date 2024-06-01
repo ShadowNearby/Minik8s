@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/kubectl/api"
 	"minik8s/utils"
@@ -47,13 +48,30 @@ func applyHandler(cmd *cobra.Command, args []string) {
 		log.Error("Unsupported struct", objType)
 		return
 	}
-	object := reflect.New(structType).Interface().(core.ApiObjectKind)
+	haveNamespace, ok := core.ObjTypeNamespace[objType]
+	if !ok {
+		fmt.Printf("wrong type %s", objType)
+	}
+	object := reflect.New(structType).Interface()
 	err = yaml.Unmarshal(fileContent, object)
 	if err != nil {
 		log.Fatal(err)
 	}
-	nameSpace := object.GetNameSpace()
-	err = utils.CreateObject(objType, nameSpace, object)
+	if haveNamespace {
+		objectWnamespace := object.(core.ApiObjectKind)
+		namespace := objectWnamespace.GetNamespace()
+		if update != "" {
+			err = utils.SetObject(objType, namespace, update, object)
+		} else {
+			err = utils.CreateObject(objType, namespace, object)
+		}
+	} else {
+		if update != "" {
+			err = utils.SetObjectWONamespace(objType, update, object)
+		} else {
+			err = utils.CreateObjectWONamespace(objType, object)
+		}
+	}
 	if err != nil {
 		log.Fatal(err)
 	}

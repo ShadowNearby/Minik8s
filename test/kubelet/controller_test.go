@@ -2,10 +2,11 @@ package test
 
 import (
 	"fmt"
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/utils"
 	"testing"
+
+	logger "github.com/sirupsen/logrus"
 )
 
 func TestHttpInspectPod(t *testing.T) {
@@ -13,13 +14,13 @@ func TestHttpInspectPod(t *testing.T) {
 	pod := utils.GeneratePodConfigPy()
 	code, _, err := utils.SendRequest("POST", fmt.Sprintf("http://%s:10250/pod/create", ip), []byte(utils.JsonMarshal(pod)))
 	if code != 200 || err != nil {
-		utils.SendRequest("DELETE", fmt.Sprintf("http://%s:10250/pod/stop/%s/%s", ip, pod.GetNameSpace(), pod.MetaData.Name), nil)
+		utils.SendRequest("DELETE", fmt.Sprintf("http://%s:10250/pod/stop/%s/%s", ip, pod.GetNamespace(), pod.MetaData.Name), nil)
 		t.Error("create pod error")
 		return
 	}
-	code, data, err := utils.SendRequest("GET", fmt.Sprintf("http://%s:10250/pod/status/%s/%s", ip, pod.GetNameSpace(), pod.MetaData.Name), nil)
+	code, data, err := utils.SendRequest("GET", fmt.Sprintf("http://%s:10250/pod/status/%s/%s", ip, pod.GetNamespace(), pod.MetaData.Name), nil)
 	if code != 200 || err != nil {
-		utils.SendRequest("DELETE", fmt.Sprintf("http://%s:10250/pod/stop/%s/%s", ip, pod.GetNameSpace(), pod.MetaData.Name), nil)
+		utils.SendRequest("DELETE", fmt.Sprintf("http://%s:10250/pod/stop/%s/%s", ip, pod.GetNamespace(), pod.MetaData.Name), nil)
 		t.Error("inspect pod error")
 		return
 	}
@@ -32,7 +33,7 @@ func TestHttpInspectPod(t *testing.T) {
 		return
 	}
 	//logger.Info(utils.JsonMarshal(inspect))
-	utils.SendRequest("DELETE", fmt.Sprintf("http://%s:10250/pod/stop/%s/%s", ip, pod.GetNameSpace(), pod.MetaData.Name), nil)
+	utils.SendRequest("DELETE", fmt.Sprintf("http://%s:10250/pod/stop/%s/%s", ip, pod.GetNamespace(), pod.MetaData.Name), nil)
 }
 
 func TestHttpPodMetrics(t *testing.T) {
@@ -41,13 +42,13 @@ func TestHttpPodMetrics(t *testing.T) {
 	logger.Info(len(pod.Spec.Containers))
 	code, _, err := utils.SendRequest("POST", fmt.Sprintf("http://%s:10250/pod/create", ip), []byte(utils.JsonMarshal(pod)))
 	if code != 200 || err != nil {
-		utils.SendRequest("DELETE", fmt.Sprintf("http://%s:10250/pod/stop/%s/%s", ip, pod.GetNameSpace(), pod.MetaData.Name), nil)
+		utils.SendRequest("DELETE", fmt.Sprintf("http://%s:10250/pod/stop/%s/%s", ip, pod.GetNamespace(), pod.MetaData.Name), nil)
 		t.Error("create pod error")
 		return
 	}
-	code, data, err := utils.SendRequest("GET", fmt.Sprintf("http://%s:10250/metrics/%s/%s", ip, pod.GetNameSpace(), pod.MetaData.Name), nil)
+	code, data, err := utils.SendRequest("GET", fmt.Sprintf("http://%s:10250/metrics/%s/%s", ip, pod.GetNamespace(), pod.MetaData.Name), nil)
 	if code != 200 || err != nil {
-		utils.SendRequest("DELETE", fmt.Sprintf("http://%s:10250/pod/stop/%s/%s", ip, pod.GetNameSpace(), pod.MetaData.Name), nil)
+		utils.SendRequest("DELETE", fmt.Sprintf("http://%s:10250/pod/stop/%s/%s", ip, pod.GetNamespace(), pod.MetaData.Name), nil)
 		t.Error("find metrics error")
 		return
 	}
@@ -56,5 +57,5 @@ func TestHttpPodMetrics(t *testing.T) {
 	var metrics []core.ContainerMetrics
 	utils.JsonUnMarshal(info.Data, &metrics)
 	logger.Info(utils.JsonMarshal(metrics))
-	utils.SendRequest("DELETE", fmt.Sprintf("http://%s:10250/pod/stop/%s/%s", ip, pod.GetNameSpace(), pod.MetaData.Name), nil)
+	utils.SendRequest("DELETE", fmt.Sprintf("http://%s:10250/pod/stop/%s/%s", ip, pod.GetNamespace(), pod.MetaData.Name), nil)
 }

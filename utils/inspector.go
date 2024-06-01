@@ -13,7 +13,7 @@ func InitPodStatus(podConfig *core.Pod) core.PodStatus {
 		StartTime:        time.Now(),
 		OldStatus:        make([]core.Status, 0),
 		ContainersStatus: make([]core.ContainerStatus, 0),
-		Condition:        core.ConInitialized,
+		Condition:        core.CondPending,
 	}
 	return podStat
 }

@@ -51,6 +51,20 @@ func CreateVolumeHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }
 
+// GetAllVolumeHandler GET /api/v1/volumes
+func GetAllVolumeHandler(c *gin.Context) {
+	pv := []core.PersistentVolume{}
+	key := "/volumes/object"
+	err := storage.RangeGet(key, &pv)
+	if err != nil {
+		logrus.Errorf("error in get pv %s", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(pv)})
+}
+
 // GetVolumeHandler GET /api/v1/volumes/:name
 func GetVolumeHandler(c *gin.Context) {
 	name := c.Param("name")
@@ -89,7 +103,7 @@ func GetCsiVolumeHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(*volume)})
 }
 
-// GetVolumeHandler DELETE /api/v1/volumes/:name
+// DeleteVolumeHandler DELETE /api/v1/volumes/:name
 func DeleteVolumeHandler(c *gin.Context) {
 	name := c.Param("name")
 	if len(name) == 0 {

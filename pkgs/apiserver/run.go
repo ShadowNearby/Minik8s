@@ -3,6 +3,7 @@ package apiserver
 import (
 	"fmt"
 	"minik8s/config"
+	"minik8s/pkgs/apiserver/heartbeat"
 	"minik8s/pkgs/apiserver/server"
 	"minik8s/pkgs/constants"
 	"minik8s/pkgs/controller"
@@ -11,7 +12,6 @@ import (
 	"minik8s/pkgs/controller/podcontroller"
 	rsc "minik8s/pkgs/controller/replicaset"
 	scheduler "minik8s/pkgs/controller/scheduler"
-	"minik8s/pkgs/controller/service"
 	"minik8s/utils"
 
 	"github.com/sirupsen/logrus"
@@ -20,8 +20,6 @@ import (
 
 func Run() {
 	server := server.CreateAPIServer(config.DefaultEtcdEndpoints)
-	var serviceController service.ServiceController
-	go controller.StartController(&serviceController)
 	var schedulerController scheduler.Scheduler
 	go schedulerController.Run(constants.PolicyCPU)
 	var podController podcontroller.PodController
@@ -35,6 +33,9 @@ func Run() {
 	var functionController function.FuncController
 	go controller.StartController(&functionController)
 	go functionController.ListenOtherChannels()
+	// start heartbeat
+	go heartbeat.Run()
+
 
 	server.Run(fmt.Sprintf("%s:%s", config.ClusterMasterIP, config.ApiServerPort))
 }

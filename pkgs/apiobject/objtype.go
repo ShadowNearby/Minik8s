@@ -15,7 +15,6 @@ const (
 	ObjHpa        ObjType = "hpa"
 	ObjFunction   ObjType = "functions"
 	ObjWorkflow   ObjType = "workflows"
-	ObjDeployment ObjType = "deployment"
 	ObjEndPoint   ObjType = "endpoints"
 	ObjDNS        ObjType = "dns"
 	ObjVolume     ObjType = "volumes"
@@ -23,16 +22,18 @@ const (
 )
 
 var ObjTypeAll = []string{
-	"pod",
-	"node",
-	"replica",
-	"service",
+	"pods",
+	"nodes",
+	"replicas",
+	"services",
+	"endpoints",
 	"deployment",
-	"job",
+	"jobs",
 	"hpa",
-	"function",
-	"workflow",
+	"functions",
+	"workflows",
 	"dns",
+	"volumes",
 }
 
 var ObjTypeToCoreObjMap = map[ObjType]reflect.Type{
@@ -40,27 +41,50 @@ var ObjTypeToCoreObjMap = map[ObjType]reflect.Type{
 	ObjNode:       reflect.TypeOf(&Node{}).Elem(),
 	ObjReplicaSet: reflect.TypeOf(&ReplicaSet{}).Elem(),
 	ObjService:    reflect.TypeOf(&Service{}).Elem(),
-	ObjDeployment: reflect.TypeOf(&ReplicaSet{}).Elem(),
+	ObjHpa:        reflect.TypeOf(&HorizontalPodAutoscaler{}).Elem(),
+	ObjFunction:   reflect.TypeOf(&Function{}).Elem(),
+	ObjWorkflow:   reflect.TypeOf(&Workflow{}).Elem(),
 	ObjEndPoint:   reflect.TypeOf(&Endpoint{}).Elem(),
 	ObjDNS:        reflect.TypeOf(&DNSRecord{}).Elem(),
+	ObjVolume:     reflect.TypeOf(&PersistentVolume{}).Elem(),
 }
+
+var ObjTypeNamespace = map[ObjType]bool{
+	ObjNode:      false,
+	ObjFunction:  false,
+	ObjWorkflow:  false,
+	ObjVolume:    false,
+	ObjCsiVolume: false,
+
+	ObjPod:        true,
+	ObjReplicaSet: true,
+	ObjService:    true,
+	ObjHpa:        true,
+	ObjEndPoint:   true,
+	ObjDNS:        true,
+}
+
+// {ObjNode, ObjFunction, ObjWorkflow, ObjVolume, ObjCsiVolume}
 
 type ApiObjectKind interface {
-	GetNameSpace() string
+	GetNamespace() string
 }
 
-func (p *Pod) GetNameSpace() string {
+func (p *Pod) GetNamespace() string {
 	return p.MetaData.Namespace
 }
-func (n *Node) GetNameSpace() string {
-	return n.NodeMetaData.Namespace
-}
-func (w *Workflow) GetNameSpace() string {
-	return "workflow"
-}
-func (r *ReplicaSet) GetNameSpace() string {
+func (r *ReplicaSet) GetNamespace() string {
 	return r.MetaData.Namespace
 }
-func (s *Service) GetNameSpace() string {
+func (s *HorizontalPodAutoscaler) GetNamespace() string {
+	return s.MetaData.Namespace
+}
+func (s *Endpoint) GetNamespace() string {
+	return s.MetaData.Namespace
+}
+func (s *DNSRecord) GetNamespace() string {
+	return s.MetaData.Namespace
+}
+func (s *Service) GetNamespace() string {
 	return s.MetaData.Namespace
 }

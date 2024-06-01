@@ -17,6 +17,7 @@ var (
 	PodCIDR              = "10.244.0.0/16"
 	NodePort             = "10250"
 	DefaultEtcdEndpoints = []string{"localhost:2380"}
+	HeartbeatInterval    = 15 * time.Second
 )
 
 var (
@@ -70,6 +71,11 @@ func InitConfig(configPath string) error {
 	PodCIDR = cfg.PodCIDR
 	NodePort = cfg.NodePort
 	DefaultEtcdEndpoints = cfg.DefaultEtcdEndpoints
+	HeartbeatInterval, err = time.ParseDuration(cfg.HeartbeatInterval)
+	if err != nil {
+		logrus.Errorf("error in parse HeartbeatInterval %s", err.Error())
+		return err
+	}
 	CsiSockAddr = cfg.CsiSockAddr
 	CsiStagingTargetPath = cfg.CsiStagingTargetPath
 	CsiMntPath = cfg.CsiMntPath
@@ -112,6 +118,7 @@ type Config struct {
 	PodCIDR                  string   `json:"PodCIDR"`
 	NodePort                 string   `json:"NodePort"`
 	DefaultEtcdEndpoints     []string `json:"DefaultEtcdEndpoints"`
+	HeartbeatInterval        string   `json:"HeartbeatInterval"`
 	CsiSockAddr              string   `json:"CsiSockAddr"`
 	CsiStagingTargetPath     string   `json:"CsiStagingTargetPath"`
 	CsiMntPath               string   `json:"CsiMntPath"`

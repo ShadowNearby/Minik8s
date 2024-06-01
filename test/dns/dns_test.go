@@ -23,7 +23,7 @@ func TestDNSBasic(t *testing.T) {
 		t.Fatalf("error in create storage")
 	}
 	ctx := context.Background()
-	content, err := os.ReadFile(fmt.Sprintf("%s/%s", utils.ExamplePath, "dns_records.json"))
+	content, err := os.ReadFile(fmt.Sprintf("%s/%s", utils.ExamplePath, "dns/dns_records.json"))
 	if err != nil {
 		t.Errorf("Error reading file: %s", err.Error())
 	}
@@ -73,7 +73,7 @@ func TestDNSBasic(t *testing.T) {
 func TestDNSApi(t *testing.T) {
 	logrus.SetReportCaller(true)
 	logrus.SetFormatter(&logrus.TextFormatter{ForceColors: true})
-	content, err := os.ReadFile(fmt.Sprintf("%s/%s", utils.ExamplePath, "dns_records.json"))
+	content, err := os.ReadFile(fmt.Sprintf("%s/%s", utils.ExamplePath, "dns/dns_records.json"))
 	if err != nil {
 		t.Errorf("Error reading file: %s", err.Error())
 	}

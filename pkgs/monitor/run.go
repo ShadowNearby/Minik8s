@@ -33,6 +33,9 @@ var rootCmd = &cobra.Command{
 		logrus.SetReportCaller(true)
 		logrus.SetFormatter(&utils.CustomFormatter{})
 		logrus.SetLevel(logrus.InfoLevel)
+		if err := config.InitConfig(cfgFile); err != nil {
+			logrus.Fatalf("Error initializing config: %s", err.Error())
+		}
 		Run()
 	},
 }

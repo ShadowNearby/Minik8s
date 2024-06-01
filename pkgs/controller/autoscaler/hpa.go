@@ -12,12 +12,13 @@ Also notice that when abs(desiredReplicas - currentReplicas) < 0.1, we do not re
 */
 import (
 	"fmt"
-	logger "github.com/sirupsen/logrus"
 	"math"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/constants"
 	"minik8s/utils"
 	"time"
+
+	logger "github.com/sirupsen/logrus"
 )
 
 type HPAController struct {
@@ -257,7 +258,7 @@ func scaleDown(currentReplica, desiredReplica int, currentPods []core.Pod, hpa *
 		if i >= left {
 			break
 		}
-		err := utils.DeleteObject(core.ObjPod, pod.GetNameSpace(), pod.MetaData.Name)
+		err := utils.DeleteObject(core.ObjPod, pod.GetNamespace(), pod.MetaData.Name)
 		if err != nil {
 			logger.Error(err.Error())
 			return err
@@ -276,7 +277,7 @@ func scaleUp(currentReplica, desiredReplica int, template core.Pod, hpa *core.Ho
 		newTemplate.MetaData.UUID = utils.GenerateUUID()
 		newTemplate.MetaData.Namespace = "default"
 		newTemplate.MetaData.Name = fmt.Sprintf("hpa-%s-%s", hpa.Spec.ScaleTargetRef.Name, utils.GenerateUUID(5))
-		err := utils.CreateObject(core.ObjPod, newTemplate.GetNameSpace(), newTemplate)
+		err := utils.CreateObject(core.ObjPod, newTemplate.GetNamespace(), newTemplate)
 		if err != nil {
 			logger.Error(err.Error())
 			return err
@@ -384,7 +385,7 @@ func getPodMetrics(pod core.Pod) core.Metrics {
 	}
 	code, data, err := utils.SendRequest("GET",
 		fmt.Sprintf("http://%s:10250/metrics/%s/%s",
-			pod.Status.HostIP, pod.GetNameSpace(), pod.MetaData.Name),
+			pod.Status.HostIP, pod.GetNamespace(), pod.MetaData.Name),
 		nil)
 	if err != nil || code != 200 {
 		return core.Metrics{}

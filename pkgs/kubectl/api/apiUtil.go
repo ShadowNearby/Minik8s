@@ -1,12 +1,11 @@
 package api
 
 import (
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-	"github.com/wxnacy/wgo/arrays"
-	"gopkg.in/yaml.v3"
 	core "minik8s/pkgs/apiobject"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v3"
 )
 
 func GetObjTypeFromYamlFile(fileContent []byte) (core.ObjType, error) {
@@ -20,20 +19,16 @@ func GetObjTypeFromYamlFile(fileContent []byte) (core.ObjType, error) {
 		log.Error("no kind found in file")
 		return "", err
 	}
-	if idx := arrays.ContainsString(core.ObjTypeAll, strings.ToLower(result["kind"].(string))); idx == -1 {
-		return "", errors.New("Error kind: " + result["kind"].(string))
-	} else {
-		if result["kind"].(string) == "ReplicaSet" {
-			return core.ObjReplicaSet, err
+	kind := result["kind"].(string)
+	kind = strings.ToLower(kind)
+	var objType core.ObjType
+	for _, ty := range core.ObjTypeAll {
+		if !strings.Contains(ty, kind) {
+			continue
 		}
-
-		return core.ObjType(strings.ToLower(result["kind"].(string)) + "s"), err
+		objType = core.ObjType(ty)
 	}
-}
-
-func GetCoreObjFromObjType(objType core.ObjType) (interface{}, bool) {
-	obj, exists := core.ObjTypeToCoreObjMap[objType]
-	return obj, exists
+	return objType, nil
 }
 
 func ParseApiObjectFromYamlFile(fileContent []byte, obj interface{}) error {

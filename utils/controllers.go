@@ -11,10 +11,9 @@ func FilterOwner(origin *[]core.Pod, name string, kind core.ObjType) []core.Pod 
 	result := make([]core.Pod, 0)
 	for _, pod := range *origin {
 		or := pod.MetaData.OwnerReference
-		if or.Controller == true &&
+		if or.Controller &&
 			or.ObjType == kind &&
 			or.Name == name {
-			logger.Info("append")
 			result = append(result, pod)
 		}
 	}
@@ -35,7 +34,6 @@ func FindRSPods(rsName string, namespace ...string) ([]core.Pod, error) {
 		return nil, nil
 	}
 	JsonUnMarshal(podsTxt, &pods)
-	logger.Infof("get pods length: %d", len(pods))
 	// filter pods with this rs owner-reference
 	return FilterOwner(&pods, rsName, core.ObjReplicaSet), nil
 }

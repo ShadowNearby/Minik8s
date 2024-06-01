@@ -2,8 +2,13 @@ package utils
 
 import (
 	"encoding/json"
-	logger "github.com/sirupsen/logrus"
+	"fmt"
+	"math/rand"
+	core "minik8s/pkgs/apiobject"
+	"minik8s/pkgs/constants"
 	"net"
+
+	logger "github.com/sirupsen/logrus"
 )
 
 func JsonMarshal(item any) string {
@@ -49,6 +54,10 @@ func GetIP() string {
 		}
 	}
 	return ""
+}
+
+func GenerateNewClusterIP() string {
+	return fmt.Sprintf("%s.%d", constants.IPPrefix, rand.Uint32()%256)
 }
 
 func MatchLabel(l map[string]string, r map[string]string) bool {

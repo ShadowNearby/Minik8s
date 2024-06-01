@@ -7,6 +7,7 @@ import (
 	"minik8s/pkgs/constants"
 	"minik8s/utils"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	logger "github.com/sirupsen/logrus"
@@ -21,6 +22,8 @@ func CreateNodeHandler(c *gin.Context) {
 		return
 	}
 	nodeName := fmt.Sprintf("/nodes/object/%s", nodeConfig.NodeMetaData.Name)
+	nodeConfig.Status.Phase = core.NodeReady
+	nodeConfig.Status.LastHeartbeat = time.Now()
 	err = storage.Put(nodeName, nodeConfig)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot store data"})

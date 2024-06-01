@@ -142,3 +142,96 @@ func UpdateServiceHandler(c *gin.Context) {
 	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelService, constants.ChannelUpdate), utils.JsonMarshal(services))
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }
+
+const ServiceIPKey = "/services/ip"
+
+var UsedMapKey = fmt.Sprintf("%s/used", ServiceIPKey)
+
+var ServiceIPMapKey = fmt.Sprintf("%s/map", ServiceIPKey)
+
+func GetServiceClusterIPHandler(c *gin.Context) {
+	namespace := c.Param("namespace")
+	if namespace == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "need namespace"})
+		return
+	}
+	name := c.Param("name")
+	if name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "need name"})
+		return
+	}
+	usedMap := map[string]bool{}
+	serviceIPMap := map[string]string{}
+	serviceKey := fmt.Sprintf("%s:%s", namespace, name)
+	err1 := storage.Get(UsedMapKey, &usedMap)
+	err2 := storage.Get(ServiceIPMapKey, &serviceIPMap)
+	var newIP string
+	if err1 != nil || err2 != nil {
+		newIP = utils.GenerateNewClusterIP()
+	} else {
+		for {
+			newIP = utils.GenerateNewClusterIP()
+			if exist, ok := usedMap[newIP]; !ok || !exist {
+				break
+			}
+		}
+	}
+	oldIP, ok := serviceIPMap[serviceKey]
+	if ok {
+		c.JSON(http.StatusOK, gin.H{"data": oldIP})
+		return
+	}
+	usedMap[newIP] = true
+	serviceIPMap[serviceKey] = newIP
+	err := storage.Put(UsedMapKey, usedMap)
+	if err != nil {
+		log.Errorf("error in put UsedMap")
+		c.JSON(http.StatusOK, gin.H{"error": "error in put UsedMap"})
+	}
+	err = storage.Put(ServiceIPMapKey, serviceIPMap)
+	if err != nil {
+		log.Errorf("error in put ServiceIPMap")
+		c.JSON(http.StatusOK, gin.H{"error": "error in put ServiceIPMap"})
+	}
+	c.JSON(http.StatusOK, gin.H{"data": newIP})
+}
+
+func DeleteServiceClusterIPHandler(c *gin.Context) {
+	namespace := c.Param("namespace")
+	if namespace == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "need namespace"})
+		return
+	}
+	name := c.Param("name")
+	if name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "need name"})
+		return
+	}
+	usedMap := map[string]bool{}
+	serviceIPMap := map[string]string{}
+	serviceKey := fmt.Sprintf("%s:%s", namespace, name)
+	err1 := storage.Get(UsedMapKey, &usedMap)
+	err2 := storage.Get(ServiceIPMapKey, &serviceIPMap)
+	if err1 != nil || err2 != nil {
+		log.Errorf("error in get ServiceIPMap or UsedMapKey")
+		c.JSON(http.StatusOK, gin.H{"error": "error in get ServiceIPMap or UsedMapKey"})
+	}
+	ip, ok := serviceIPMap[serviceKey]
+	if !ok {
+		log.Errorf("error in find ip for service %s", serviceKey)
+		c.JSON(http.StatusOK, gin.H{"error": "error in find ip for service"})
+	}
+	delete(serviceIPMap, serviceKey)
+	delete(usedMap, ip)
+	err := storage.Put(UsedMapKey, usedMap)
+	if err != nil {
+		log.Errorf("error in put UsedMap")
+		c.JSON(http.StatusOK, gin.H{"error": "error in put UsedMap"})
+	}
+	err = storage.Put(ServiceIPMapKey, serviceIPMap)
+	if err != nil {
+		log.Errorf("error in put ServiceIPMap")
+		c.JSON(http.StatusOK, gin.H{"error": "error in put ServiceIPMap"})
+	}
+	c.JSON(http.StatusOK, gin.H{"data": "success"})
+}

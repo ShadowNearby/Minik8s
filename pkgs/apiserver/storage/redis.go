@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"minik8s/config"
 	"minik8s/pkgs/constants"
 	"minik8s/utils"
 
@@ -23,9 +24,16 @@ const (
 	OpGet string = "get"
 )
 
-func createRedisClient() *redis.Client {
+func CreateRedisClient() *redis.Client {
 	return redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     fmt.Sprintf("%s:6379", config.ClusterMasterIP),
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+}
+func createFunctionClient() *redis.Client {
+	return redis.NewClient(&redis.Options{
+		Addr:     "localhost:8070",
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
@@ -124,6 +132,7 @@ func (r *Redis) SubscribeChannel(channel string) <-chan *redis.Message {
 }
 
 func (r *Redis) PublishMessage(channel string, message any) {
+	// logger.Infoln("[", channel, "]\t", message)
 	r.Client.Publish(ctx, channel, message)
 }
 

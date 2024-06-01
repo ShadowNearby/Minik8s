@@ -11,7 +11,11 @@ import (
 
 var etcdClient = CreateEtcdStorage(config.DefaultEtcdEndpoints)
 var RedisInstance = &Redis{
-	Client:   createRedisClient(),
+	Client:   CreateRedisClient(),
+	Channels: make(map[string]*redis.PubSub),
+}
+var FunctionInstance = &Redis{
+	Client:   createFunctionClient(),
 	Channels: make(map[string]*redis.PubSub),
 }
 

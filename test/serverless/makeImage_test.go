@@ -1,6 +1,7 @@
 package serverless
 
 import (
+	"minik8s/pkgs/serverless/activator"
 	"minik8s/pkgs/serverless/function"
 	"minik8s/utils"
 	"os/exec"
@@ -17,7 +18,6 @@ func TestFindImage(t *testing.T) {
 func TestCreateImage(t *testing.T) {
 	function.CreateImage(utils.ExamplePath+"/serverless/single.py", "serverless_test")
 }
-
 func TestDeleteImage(t *testing.T) {
 	err := function.DeleteImage("serverless_example")
 	if err != nil {

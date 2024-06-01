@@ -1,4 +1,4 @@
-package service
+package kubeproxy
 
 import (
 	"encoding/json"

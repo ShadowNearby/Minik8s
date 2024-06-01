@@ -21,11 +21,13 @@ var RouteTable = [...]Route{
 	{Path: "/api/v1/nodes/:name", Method: "DELETE", Handler: DeleteNodeHandler}, // DELETE, delete a node
 	{Path: "/api/v1/nodes/:name", Method: "PUT", Handler: UpdateNodeHandler},    // PUT, update a node
 
-	{Path: "/api/v1/namespaces/:namespace/services", Method: "POST", Handler: CreateServiceHandler},         // POST, create a service
-	{Path: "/api/v1/namespaces/:namespace/services/:name", Method: "GET", Handler: GetServiceHandler},       // GET, get a service
-	{Path: "/api/v1/namespaces/:namespace/services", Method: "GET", Handler: GetServiceListHandler},         // GET, list all services
-	{Path: "/api/v1/namespaces/:namespace/services/:name", Method: "DELETE", Handler: DeleteServiceHandler}, // DELETE, delete a service
-	{Path: "/api/v1/namespaces/:namespace/services/:name", Method: "PUT", Handler: UpdateServiceHandler},    // PUT, update a service
+	{Path: "/api/v1/namespaces/:namespace/services", Method: "POST", Handler: CreateServiceHandler},                            // POST, create a service
+	{Path: "/api/v1/namespaces/:namespace/services/:name", Method: "GET", Handler: GetServiceHandler},                          // GET, get a service
+	{Path: "/api/v1/namespaces/:namespace/services", Method: "GET", Handler: GetServiceListHandler},                            // GET, list all services
+	{Path: "/api/v1/namespaces/:namespace/services/:name", Method: "DELETE", Handler: DeleteServiceHandler},                    // DELETE, delete a service
+	{Path: "/api/v1/namespaces/:namespace/services/:name", Method: "PUT", Handler: UpdateServiceHandler},                       // PUT, update a service
+	{Path: "/api/v1/namespaces/:namespace/services/:name/clusterip", Method: "GET", Handler: GetServiceClusterIPHandler},       // GET, get a service clusterIP
+	{Path: "/api/v1/namespaces/:namespace/services/:name/clusterip", Method: "DELETE", Handler: DeleteServiceClusterIPHandler}, // DELETE, free a service clusterIP
 
 	{Path: "/api/v1/namespaces/:namespace/endpoints", Method: "POST", Handler: CreateEndpointHandler},         // POST, create an endpoint
 	{Path: "/api/v1/namespaces/:namespace/endpoints/:name", Method: "GET", Handler: GetEndpointHandler},       // GET, get an endpoint
@@ -82,6 +84,7 @@ var RouteTable = [...]Route{
 
 	{Path: "/api/v1/volumes", Method: "POST", Handler: CreateVolumeHandler},         // POST, create a volume
 	{Path: "/api/v1/volumes/:name", Method: "GET", Handler: GetVolumeHandler},       // GET, get a volume
+	{Path: "/api/v1/volumes", Method: "GET", Handler: GetAllVolumeHandler},          // GET, get all volume
 	{Path: "/api/v1/volumes/:name", Method: "DELETE", Handler: DeleteVolumeHandler}, // DELETE, delete a volume
 	{Path: "/api/v1/csivolumes/:name", Method: "GET", Handler: GetCsiVolumeHandler}, // GET, get a csivolume
 	{Path: "/api/v1/watch/:name", Method: "GET", Handler: GetDNSHandler},            // get a DNS watcj

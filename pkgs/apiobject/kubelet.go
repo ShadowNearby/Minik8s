@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/docker/go-connections/nat"
 )
@@ -62,10 +63,10 @@ type Container struct {
 type ImagePullPolicy string
 
 type VolumeMountConfig struct {
-	Name          string `json:"name"`
-	ContainerPath string `json:"container_path"`
-	HostPath      string `json:"mount_path"`
-	ReadOnly      bool   `json:"read_only"`
+	Name          string `json:"name" yaml:"name"`
+	ContainerPath string `json:"containerPath" yaml:"containerPath"`
+	HostPath      string `json:"mountPath" yaml:"mountPath"`
+	ReadOnly      bool   `json:"readOnly" yaml:"readOnly"`
 }
 
 type PortConfig struct {
@@ -122,10 +123,11 @@ type InspectState struct {
 }
 
 type Node struct {
-	ApiVersion   string   `json:"apiVersion,omitempty"`
-	Kind         string   `json:"kind,omitempty"`
-	NodeMetaData MetaData `json:"metadata,omitempty"`
-	Spec         NodeSpec `json:"spec,omitempty"`
+	ApiVersion   string     `json:"apiVersion,omitempty"`
+	Kind         string     `json:"kind,omitempty"`
+	NodeMetaData MetaData   `json:"metadata,omitempty"`
+	Spec         NodeSpec   `json:"spec,omitempty"`
+	Status       NodeStatus `json:"nodeStatus,omitempty"`
 }
 
 func (p Node) MarshalBinary() ([]byte, error) {
@@ -149,3 +151,15 @@ type KubeletConfig struct {
 	MasterPort string            `json:"masterPort"`
 	Labels     map[string]string `json:"labels"`
 }
+
+type NodeStatus struct {
+	Phase         NodeStatusPhase `json:"phase"`
+	LastHeartbeat time.Time       `json:"lastHeartbeat"`
+}
+
+type NodeStatusPhase string
+
+const (
+	NodeReady              NodeStatusPhase = "Ready"
+	NodeNetworkUnavailable NodeStatusPhase = "NetworkUnavailable"
+)
