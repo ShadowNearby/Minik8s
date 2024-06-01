@@ -11,7 +11,6 @@ The desired replicas refers to this equation: desiredReplicas = ceil[currentRepl
 Also notice that when abs(desiredReplicas - currentReplicas) < 0.1, we do not rescale
 */
 import (
-	"errors"
 	"fmt"
 	logger "github.com/sirupsen/logrus"
 	"math"
@@ -42,10 +41,8 @@ func (h *HPAController) GetChannel() string {
 	return constants.ChannelHPA
 }
 func (h *HPAController) HandleTrigger(message string) error {
-	logger.Errorf("HPA cannot be triggered")
-	return errors.New("HPA cannot be triggered")
+	return nil
 }
-
 func (h *HPAController) HandleCreate(message string) error {
 	var hpa core.HorizontalPodAutoscaler
 	utils.JsonUnMarshal(message, &hpa)

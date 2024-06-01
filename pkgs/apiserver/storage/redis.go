@@ -30,13 +30,6 @@ func createRedisClient() *redis.Client {
 		DB:       0,  // use default DB
 	})
 }
-func createFunctionClient() *redis.Client {
-	return redis.NewClient(&redis.Options{
-		Addr:     "localhost:8070",
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
-}
 
 func (r *Redis) InitChannels() {
 	for _, channel := range constants.Channels {

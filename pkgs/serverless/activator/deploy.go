@@ -71,7 +71,7 @@ func GenerateReplicaSet(name string, namespace string, image string, replicas in
 	}
 }
 
-func getPodIpList(pods []*core.Pod) []string {
+func getPodIpList(pods []core.Pod) []string {
 	result := make([]string, 0)
 	if pods == nil {
 		return result
@@ -93,7 +93,7 @@ func CheckConnection(ip string) error {
 		default:
 			{
 				// try to connect to the ip
-				address := ip + ":" + config.ServelessIP
+				address := ip + ":" + config.ServerlessIP
 				conn, err := net.DialTimeout("tcp", address, time.Second)
 				if err != nil {
 					continue
@@ -114,6 +114,7 @@ func InitFunc(name string, path string) error {
 		return err
 	}
 	imageName := fmt.Sprintf("%s:%s/%s:latest", config.LocalServerIp, config.ApiServerPort, name)
+
 	replicaSet := GenerateReplicaSet(name, "serverless", imageName, 0)
 	log.Info("[InitFunc] create record replicaSet: ", replicaSet)
 
@@ -136,7 +137,8 @@ func InitFunc(name string, path string) error {
 }
 func IfDeployed(name string) ([]string, error) {
 	log.Info("[CheckPrepare] check prepare for function: ", name)
-	// 1. find the according replicaSet
+	// 1. find the pods
+
 	response := utils.GetObject(core.ObjReplicaSet, "serverless", name)
 	var replicaSet *core.ReplicaSet
 	if response == "" {
@@ -163,7 +165,7 @@ func IfDeployed(name string) ([]string, error) {
 			default:
 				if !deployed {
 					log.Info("[CheckPrepare] first check if function deployed: ", name)
-					pods := utils.GetPodListFromRS(replicaSet)
+					pods, _ := utils.FindRSPods(replicaSet.MetaData.Name)
 					podIps := getPodIpList(pods)
 					autoscaler.RecordMutex.Lock()
 					record := autoscaler.GetRecord(name)
@@ -200,7 +202,7 @@ func IfDeployed(name string) ([]string, error) {
 					autoscaler.RecordMutex.Unlock()
 					deployed = true
 				} else {
-					pods := utils.GetPodListFromRS(replicaSet)
+					pods, _ := utils.FindRSPods(replicaSet.MetaData.Name)
 					autoscaler.RecordMutex.RLock()
 					record := autoscaler.GetRecord(name)
 					autoscaler.RecordMutex.RUnlock()
@@ -227,7 +229,7 @@ func IfDeployed(name string) ([]string, error) {
 	}
 	// get the current pod ip list and return
 	log.Info("[CheckPrepare] get the current pod ip list and return")
-	pods := utils.GetPodListFromRS(replicaSet)
+	pods, _ := utils.FindRSPods(replicaSet.MetaData.Name)
 	podsIp := getPodIpList(pods)
 	return podsIp, nil
 }
@@ -261,12 +263,11 @@ func DeleteFunc(name string) error {
 	return nil
 }
 
-// TriggerFunc trigger the function with some parameters
+// TriggerFunc trigger the function with some parameters(retry 3 times)
 // if the function is not deployed, deploy it first
 func TriggerFunc(name string, params []byte) ([]byte, error) {
 	// 1. check if the function is deployed
 	log.Info("[TriggerFunc] trigger function: ", name)
-	log.Info("=========================================================>")
 	retry := 3
 	for retry > 0 {
 		retry -= 1
@@ -281,16 +282,23 @@ func TriggerFunc(name string, params []byte) ([]byte, error) {
 			log.Error("[TriggerFunc] load balance error: ", err)
 			continue
 		}
-
 		// 3. trigger the function
 		log.Info("[TriggerFunc] load balance success: ", podIp)
-		url := "http://" + podIp + ":8081/"
+		url := fmt.Sprintf("http://%s:108080/", podIp)
+		if err != nil {
+			return nil, err
+		}
 		var data interface{}
 		err = json.Unmarshal(params, &data)
 		prettyJSON, err := json.MarshalIndent(data, "", "  ")
+		err = utils.JsonUnMarshal(string(params), &data)
 		if err != nil {
-			log.Error("[TriggerFunc] marshal params error: ", err)
+			log.Error("[TriggerFunc] marshal params error: ")
+			{
+				return nil, err
+			}
 		}
+
 		log.Info("[TriggerFunc] prettyJSON: ", string(prettyJSON), "url: ", url)
 
 		// 4. send the request
@@ -301,14 +309,13 @@ func TriggerFunc(name string, params []byte) ([]byte, error) {
 			continue
 		}
 		log.Info("[TriggerFunc] connection is finished")
-		ret, err := utils.TriggerFunction(name, params)
+		_, ret, err := utils.SendRequest("POST", url, params)
 		log.Info("[TriggerFunc] ret: ", string(ret))
 		result := bytes.NewBufferString(ret).Bytes()
 		if err != nil {
 			log.Error("[TriggerFunc] send request error: ", err)
 			continue
 		}
-
 		return result, err
 	}
 	return nil, errors.New("trigger function error")
@@ -340,7 +347,6 @@ func LoadBalance(name string, podIps []string) (string, error) {
 	sort.Slice(podIps, func(i, j int) bool {
 		return record.PodIps[podIps[i]] < record.PodIps[podIps[j]]
 	})
-
 	chosenPodIp := podIps[0]
 	record.PodIps[chosenPodIp]++
 

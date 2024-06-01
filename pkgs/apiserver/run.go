@@ -44,7 +44,6 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		logrus.SetReportCaller(true)
 		logrus.SetFormatter(&utils.CustomFormatter{})
-
 		if err := config.InitConfig(cfgFile); err != nil {
 			logrus.Fatalf("Error initializing config: %s", err.Error())
 		}

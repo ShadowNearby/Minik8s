@@ -1,0 +1,4 @@
+kind : Function
+apiVersion: apps/v2
+name : add-func
+path :  /home/zxy/minik8s/examples/serverless/func.py

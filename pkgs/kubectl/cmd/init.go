@@ -35,9 +35,12 @@ var filePath string
 func init() {
 	RootCommand.PersistentFlags().StringVarP(&NameSpace, "namespace", "n", "default", "kubectl (-n NAMESPACE)")
 	applyCmd.Flags().StringVarP(&filePath, "filePath", "f", "", "kubectl apply -f <FILENAME>")
+	triggerCmd.Flags().StringVarP(&filePath, "filePath", "f", "", "kubectl trigger <resource> <name> -f <FILENAME>")
 	applyCmd.MarkFlagRequired("filePath")
+	triggerCmd.MarkFlagRequired("filePath")
 	RootCommand.AddCommand(applyCmd)
 	RootCommand.AddCommand(deleteCmd)
 	RootCommand.AddCommand(getCmd)
 	RootCommand.AddCommand(describeCmd)
+	RootCommand.AddCommand(triggerCmd)
 }

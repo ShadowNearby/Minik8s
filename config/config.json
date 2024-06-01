@@ -25,7 +25,7 @@
 
   "PrometheusNodeFilePath": "prometheus/sd_node.json",
   "PrometheusPodFilePath": "prometheus/sd_pod.json",
-  "PrometheusScrapeInterval": "10s", 
+  "PrometheusScrapeInterval": "30s", 
 
   "FunctionRetryTimes": 10,
   "FunctionServerIp": "master",

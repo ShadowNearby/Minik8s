@@ -23,16 +23,18 @@ const (
 )
 
 var ObjTypeAll = []string{
-	"pod",
-	"node",
-	"replica",
-	"service",
+	"pods",
+	"nodes",
+	"replicas",
+	"services",
+	"endpoints",
 	"deployment",
-	"job",
+	"jobs",
 	"hpa",
-	"function",
-	"workflow",
+	"functions",
+	"workflows",
 	"dns",
+	"volumes",
 }
 
 var ObjTypeToCoreObjMap = map[ObjType]reflect.Type{
@@ -43,6 +45,7 @@ var ObjTypeToCoreObjMap = map[ObjType]reflect.Type{
 	ObjDeployment: reflect.TypeOf(&ReplicaSet{}).Elem(),
 	ObjEndPoint:   reflect.TypeOf(&Endpoint{}).Elem(),
 	ObjDNS:        reflect.TypeOf(&DNSRecord{}).Elem(),
+	ObjFunction:   reflect.TypeOf(&Function{}).Elem(),
 }
 
 type ApiObjectKind interface {
@@ -54,9 +57,6 @@ func (p *Pod) GetNameSpace() string {
 }
 func (n *Node) GetNameSpace() string {
 	return n.NodeMetaData.Namespace
-}
-func (w *Workflow) GetNameSpace() string {
-	return "workflow"
 }
 func (r *ReplicaSet) GetNameSpace() string {
 	return r.MetaData.Namespace

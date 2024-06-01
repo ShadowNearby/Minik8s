@@ -58,10 +58,7 @@ func (sc *ServiceController) HandleCreate(message string) error {
 	}
 	return nil
 }
-func (sc *ServiceController) HandleTrigger(message string) error {
-	log.Infoln("Trigger : ", message)
-	return nil
-}
+
 func (sc *ServiceController) HandleUpdate(message string) error {
 	services := []core.Service{}
 	err := json.Unmarshal([]byte(message), &services)
@@ -93,6 +90,9 @@ func (sc *ServiceController) HandleUpdate(message string) error {
 	return nil
 }
 
+func (sc *ServiceController) HandleTrigger(message string) error {
+	return nil
+}
 func (sc *ServiceController) HandleDelete(message string) error {
 	service := &core.Service{}
 	err := json.Unmarshal([]byte(message), service)

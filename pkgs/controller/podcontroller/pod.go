@@ -20,14 +20,14 @@ func (pc *PodController) GetChannel() string {
 func (pc *PodController) HandleCreate(message string) error {
 	return nil
 }
-func (pc *PodController) HandleTrigger(message string) error {
-	return nil
-}
 
 func (pc *PodController) HandleUpdate(message string) error {
 	return nil
 }
 
+func (pc *PodController) HandleTrigger(message string) error {
+	return nil
+}
 func (pc *PodController) HandleDelete(message string) error {
 	pod := &core.Pod{}
 	err := json.Unmarshal([]byte(message), pod)

@@ -1,0 +1,6 @@
+kind : Function
+apiVersion: apps/v2
+name : add-func
+params :
+  x : 1
+  y : 2

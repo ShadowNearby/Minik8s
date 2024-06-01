@@ -2,7 +2,6 @@ package service
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/constants"
@@ -17,10 +16,7 @@ func (sc *EndpointController) GetChannel() string {
 	// Pod 修改时需要修改Endpoint
 	return constants.ChannelPod
 }
-func (sc *EndpointController) HandleTrigger(message string) error {
-	log.Errorf("EndpointController cannot be triggered")
-	return errors.New("EndpointController cannot be triggered")
-}
+
 func (sc *EndpointController) HandleCreate(message string) error {
 	pod := &core.Pod{}
 	err := json.Unmarshal([]byte(message), pod)
@@ -64,7 +60,9 @@ func (sc *EndpointController) HandleUpdate(message string) error {
 	}
 	return nil
 }
-
+func (sc *EndpointController) HandleTrigger(message string) error {
+	return nil
+}
 func (sc *EndpointController) HandleDelete(message string) error {
 	pod := &core.Pod{}
 	err := json.Unmarshal([]byte(message), pod)

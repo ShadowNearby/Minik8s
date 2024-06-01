@@ -36,8 +36,7 @@ func CreateImage(path string, name string) error {
 		return err
 	}
 
-	// 1.2 create the image
-	//sudo usermod -aG docker $USER
+	/* 1.2 create the docker image  in rootPath/image */
 	cmd := exec.Command("docker", "build", "-t", name, utils.RootPath+"/image/")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -46,7 +45,7 @@ func CreateImage(path string, name string) error {
 		log.Error("[CreateImage] docker create image :", name, "at ", utils.RootPath, "/serverless/image/", " error: ", err)
 		return err
 	}
-	// 2. save the image to the registry
+	/* 2 save the image */
 	err = SaveImage(name)
 	if err != nil {
 		log.Error("[CreateImage] save image error: ", err)
@@ -56,9 +55,9 @@ func CreateImage(path string, name string) error {
 	return nil
 }
 
-/* save the image into the registry*/
+/* save the image into the registry rootPath/name:v1 */
 func SaveImage(name string) error {
-	// 2. push the image into the registry
+	/* push the image into the registry */
 	cmd := exec.Command("docker", "push", name)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -92,24 +91,45 @@ func FindImage(name string) bool {
 	}
 }
 
+/* find the container */
+func FindContainer(name string) bool {
+	cmd := exec.Command("docker", "ps -a")
+	// check the output
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Error("[FindImage] get output error: ", err)
+		return false
+	}
+
+	result := strings.TrimSpace(string(output))
+	log.Info("[FindImage] the result is: ", result)
+
+	if strings.Contains(result, name) {
+		return true
+	} else {
+		return false
+	}
+}
+
 /* delete the image */
 func DeleteImage(name string) error {
 	// if the image not exist, just ignore
 	imageName := fmt.Sprintf("%s/%s:v1", ImagePath, name)
+	if FindContainer(name) {
+		cmd := exec.Command("docker", "stop", name)
+		err := cmd.Run()
+		cmd = exec.Command("docker", "rm", name)
+		err = cmd.Run()
+		if err != nil {
+			log.Error("[DeleteImage] delete second image error: ", err)
+			return err
+		}
+	}
 	if FindImage(imageName) {
 		cmd := exec.Command("docker", "rmi", imageName)
 		err := cmd.Run()
 		if err != nil {
 			log.Error("[DeleteImage] delete first image error: ", err)
-			return err
-		}
-	}
-
-	if FindImage(name) {
-		cmd := exec.Command("docker", "rmi", name+":latest")
-		err := cmd.Run()
-		if err != nil {
-			log.Error("[DeleteImage] delete second image error: ", err)
 			return err
 		}
 	}
@@ -124,7 +144,6 @@ func RunImage(name string) error {
 	// 1. run the image
 	log.Info("[RunImage] run image ", name, " to start serverless")
 	cmd := exec.Command("docker", "run", "-d", "--name", name, imageName)
-
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()

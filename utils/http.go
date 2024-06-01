@@ -77,6 +77,7 @@ func SendRequest(method string, url string, body []byte) (int, string, error) {
 	if err != nil {
 		log.Error(err)
 		if response == nil {
+
 			return http.StatusInternalServerError, "", err
 		}
 	} else {

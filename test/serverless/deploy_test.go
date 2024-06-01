@@ -2,13 +2,17 @@ package serverless
 
 import (
 	"encoding/json"
-	"minik8s/config"
+	"fmt"
+	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/serverless/activator"
+	"minik8s/utils"
 	"testing"
 )
 
+const ImagePath = "shadownearby"
+
 func generateImage(name string) string {
-	return config.LocalServerIp + ":5000/" + name + ":latest"
+	return fmt.Sprintf("%s/%s:v1", ImagePath, name)
 }
 
 func TestGenerateReplicaSet(t *testing.T) {
@@ -27,6 +31,10 @@ func TestGenerateReplicaSet(t *testing.T) {
 	if err != nil {
 		t.Errorf("GenerateReplicaSet failed, error marshalling replicas: %s", err)
 	}
-
 	t.Logf("replicaSet: %s", replicaJson)
+	err = utils.CreateObject(core.ObjReplicaSet, replica.MetaData.Namespace, replica)
+	if err != nil {
+		t.Errorf("GenerateReplicaSet failed, error creating object: %s", err)
+	}
+	t.Logf("ReplicaSet created successfully，%s", replica.MetaData.Namespace)
 }

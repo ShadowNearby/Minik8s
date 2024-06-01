@@ -19,7 +19,6 @@ const epsilon = 10e-4
 
 func CheckNode(nodeName string) bool {
 	url := fmt.Sprintf("http://%s:%s/api/v1/functions/%s", config.ClusterMasterIP, config.ApiServerPort, nodeName)
-
 	_, _, err := utils.SendRequest("GET", url, nil)
 	log.Error("CheckNode ", err)
 	if err != nil {
@@ -29,8 +28,8 @@ func CheckNode(nodeName string) bool {
 }
 func ParseParams(params []byte, inputPath string) ([]byte, error) {
 	wanted := strings.Split(inputPath, ",")
-
 	filterdParams := make(map[string]interface{})
+
 	for _, elem := range wanted {
 		name := elem[2:]
 		value := gjson.Get(string(params), name)

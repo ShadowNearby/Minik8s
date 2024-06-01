@@ -122,10 +122,11 @@ type InspectState struct {
 }
 
 type Node struct {
-	ApiVersion   string   `json:"apiVersion,omitempty"`
-	Kind         string   `json:"kind,omitempty"`
-	NodeMetaData MetaData `json:"metadata,omitempty"`
-	Spec         NodeSpec `json:"spec,omitempty"`
+	ApiVersion   string     `json:"apiVersion,omitempty"`
+	Kind         string     `json:"kind,omitempty"`
+	NodeMetaData MetaData   `json:"metadata,omitempty"`
+	Spec         NodeSpec   `json:"spec,omitempty"`
+	Status       NodeStatus `json:"nodeStatus,omitempty"`
 }
 
 func (p Node) MarshalBinary() ([]byte, error) {
@@ -149,3 +150,14 @@ type KubeletConfig struct {
 	MasterPort string            `json:"masterPort"`
 	Labels     map[string]string `json:"labels"`
 }
+
+type NodeStatus struct {
+	Phase NodeStatusPhase `json:"phase"`
+}
+
+type NodeStatusPhase string
+
+const (
+	Ready              NodeStatusPhase = "Ready"
+	NetworkUnavailable NodeStatusPhase = "NetworkUnavailable"
+)

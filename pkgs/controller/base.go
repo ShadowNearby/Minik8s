@@ -55,11 +55,14 @@ func StartController(controller IController) {
 		}
 	}()
 	go func() {
-		for message := range triggerMessages {
-			err := controller.HandleTrigger(message.Payload)
-			if err != nil {
-				log.Errorf("handle trigger error: %s", err.Error())
+		for {
+			for message := range triggerMessages {
+				err := controller.HandleTrigger(message.Payload)
+				if err != nil {
+					log.Errorf("handle delete error: %s", err.Error())
+				}
 			}
 		}
 	}()
+
 }

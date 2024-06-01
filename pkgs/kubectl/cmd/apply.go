@@ -42,19 +42,35 @@ func applyHandler(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 		return
 	}
-	structType, res := core.ObjTypeToCoreObjMap[objType]
-	if !res {
-		log.Error("Unsupported struct", objType)
-		return
-	}
-	object := reflect.New(structType).Interface().(core.ApiObjectKind)
-	err = yaml.Unmarshal(fileContent, object)
-	if err != nil {
-		log.Fatal(err)
-	}
-	nameSpace := object.GetNameSpace()
-	err = utils.CreateObject(objType, nameSpace, object)
-	if err != nil {
-		log.Fatal(err)
+	if objType == core.ObjFunction {
+		var function core.Function
+		err = yaml.Unmarshal(fileContent, &function)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = utils.CreateObjectWONamespace(core.ObjFunction, function)
+	} else if objType == core.ObjWorkflow {
+		var workflow core.Workflow
+		err = yaml.Unmarshal(fileContent, &workflow)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = utils.CreateObjectWONamespace(core.ObjWorkflow, workflow)
+	} else {
+		structType, res := core.ObjTypeToCoreObjMap[objType]
+		if !res {
+			log.Error("Unsupported struct", objType)
+			return
+		}
+		object := reflect.New(structType).Interface().(core.ApiObjectKind)
+		err = yaml.Unmarshal(fileContent, object)
+		if err != nil {
+			log.Fatal(err)
+		}
+		nameSpace := object.GetNameSpace()
+		err = utils.CreateObject(objType, nameSpace, object)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }

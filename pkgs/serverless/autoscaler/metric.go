@@ -8,28 +8,6 @@ import (
 	"time"
 )
 
-// query the pod ips of the replicaSet
-func QueryPodIps() (map[string][]string, error) {
-	// find all the pods of the replicaSet
-	response := utils.GetObject(core.ObjPod, "serverless", "")
-	result := make(map[string][]string)
-	var podList []core.Pod
-	err := json.Unmarshal([]byte(response), &podList)
-	if err != nil {
-		log.Error("[QueryPodIps] error unmarshalling pods: ", err)
-		return nil, err
-	}
-	for _, pod := range podList {
-		pos, ok := result[pod.MetaData.Name]
-		if !ok {
-			pos = make([]string, 0)
-		}
-		pos = append(pos, pod.Status.PodIP)
-		result[pod.MetaData.Name] = pos
-	}
-	return result, nil
-}
-
 // PeriodicMetric check the invoke frequency periodically,
 // // delete the function if it is not invoked for a long time
 func PeriodicMetric(timeInterval int) {
@@ -51,7 +29,6 @@ func PeriodicMetric(timeInterval int) {
 			record := GetRecord(replica.MetaData.Name)
 			RecordMutex.RUnlock()
 			if record == nil {
-				//TODO:Ready ? Real?
 				record = &Record{
 					Name:      replica.MetaData.Name,
 					Replicas:  replica.Status.ReadyReplicas,

@@ -170,6 +170,7 @@ func DeleteObject(objType core.ObjType, namespace string, name string) error {
 		return nil
 	}
 }
+
 func DeleteObjectWONamespace(objType core.ObjType, name string) error {
 	url := fmt.Sprintf("http://%s:%s/api/v1/%s/%s",
 		config.ClusterMasterIP, config.ApiServerPort, objType, name)
@@ -191,19 +192,23 @@ func SplitChannelInfo(key string) (namespace, name string, err error) {
 		// namespace and name
 		return parts[0], parts[1], nil
 	}
-
 	return "", "", fmt.Errorf("unexpected key format: %q", key)
 }
-func TriggerFunction(name string, object any) (string, error) {
+func TriggerObject(objType core.ObjType, name string, object any) (string, error) {
 	//"/api/v1/functions/:name/trigger"
+	if objType != core.ObjFunction && objType != core.ObjWorkflow {
+		logger.Errorf(" cannot trigger object type: %s", objType)
+	}
 	url := fmt.Sprintf("http://%s:%s/api/v1/functions/%s/trigger",
 		config.ClusterMasterIP, config.ApiServerPort, name)
+	objectTxt := JsonMarshal(object)
+	logger.Infoln(objectTxt)
 	var retInfo core.InfoType
-	if code, info, err := SendRequest("POST", url, make([]byte, 0)); err != nil || code != http.StatusOK {
-		logger.Errorf("[delete object error]: %s", info)
+	if _, info, err := SendRequest("POST", url, []byte(objectTxt)); err != nil {
+		logger.Errorf("[trigger object error]: %s %s", info, objectTxt)
+		return "", err
+	} else {
 		err = JsonUnMarshal(info, &retInfo)
 		return retInfo.Data, err
-	} else {
-		return "", err
 	}
 }

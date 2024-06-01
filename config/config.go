@@ -48,7 +48,7 @@ var (
 	FunctionServerIp          = "master"
 	FunctionThreshold   int32 = 6
 	FunctionConnectTime       = 30 * time.Second
-	ServelessIP               = "8081"
+	ServerlessIP              = "10250"
 )
 
 func InitConfig(configPath string) error {
@@ -98,7 +98,7 @@ func InitConfig(configPath string) error {
 		logrus.Errorf("error in parse FunctionConnectTime %s", err.Error())
 		return err
 	}
-	ServelessIP = cfg.ServelessIP
+	ServerlessIP = cfg.ServerlessIP
 
 	logrus.Info("Configuration parsed successfully")
 	return nil
@@ -130,5 +130,5 @@ type Config struct {
 	FunctionServerIp         string   `json:"FunctionServerIp"`
 	FunctionThreshold        int32    `json:"FunctionThreshold"`
 	FunctionConnectTime      string   `json:"FunctionConnectTime"`
-	ServelessIP              string   `json:"ServelessIP"`
+	ServerlessIP             string   `json:"ServerlessIP"`
 }

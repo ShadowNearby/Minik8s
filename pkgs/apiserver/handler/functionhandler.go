@@ -19,7 +19,6 @@ func FunctionKeyPrefix(name string) string {
 // CreateFunctionHandler POST /api/v1/functions
 func CreateFunctionHandler(c *gin.Context) {
 	var function core.Function
-
 	err := c.Bind(&function)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -50,7 +49,12 @@ func CreateFunctionHandler(c *gin.Context) {
 	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelFunction, constants.ChannelCreate), function)
 	newFunction := []core.Function{core.Function{}, function}
 	storage.RedisInstance.PublishMessage(constants.ChannelPodSchedule, utils.JsonMarshal(newFunction))
-	c.JSON(http.StatusOK, gin.H{})
+	if err != nil {
+		logger.Error("[FunctionCreateHandler] error: ", err.Error())
+		c.JSON(http.StatusInternalServerError, []byte("create: "+err.Error()))
+	} else {
+		c.JSON(http.StatusOK, gin.H{})
+	}
 }
 
 // GetFunctionHandler GET /api/v1/functions/:name
@@ -133,7 +137,7 @@ func TriggerFunctionHandler(c *gin.Context) {
 		return
 	}
 
-	params, err := c.GetRawData()
+	paramsRaw, err := c.GetRawData()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -144,14 +148,13 @@ func TriggerFunctionHandler(c *gin.Context) {
 			Params json.RawMessage `json:"params"`
 		}{
 			Name:   name,
-			Params: params,
+			Params: paramsRaw,
 		})
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	logger.Info("[TriggerFunctionHandler] function: ", functionName)
-	/* TODO : Send trigger request to handler ； Waiting for list-watcher to implement */
 	err = storage.Put(functionName, string(request))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -167,14 +170,12 @@ func TriggerFunctionHandler(c *gin.Context) {
 		return
 	}
 
-	/* TODO : check result*/
-
 }
 
 // GetAllFunctionsHandler GET /api/v1/functions
 func GetAllFunctionsHandler(c *gin.Context) {
 	var functionConfigs []core.Pod
-	err := storage.RangeGet("/registry/functions", &functionConfigs)
+	err := storage.RangeGet("/registry/functions/", &functionConfigs)
 	if err != nil {
 		logger.Errorf("get error: %s", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get data"})

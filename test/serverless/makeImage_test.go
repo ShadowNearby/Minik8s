@@ -1,6 +1,8 @@
 package serverless
 
 import (
+	"fmt"
+	"minik8s/config"
 	"minik8s/pkgs/serverless/activator"
 	"minik8s/pkgs/serverless/function"
 	"minik8s/utils"
@@ -9,21 +11,15 @@ import (
 	"testing"
 )
 
-//	func TestAll(t *testing.T) {
-//		serverless.Run()sudo rm -rf /var/lib/docker
-//
-// sudo systemctl restart docker
-//
-//	}
 func TestCreateImage(t *testing.T) {
-	activator.InitFunc("activate", utils.ExamplePath+"/serverless/func.py")
+	activator.InitFunc("activate_example", utils.ExamplePath+"/serverless/func.py")
 }
 func TestRunImage(t *testing.T) {
-	function.RunImage("activate")
+	function.RunImage("activate_example")
 }
 
 func TestDeleteImage(t *testing.T) {
-	err := function.DeleteImage("activate")
+	err := function.DeleteImage("activate_example")
 	if err != nil {
 		t.Errorf("DeleteImage failed, error: %s", err)
 	}
@@ -34,7 +30,7 @@ func TestDeleteImage(t *testing.T) {
 		t.Errorf("DeleteImage failed, error: %s", err)
 	}
 	outputStr := string(out)
-	imageName := "localhost:5000/test:latest"
+	imageName := fmt.Sprintf("%s:%s/%s:v1", config.LocalServerIp, config.ApiServerPort, "activate_example")
 	if strings.Contains(outputStr, imageName) {
 		t.Errorf("DeleteImage failed, image %s still exists", imageName)
 	}

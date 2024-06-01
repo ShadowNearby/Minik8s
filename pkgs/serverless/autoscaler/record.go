@@ -7,9 +7,9 @@ type Record struct {
 	Name string `json:"name"`
 	/* current replica number of the function */
 	Replicas int32 `json:"replicas"`
-	// the podIps that the function has deployed on
+	/* the podIps that the function has deployed on*/
 	PodIps map[string]int32 `json:"podIps"`
-	// the call count of the function
+	/* the call count of the function*/
 	CallCount int32 `json:"callCount"`
 }
 
