@@ -11,15 +11,18 @@ import (
 	"testing"
 )
 
+const funname = "add-func"
+
 func TestCreateImage(t *testing.T) {
-	activator.InitFunc("activate_example", utils.ExamplePath+"/serverless/func.py")
+	activator.InitFunc(funname, utils.ExamplePath+"/serverless/func.py")
 }
+
 func TestRunImage(t *testing.T) {
-	function.RunImage("activate_example")
+	function.RunImage(funname)
 }
 
 func TestDeleteImage(t *testing.T) {
-	err := function.DeleteImage("activate_example")
+	err := function.DeleteImage(funname)
 	if err != nil {
 		t.Errorf("DeleteImage failed, error: %s", err)
 	}

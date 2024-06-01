@@ -93,7 +93,7 @@ func FindImage(name string) bool {
 
 /* find the container */
 func FindContainer(name string) bool {
-	cmd := exec.Command("docker", "ps -a")
+	cmd := exec.Command("docker", "ps", "-a")
 	// check the output
 	output, err := cmd.CombinedOutput()
 	if err != nil {

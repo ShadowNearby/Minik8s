@@ -27,16 +27,15 @@ func getHandler(cmd *cobra.Command, args []string) {
 	var namespace string
 	var objType core.ObjType
 	logrus.Debugln(args)
-
-	if len(args) == 3 {
-		kind = strings.ToLower(args[0])
+	kind = strings.ToLower(args[0])
+	if objType == core.ObjFunction {
+		name = strings.ToLower(args[1])
+	} else if len(args) == 3 {
 		namespace = strings.ToLower(args[1])
 		name = strings.ToLower(args[2])
 	} else if len(args) == 2 {
-		kind = strings.ToLower(args[0])
 		namespace = strings.ToLower(args[1])
 	} else if len(args) == 1 {
-		kind = strings.ToLower(args[0])
 	} else {
 		fmt.Printf("error: the server doesn't have a resource type %s\n", kind)
 		return

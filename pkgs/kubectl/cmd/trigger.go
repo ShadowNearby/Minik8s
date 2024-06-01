@@ -52,6 +52,6 @@ func trigger(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 	log.Infoln("[Path]: ", filePath, "	[DATA]:	", paramsContent)
-	info, _ := ctlutils.TriggerObject(objType, name, fileContent)
+	info, _ := ctlutils.TriggerObject(objType, name, paramsContent)
 	log.Infoln("the response: ", info)
 }

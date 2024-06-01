@@ -44,7 +44,7 @@ func PeriodicMetric(timeInterval int) {
 				replica.Status.Scale = record.CallCount
 				// update the replicaset
 				if replica.Status.Scale != replica.Status.ReadyReplicas {
-					err := utils.UpdateObject(core.ObjReplicaSet, replica.MetaData.Name, replica)
+					err := utils.UpdateObject(core.ObjReplicaSet, replica.GetNameSpace(), replica.MetaData.Name, replica)
 					if err != nil {
 						log.Error("[PeriodicMetric] error updating replicas: ", err)
 						continue

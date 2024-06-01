@@ -4,6 +4,6 @@ import (
 	"testing"
 )
 
-func TestInitFunc(t *testing.T) {
+func TestParseParams(t *testing.T) {
 
 }

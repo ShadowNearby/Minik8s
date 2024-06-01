@@ -57,3 +57,13 @@ func TestGetObjectFromYamlFile(t *testing.T) {
 	obj := api.ParseApiObjectFromYamlFile(content, kind)
 	log.Println(obj)
 }
+func TestGetNameFromTriggerFile(t *testing.T) {
+	content, _ := utils.ReadFile(fmt.Sprintf("%s/eventTrigger.yaml", utils.ExamplePath))
+	name, _ := api.GetNameFromParamsFile(content)
+	log.Println(name)
+}
+func TestGetParamsFromTriggerFile(t *testing.T) {
+	content, _ := utils.ReadFile(fmt.Sprintf("%s/eventTrigger.yaml", utils.ExamplePath))
+	params, _ := api.GetParamsFromParamsFile(content)
+	log.Println(params)
+}

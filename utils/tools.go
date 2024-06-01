@@ -127,15 +127,15 @@ func CreateObject(objType core.ObjType, namespace string, object any) error {
 		return nil
 	}
 }
-func UpdateObject(objType core.ObjType, namespace string, object any) error {
+func UpdateObject(objType core.ObjType, namespace string, name string, object any) error {
 	if namespace == "" {
 		namespace = "default"
 	}
 	var url string
 	objectTxt := JsonMarshal(object)
 	logger.Debugln(objectTxt)
-	url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s",
-		config.ClusterMasterIP, config.ApiServerPort, namespace, objType)
+	url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s/%s",
+		config.ClusterMasterIP, config.ApiServerPort, namespace, objType, name)
 	if code, info, err := SendRequest("PUT", url, []byte(objectTxt)); err != nil || code != http.StatusOK {
 		logger.Errorf("[create obj error]: %s", info)
 		return err

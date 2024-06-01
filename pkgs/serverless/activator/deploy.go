@@ -188,7 +188,7 @@ func IfDeployed(name string) ([]string, error) {
 					if record.CallCount > replicaSet.Status.Scale && record.CallCount < config.FunctionThreshold {
 						replicaSet.Status.Scale = record.CallCount
 						log.Info("[CheckPrepare] scale up the function: ", name, "the replica number: ", replicaSet.Status.Scale)
-						err = utils.UpdateObject(core.ObjReplicaSet, replicaSet.MetaData.Namespace, replicaSet)
+						err = utils.UpdateObject(core.ObjReplicaSet, replicaSet.MetaData.Namespace, name, replicaSet)
 						if err != nil {
 							log.Error("[CheckPrepare] update replica set error: ", err)
 						}

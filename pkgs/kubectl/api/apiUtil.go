@@ -48,6 +48,7 @@ func GetParamsFromParamsFile(fileContent []byte) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	log.Infoln(data)
 	params, ok := data["params"].(map[string]interface{})
 	if !ok {
 		return "", fmt.Errorf("params not found in YAML")

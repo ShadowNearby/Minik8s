@@ -60,11 +60,9 @@ func ExecuteWorkflow(workflow *core.Workflow, params []byte) ([]byte, error) {
 	}
 	currentNodeName := startNode
 	log.Info("[ExecuteWorkflow] current node name is: ", currentNodeName, " with params: ", string(params), " and type ", reflect.TypeOf(currentNode))
-
 	for {
 		prevNodeName := currentNode
 		err := error(nil)
-
 		switch reflect.TypeOf(currentNode).Name() {
 		case string(core.Task):
 			{

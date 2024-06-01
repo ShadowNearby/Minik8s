@@ -1,0 +1,4 @@
+kind: function
+apiVersion: app/v1
+name: test
+path: /home/zxy/minik8s/examples/serverless/singlefunc.py
