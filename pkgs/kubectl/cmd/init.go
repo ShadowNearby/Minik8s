@@ -29,11 +29,11 @@ func runRoot(cmd *cobra.Command, args []string) {
 	fmt.Println(cmd.UsageString())
 }
 
-var NameSpace string
+var namespace string
 var filePath string
 
 func init() {
-	RootCommand.PersistentFlags().StringVarP(&NameSpace, "namespace", "n", "default", "kubectl (-n NAMESPACE)")
+	RootCommand.PersistentFlags().StringVarP(&namespace, "namespace", "n", "default", "kubectl (-n NAMESPACE)")
 	applyCmd.Flags().StringVarP(&filePath, "filePath", "f", "", "kubectl apply -f <FILENAME>")
 	triggerCmd.Flags().StringVarP(&filePath, "filePath", "f", "", "kubectl trigger <resource> <name> -f <FILENAME>")
 	applyCmd.MarkFlagRequired("filePath")

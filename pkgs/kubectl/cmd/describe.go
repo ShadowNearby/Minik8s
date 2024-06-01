@@ -6,8 +6,8 @@ import (
 	"minik8s/utils"
 	"strings"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/wxnacy/wgo/arrays"
 )
 
 var describeCmd = &cobra.Command{
@@ -20,25 +20,30 @@ var describeCmd = &cobra.Command{
 
 func describeHandler(cmd *cobra.Command, args []string) {
 	var kind string
+	var name string
+	var objType core.ObjType
+	logrus.Debugln(args)
 	if len(args) == 2 {
 		kind = strings.ToLower(args[0])
-		name := strings.ToLower(args[1])
-		/* validate if `kind` is in the resource list */
-		if idx := arrays.ContainsString(core.ObjTypeAll, kind); idx != -1 {
-			objType := core.ObjType(kind + "s")
-			res := utils.GetObject(objType, "", name)
-			fmt.Println(res)
-		} else if len(args) == 1 {
-			kind = strings.ToLower(args[0])
-			kind = kind[0 : len(kind)-1]
-			/* validate if `kind` is in the resource list */
-			if idx := arrays.ContainsString(core.ObjTypeAll, kind); idx != -1 {
-				objType := core.ObjType(kind)
-				res := utils.GetObject(objType, "", "")
-				fmt.Println(res)
+		name = strings.ToLower(args[1])
+		for _, ty := range core.ObjTypeAll {
+			if !strings.Contains(ty, kind) {
+				continue
 			}
-		} else {
-			fmt.Printf("error: the server doesn't have a resource type \"%s\"", kind)
+			objType = core.ObjType(ty)
 		}
+	} else if len(args) == 1 {
+		kind := strings.ToLower(args[0])
+		for _, ty := range core.ObjTypeAll {
+			if !strings.Contains(ty, kind) {
+				continue
+			}
+			objType = core.ObjType(ty)
+		}
+	} else {
+		fmt.Printf("error: the server doesn't have a resource type %s\n", kind)
+		return
 	}
+	resp := utils.GetObject(objType, namespace, name)
+	fmt.Println(resp)
 }
