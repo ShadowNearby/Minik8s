@@ -3,6 +3,7 @@ package cmd
 import (
 	log "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
+	"minik8s/pkgs/kubectl/api"
 	"minik8s/utils"
 	ctlutils "minik8s/utils"
 	"os"
@@ -12,7 +13,7 @@ import (
 )
 
 var triggerCmd = &cobra.Command{
-	Use:   "trigger <resource> <name> -f <FILENAME>",
+	Use:   "trigger <kind> -f <FILENAME>",
 	Short: "Kubectl trigger command",
 	Long:  "Kubectl trigger command, Usage: kubectl trigger <resource> <name> (-f FILENAME)",
 	Run:   trigger,
@@ -30,8 +31,6 @@ func trigger(cmd *cobra.Command, args []string) {
 	if kind == "workflow" {
 		objType = core.ObjWorkflow
 	}
-	name := strings.ToLower(args[1])
-	// 检查参数是否是文件 读取文件
 	fileInfo, err := os.Stat(filePath)
 	if err != nil {
 		log.Fatal(err)
@@ -47,7 +46,12 @@ func trigger(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 		return
 	}
-	log.Infoln("[Path]: ", filePath, "	[DATA]:	", fileContent)
+	name, _ := api.GetNameFromParamsFile(fileContent)
+	paramsContent, err := api.GetParamsFromParamsFile(fileContent)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Infoln("[Path]: ", filePath, "	[DATA]:	", paramsContent)
 	info, _ := ctlutils.TriggerObject(objType, name, fileContent)
 	log.Infoln("the response: ", info)
 }

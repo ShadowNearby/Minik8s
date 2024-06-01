@@ -194,18 +194,16 @@ func SplitChannelInfo(key string) (namespace, name string, err error) {
 	}
 	return "", "", fmt.Errorf("unexpected key format: %q", key)
 }
-func TriggerObject(objType core.ObjType, name string, object any) (string, error) {
+func TriggerObject(objType core.ObjType, name string, params string) (string, error) {
 	//"/api/v1/functions/:name/trigger"
 	if objType != core.ObjFunction && objType != core.ObjWorkflow {
 		logger.Errorf(" cannot trigger object type: %s", objType)
 	}
 	url := fmt.Sprintf("http://%s:%s/api/v1/functions/%s/trigger",
 		config.ClusterMasterIP, config.ApiServerPort, name)
-	objectTxt := JsonMarshal(object)
-	logger.Infoln(objectTxt)
 	var retInfo core.InfoType
-	if _, info, err := SendRequest("POST", url, []byte(objectTxt)); err != nil {
-		logger.Errorf("[trigger object error]: %s %s", info, objectTxt)
+	if _, info, err := SendRequest("POST", url, []byte(params)); err != nil {
+		logger.Errorf("[trigger object error]: %s with params:\n %s", name, params)
 		return "", err
 	} else {
 		err = JsonUnMarshal(info, &retInfo)

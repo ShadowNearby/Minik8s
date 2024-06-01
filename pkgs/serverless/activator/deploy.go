@@ -150,7 +150,6 @@ func IfDeployed(name string) ([]string, error) {
 		return nil, err
 	}
 	log.Info("[CheckPrepare] check prepare for function: ", name)
-
 	retry := config.FunctionRetryTimes
 	firstTry := true
 	for retry > 0 {
@@ -250,16 +249,13 @@ func DeleteFunc(name string) error {
 	autoscaler.RecordMutex.Lock()
 	autoscaler.DeleteRecord(name)
 	autoscaler.RecordMutex.Unlock()
-
 	log.Info("[DeleteFunc] delete record from record map")
-
-	// 3. delete the image
+	// 3. delete the old image
 	err = function.DeleteImage(name)
 	if err != nil {
 		log.Error("[DeleteFunc] delete image error: ", err)
 		return err
 	}
-
 	return nil
 }
 
@@ -284,7 +280,7 @@ func TriggerFunc(name string, params []byte) ([]byte, error) {
 		}
 		// 3. trigger the function
 		log.Info("[TriggerFunc] load balance success: ", podIp)
-		url := fmt.Sprintf("http://%s:108080/", podIp)
+		url := fmt.Sprintf("http://%s:18080/", podIp)
 		if err != nil {
 			return nil, err
 		}

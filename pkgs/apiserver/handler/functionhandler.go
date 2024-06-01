@@ -94,6 +94,9 @@ func DeleteFunctionHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot delete function"})
 		return
 	}
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelFunction, constants.ChannelDelete), function)
+	newFunction := []core.Function{core.Function{}, function}
+	storage.RedisInstance.PublishMessage(constants.ChannelPodSchedule, utils.JsonMarshal(newFunction))
 	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(function)})
 }
 

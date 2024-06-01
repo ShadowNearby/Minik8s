@@ -1,6 +1,4 @@
-kind : Function
-apiVersion: apps/v2
 name : add-func
 params :
-  x : 1
-  y : 2
+    'x': 2
+    'y': 3
