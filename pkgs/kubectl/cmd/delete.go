@@ -38,6 +38,6 @@ func deleteHandler(cmd *cobra.Command, args []string) {
 	}
 	err := utils.DeleteObject(objType, namespace, name)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 }

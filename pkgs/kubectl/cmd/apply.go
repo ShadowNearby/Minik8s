@@ -23,7 +23,7 @@ func applyHandler(cmd *cobra.Command, args []string) {
 	// 检查参数是否是文件 读取文件
 	fileInfo, err := os.Stat(filePath)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 		return
 	}
 	if fileInfo.IsDir() {
@@ -33,27 +33,27 @@ func applyHandler(cmd *cobra.Command, args []string) {
 	// 读取文件的内容
 	fileContent, err := utils.ReadFile(filePath)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 		return
 	}
 	// 解析API对象的种类
 	objType, err := api.GetObjTypeFromYamlFile(fileContent)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 		return
 	}
 	if objType == core.ObjFunction {
 		var function core.Function
 		err = yaml.Unmarshal(fileContent, &function)
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err)
 		}
 		err = utils.CreateObjectWONamespace(core.ObjFunction, function)
 	} else if objType == core.ObjWorkflow {
 		var workflow core.Workflow
 		err = yaml.Unmarshal(fileContent, &workflow)
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err)
 		}
 		err = utils.CreateObjectWONamespace(core.ObjWorkflow, workflow)
 	} else {
@@ -65,12 +65,12 @@ func applyHandler(cmd *cobra.Command, args []string) {
 		object := reflect.New(structType).Interface().(core.ApiObjectKind)
 		err = yaml.Unmarshal(fileContent, object)
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err)
 		}
 		nameSpace := object.GetNameSpace()
 		err = utils.CreateObject(objType, nameSpace, object)
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err)
 		}
 	}
 }

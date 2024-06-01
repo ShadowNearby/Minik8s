@@ -3,9 +3,11 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"log"
 	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
 	"net/http"
+	"os"
 	"strings"
 
 	logger "github.com/sirupsen/logrus"
@@ -196,6 +198,7 @@ func SplitChannelInfo(key string) (namespace, name string, err error) {
 }
 func TriggerObject(objType core.ObjType, name string, params string) (string, error) {
 	//"/api/v1/functions/:name/trigger"
+	log.SetOutput(os.Stdout)
 	if objType != core.ObjFunction && objType != core.ObjWorkflow {
 		logger.Errorf(" cannot trigger object type: %s", objType)
 	}

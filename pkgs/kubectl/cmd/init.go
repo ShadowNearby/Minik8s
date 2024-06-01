@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -33,6 +34,9 @@ var namespace string
 var filePath string
 
 func init() {
+	log.Info("Program started")
+	log.SetLevel(log.InfoLevel)            // 设置日志级别
+	log.SetFormatter(&log.TextFormatter{}) // 设置为文本格式
 	RootCommand.PersistentFlags().StringVarP(&namespace, "namespace", "n", "default", "kubectl (-n NAMESPACE)")
 	applyCmd.Flags().StringVarP(&filePath, "filePath", "f", "", "kubectl apply -f <FILENAME>")
 	triggerCmd.Flags().StringVarP(&filePath, "filePath", "f", "", "kubectl trigger <resource> <name> -f <FILENAME>")

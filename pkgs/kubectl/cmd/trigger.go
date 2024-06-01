@@ -15,11 +15,12 @@ import (
 var triggerCmd = &cobra.Command{
 	Use:   "trigger <kind> -f <FILENAME>",
 	Short: "Kubectl trigger command",
-	Long:  "Kubectl trigger command, Usage: kubectl trigger <resource> <name> (-f FILENAME)",
+	Long:  "Kubectl trigger command, Usage: kubectl trigger <kind> (-f FILENAME)",
 	Run:   trigger,
 }
 
 func trigger(cmd *cobra.Command, args []string) {
+	log.Info("Trigger started")
 	kind := strings.ToLower(args[0])
 	if kind != "function" && kind != "workflow" {
 		log.Errorln("invalid resource type, it should be function or workflow")
@@ -33,7 +34,7 @@ func trigger(cmd *cobra.Command, args []string) {
 	}
 	fileInfo, err := os.Stat(filePath)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 		return
 	}
 	if fileInfo.IsDir() {
@@ -43,13 +44,14 @@ func trigger(cmd *cobra.Command, args []string) {
 	// 读取文件的内容
 	fileContent, err := utils.ReadFile(filePath)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 		return
 	}
+	log.Infoln("Object type: ", objType)
 	name, _ := api.GetNameFromParamsFile(fileContent)
 	paramsContent, err := api.GetParamsFromParamsFile(fileContent)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 	log.Infoln("[Path]: ", filePath, "	[DATA]:	", paramsContent)
 	info, _ := ctlutils.TriggerObject(objType, name, paramsContent)

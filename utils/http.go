@@ -66,6 +66,7 @@ func ParseJson(c *gin.Context) map[string]any {
 }
 
 func SendRequest(method string, url string, body []byte) (int, string, error) {
+	log.SetOutput(os.Stdout)
 	request, err := http.NewRequest(method, url, bytes.NewBuffer(body))
 	if err != nil {
 		return 0, "", err

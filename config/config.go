@@ -16,6 +16,7 @@ var (
 	PodCIDR              = "10.244.0.0/16"
 	NodePort             = "10250"
 	DefaultEtcdEndpoints = []string{"localhost:2380"}
+	HeartbeatInterval    = 15 * time.Second
 )
 
 var (
@@ -48,7 +49,7 @@ var (
 	FunctionServerIp          = "master"
 	FunctionThreshold   int32 = 6
 	FunctionConnectTime       = 30 * time.Second
-	ServerlessIP              = "10250"
+	ServerlessIP              = "8081"
 )
 
 func InitConfig(configPath string) error {
@@ -69,6 +70,11 @@ func InitConfig(configPath string) error {
 	PodCIDR = cfg.PodCIDR
 	NodePort = cfg.NodePort
 	DefaultEtcdEndpoints = cfg.DefaultEtcdEndpoints
+	HeartbeatInterval, err = time.ParseDuration(cfg.HeartbeatInterval)
+	if err != nil {
+		logrus.Errorf("error in parse HeartbeatInterval %s", err.Error())
+		return err
+	}
 	CsiSockAddr = cfg.CsiSockAddr
 	CsiStagingTargetPath = cfg.CsiStagingTargetPath
 	CsiMntPath = cfg.CsiMntPath
@@ -98,7 +104,7 @@ func InitConfig(configPath string) error {
 		logrus.Errorf("error in parse FunctionConnectTime %s", err.Error())
 		return err
 	}
-	ServerlessIP = cfg.ServerlessIP
+	ServerlessIP = cfg.ServerlessIp
 
 	logrus.Info("Configuration parsed successfully")
 	return nil
@@ -111,6 +117,7 @@ type Config struct {
 	PodCIDR                  string   `json:"PodCIDR"`
 	NodePort                 string   `json:"NodePort"`
 	DefaultEtcdEndpoints     []string `json:"DefaultEtcdEndpoints"`
+	HeartbeatInterval        string   `json:"HeartbeatInterval"`
 	CsiSockAddr              string   `json:"CsiSockAddr"`
 	CsiStagingTargetPath     string   `json:"CsiStagingTargetPath"`
 	CsiMntPath               string   `json:"CsiMntPath"`
@@ -130,5 +137,5 @@ type Config struct {
 	FunctionServerIp         string   `json:"FunctionServerIp"`
 	FunctionThreshold        int32    `json:"FunctionThreshold"`
 	FunctionConnectTime      string   `json:"FunctionConnectTime"`
-	ServerlessIP             string   `json:"ServerlessIP"`
+	ServerlessIp             string   `json:"ServerlessIp"`
 }

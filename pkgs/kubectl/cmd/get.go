@@ -28,7 +28,8 @@ func getHandler(cmd *cobra.Command, args []string) {
 	var objType core.ObjType
 	logrus.Debugln(args)
 	kind = strings.ToLower(args[0])
-	if objType == core.ObjFunction {
+	objType = core.ObjType(kind)
+	if objType == core.ObjFunction && len(args) == 2 {
 		name = strings.ToLower(args[1])
 	} else if len(args) == 3 {
 		namespace = strings.ToLower(args[1])
