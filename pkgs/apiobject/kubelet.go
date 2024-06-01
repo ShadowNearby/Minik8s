@@ -26,7 +26,6 @@ type BasicInfo struct {
 type PodSpec struct {
 	Containers      []Container     `json:"containers" yaml:"containers"`
 	RestartPolicy   restartPolicy   `json:"restartPolicy" yaml:"restartPolicy"`
-	DnsPolicy       dnsPolicy       `json:"dnsPolicy,omitempty" yaml:"dnsPolicy,omitempty"`
 	Selector        Selector        `json:"selector" yaml:"selector"`
 	MinReadySeconds minReadySeconds `json:"minReadySeconds,omitempty" yaml:"minReadySeconds,omitempty"`
 	Volumes         []Volume        `json:"volumes" yaml:"volumes"`

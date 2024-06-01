@@ -65,11 +65,7 @@ type ReplicaSetTemplate struct {
 }
 
 type ReplicaSetStatus struct {
-	RealReplicas   int            `json:"realReplicas" yaml:"realReplicas"`
-	Scale          int32          `json:"scale,omitempty"`
-	OwnerReference OwnerReference `json:"ownerReference,omitempty"`
-	// the truly ready replicas.
-	ReadyReplicas int32 `json:"readyReplicas,omitempty"`
+	RealReplicas int `json:"realReplicas" yaml:"realReplicas"`
 }
 
 ////TODO:Real replicas是指什么？

@@ -13,7 +13,7 @@ RUN apt-get update && \
     python3 -m venv /app/venv
 
 
-EXPOSE 8090
+EXPOSE 8081
 
 
 # copy file into workdir

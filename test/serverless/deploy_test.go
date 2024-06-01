@@ -1,32 +1,59 @@
 package serverless
 
 import (
-	"encoding/json"
+	"fmt"
 	"minik8s/config"
-	"minik8s/pkgs/serverless/activator"
+	core "minik8s/pkgs/apiobject"
+	"minik8s/utils"
+	"net/http"
+	"os"
 	"testing"
 )
 
-func generateImage(name string) string {
-	return config.LocalServerIp + ":5000/" + name + ":latest"
+func TestCreateFunction(t *testing.T) {
+	url := fmt.Sprintf("http://%s:8090/api/v1/functions/", config.ClusterMasterIP)
+	file, err := os.ReadFile(fmt.Sprintf("%s/%s", utils.ExamplePath, "function.json"))
+	if err != nil {
+		t.Errorf("read file error")
+		return
+	}
+	var function core.Function
+	err = utils.JsonUnMarshal(string(file), &function)
+	if err != nil {
+		t.Errorf("funtion.json format is wrong")
+		return
+	}
+	code, info, err := utils.SendRequest("POST", url, file)
+	if err != nil {
+		t.Errorf("error: %s", err.Error())
+		return
+	}
+	if code != http.StatusOK {
+		var infoType core.InfoType
+		utils.JsonUnMarshal(info, &infoType)
+		t.Errorf("internal error: %d: %s", code, infoType.Error)
+	}
+
 }
 
-func TestGenerateReplicaSet(t *testing.T) {
-	replica := activator.GenerateReplicaSet("test", "serverless", generateImage("test"), 0)
-	if replica.MetaData.Name != "test" {
-		t.Errorf("GenerateReplicaSet failed, expected %s, got %s", "test", replica.MetaData.Name)
-	}
-	if replica.MetaData.Namespace != "serverless" {
-		t.Errorf("GenerateReplicaSet failed, expected %s, got %s", "serverless", replica.MetaData.Namespace)
-	}
-	if replica.Spec.Replicas != 0 {
-		t.Errorf("GenerateReplicaSet failed, expected %d, got %d", 0, replica.Spec.Replicas)
-	}
-	// print the replicaSet
-	replicaJson, err := json.MarshalIndent(replica, "", "    ")
+func TestTriggerFunction(t *testing.T) {
+	url := fmt.Sprintf("http://%s:8090/api/v1/functions/%s/trigger", config.ClusterMasterIP, "serverless_test")
+	file, err := os.ReadFile(fmt.Sprintf("%s/%s", utils.ExamplePath, "trigger.json"))
 	if err != nil {
-		t.Errorf("GenerateReplicaSet failed, error marshalling replicas: %s", err)
+		t.Errorf("read file error")
+		return
+	}
+	var trigger core.TriggerMessage
+	_ = utils.JsonUnMarshal(string(file), &trigger)
+	code, info, err := utils.SendRequest("POST", url, file)
+	if err != nil {
+		t.Errorf("error: %s", err.Error())
+		return
+	}
+	if code != http.StatusOK {
+		var infoType core.InfoType
+		utils.JsonUnMarshal(info, &infoType)
+		t.Errorf("internal error: %d: %s", code, infoType.Error)
 	}
 
-	t.Logf("replicaSet: %s", replicaJson)
 }

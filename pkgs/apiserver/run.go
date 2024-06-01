@@ -7,6 +7,7 @@ import (
 	"minik8s/pkgs/constants"
 	"minik8s/pkgs/controller"
 	"minik8s/pkgs/controller/autoscaler"
+	"minik8s/pkgs/controller/function"
 	"minik8s/pkgs/controller/podcontroller"
 	rsc "minik8s/pkgs/controller/replicaset"
 	scheduler "minik8s/pkgs/controller/scheduler"
@@ -23,14 +24,17 @@ func Run() {
 	go controller.StartController(&serviceController)
 	var schedulerController scheduler.Scheduler
 	go schedulerController.Run(constants.PolicyCPU)
-	var podcontroller podcontroller.PodController
-	go controller.StartController(&podcontroller)
+	var podController podcontroller.PodController
+	go controller.StartController(&podController)
 	var replicaSet rsc.ReplicaSetController
 	go controller.StartController(&replicaSet)
 	var hpa autoscaler.HPAController
 	go controller.StartController(&hpa)
 	// start hpa background work
 	go hpa.StartBackground()
+	var functionController function.FuncController
+	go controller.StartController(&functionController)
+	go functionController.ListenOtherChannels()
 
 	server.Run(fmt.Sprintf("%s:%s", config.ClusterMasterIP, config.ApiServerPort))
 }
@@ -59,5 +63,5 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "./config/config.json", "config file (default is ./config/config.json)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "/home/k8s/ly/minik8s/config/config.json", "config file (default is ./config/config.json)")
 }

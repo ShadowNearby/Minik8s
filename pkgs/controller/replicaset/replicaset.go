@@ -92,23 +92,22 @@ func (rsc *ReplicaSetController) manageUpdateReplicas(oldRs *core.ReplicaSet, ne
 		logger.Errorf("failed getting rs pods")
 		return err
 	}
-	targets := utils.FilterOwner(&pods, "default", newRs.MetaData.Name, core.ObjReplicaSet)
-	newRs.Status.RealReplicas = len(targets)
-	if len(targets) > newRs.Spec.Replicas {
+	newRs.Status.RealReplicas = len(pods)
+	if len(pods) > newRs.Spec.Replicas {
 		// delete pods
-		for _, pod := range targets[newRs.Spec.Replicas:] {
+		for _, pod := range pods[newRs.Spec.Replicas:] {
 			err := utils.DeleteObject(core.ObjPod, pod.MetaData.Namespace, pod.MetaData.Name)
 			if err != nil {
 				logger.Errorf("delete pod error: %s", err.Error())
 			}
 			newRs.Status.RealReplicas--
 		}
-	} else if len(targets) < newRs.Spec.Replicas {
+	} else if len(pods) < newRs.Spec.Replicas {
 		// create pods
 		pod := generateRSPod(newRs)
 		templateName := pod.MetaData.Name
 		setController(&pod, newRs)
-		ops := newRs.Spec.Replicas - len(targets)
+		ops := newRs.Spec.Replicas - len(pods)
 		for i := 0; i < ops; i++ {
 			// should regenerate pod uuid
 			pod.MetaData.Name = fmt.Sprintf("rs-%s-%s", templateName, utils.GenerateUUID(6))
@@ -136,7 +135,7 @@ func (rsc *ReplicaSetController) manageDelReplicas(rs *core.ReplicaSet) error {
 	if err != nil {
 		return err
 	}
-	targets := utils.FilterOwner(&pods, rs.MetaData.Namespace, rs.MetaData.Name, core.ObjReplicaSet)
+	targets := utils.FilterOwner(&pods, rs.MetaData.Name, core.ObjReplicaSet)
 	rs.Status.RealReplicas = len(targets)
 	for _, target := range targets {
 		err = utils.DeleteObject(core.ObjPod, target.MetaData.Namespace, target.MetaData.Name)
@@ -150,20 +149,6 @@ func (rsc *ReplicaSetController) manageDelReplicas(rs *core.ReplicaSet) error {
 }
 
 func (rsc *ReplicaSetController) manageCreateReplicas(rs *core.ReplicaSet) error {
-	//// first get pods within the rsc namespace
-	//var pods = make([]core.Pod, 0)
-	//podsListTxt := utils.GetObject(core.ObjPod, rs.MetaData.Namespace, "")
-	//if podsListTxt == "" {
-	//	return errors.New("cannot get pods")
-	//}
-	//err := utils.JsonUnMarshal(podsListTxt, &pods)
-	//if err != nil {
-	//	return err
-	//}
-	//// second filter the pods meets selector and don't have controller
-	//targets := rsc.selectPods(&pods, rs)
-	//rs.Status.RealReplicas = len(targets)
-	// we build a replicaset from scratch, do not consider the existing pods
 	targets := make([]core.Pod, 0)
 	if len(targets) < rs.Spec.Replicas {
 		pod := generateRSPod(rs)

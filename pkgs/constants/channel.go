@@ -9,18 +9,18 @@ const (
 	ChannelReplica  string = "REPLICASET"
 	ChannelFunction string = "FUNCTION"
 	ChannelHPA      string = "HPA"
+	ChannelTask     string = "TASK"
 )
 
 const (
-	ChannelCreate  string = "CREATE"
-	ChannelUpdate  string = "UPDATE"
-	ChannelDelete  string = "DELETE"
-	ChannelTrigger string = "TRIGGER"
+	ChannelCreate string = "CREATE"
+	ChannelUpdate string = "UPDATE"
+	ChannelDelete string = "DELETE"
 )
 
-var Channels = []string{ChannelNode, ChannelPod, ChannelService, ChannelReplica, ChannelHPA, ChannelFunction}
+var Channels = []string{ChannelNode, ChannelPod, ChannelService, ChannelReplica, ChannelHPA, ChannelFunction, ChannelTask}
 var Operations = []string{ChannelCreate, ChannelUpdate, ChannelDelete}
-var OtherChannels = []string{ChannelPodSchedule}
+var OtherChannels = []string{ChannelPodSchedule, ChannelFunctionTrigger}
 
 func GenerateChannelName(object string, chanType string) string {
 	return fmt.Sprintf("%s-%s", object, chanType)
@@ -29,5 +29,6 @@ func GenerateChannelName(object string, chanType string) string {
 // Additional Channels
 
 const (
-	ChannelPodSchedule string = "POD-SCHEDULE"
+	ChannelPodSchedule     string = "POD-SCHEDULE"
+	ChannelFunctionTrigger string = "FUNCTION-TRIGGER"
 )

@@ -1,0 +1,4 @@
+{
+  "name": "serverless_test",
+  "params": "{\"x\": 3, \"y\": 5}"
+}

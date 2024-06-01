@@ -8,15 +8,16 @@ import (
 	"testing"
 )
 
-//	func TestAll(t *testing.T) {
-//		serverless.Run()
-//	}
+func TestFindImage(t *testing.T) {
+	result := function.FindImage("serverless_test")
+	if !result {
+		t.Errorf("cannot find existed image")
+	}
+}
 func TestCreateImage(t *testing.T) {
-	function.CreateImage(utils.ExamplePath+"/serverless", "serverless_example")
+	function.CreateImage(utils.ExamplePath+"/serverless/single.py", "serverless_test")
 }
-func TestRunImage(t *testing.T) {
-	function.RunImage("serverless_example")
-}
+
 func TestDeleteImage(t *testing.T) {
 	err := function.DeleteImage("serverless_example")
 	if err != nil {
