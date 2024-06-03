@@ -19,6 +19,7 @@
 
 bin/
 *.log
+*.pyc
 build
 
 config/nginx.conf
