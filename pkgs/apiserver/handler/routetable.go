@@ -15,11 +15,12 @@ var RouteTable = [...]Route{
 	{Path: "/api/v1/namespaces/:namespace/pods/:name", Method: "POST", Handler: ReplacePodHandler},            // POST, replace a pod
 	{Path: "/api/v1/namespaces/:namespace/pods/:name/status", Method: "PUT", Handler: UpdatePodStatusHandler}, // PUT, update pod status
 
-	{Path: "/api/v1/nodes", Method: "POST", Handler: CreateNodeHandler},         // POST, create a node
-	{Path: "/api/v1/nodes", Method: "GET", Handler: GetAllNodesHandler},         // GET, list all nodes
-	{Path: "/api/v1/nodes/:name", Method: "GET", Handler: GetNodeHandler},       // GET, get a node
-	{Path: "/api/v1/nodes/:name", Method: "DELETE", Handler: DeleteNodeHandler}, // DELETE, delete a node
-	{Path: "/api/v1/nodes/:name", Method: "PUT", Handler: UpdateNodeHandler},    // PUT, update a node
+	{Path: "/api/v1/nodes", Method: "POST", Handler: CreateNodeHandler},              // POST, create a node
+	{Path: "/api/v1/nodes", Method: "GET", Handler: GetAllNodesHandler},              // GET, list all nodes
+	{Path: "/api/v1/nodes/:name", Method: "GET", Handler: GetNodeHandler},            // GET, get a node
+	{Path: "/api/v1/nodes/:name/pods", Method: "GET", Handler: GetPodsInNodeHandler}, // GET, get pods of a node
+	{Path: "/api/v1/nodes/:name", Method: "DELETE", Handler: DeleteNodeHandler},      // DELETE, delete a node
+	{Path: "/api/v1/nodes/:name", Method: "PUT", Handler: UpdateNodeHandler},         // PUT, update a node
 
 	{Path: "/api/v1/namespaces/:namespace/services", Method: "POST", Handler: CreateServiceHandler},                            // POST, create a service
 	{Path: "/api/v1/namespaces/:namespace/services/:name", Method: "GET", Handler: GetServiceHandler},                          // GET, get a service
