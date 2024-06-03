@@ -10,9 +10,9 @@ if [ "$ENV" = "CI" ]; then
   LOGDIR=/var/log/minik8s
 fi
 
-PROGRAMS=("apiserver" "kubelet" "kubeproxy" "prometheus" "monitor" "nginx")
+PROGRAMS=("apiserver" "kubelet" "kubeproxy" "prometheus" "kmonitor" "nginx")
 
 pid=""
 getpid () {
-  pid=$(ps -ef | grep $1 | grep -v grep | awk '{print $2}')
+  pid=$(ps -ef | grep $1  | grep root  | grep -v grep | awk '{print $2}')
 }

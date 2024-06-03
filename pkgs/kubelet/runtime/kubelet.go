@@ -29,8 +29,27 @@ func (k *Kubelet) InitKubelet(config core.KubeletConfig) {
 	k.MasterIP = config.MasterIP
 	k.MasterPort = config.MasterPort
 	k.Labels = config.Labels
+	name, _ := os.Hostname()
+	pods := []core.Pod{}
+	_, resp, err := utils.SendRequest("GET", fmt.Sprintf("http://%s:%s/api/v1/nodes/%s/pods", k.MasterIP, k.MasterPort, name), []byte{})
+	if err != nil {
+		logger.Errorf("error in init pods in node")
+	}
+	respType := core.InfoType{}
+	err = utils.JsonUnMarshal(resp, &respType)
+	if err != nil {
+		logger.Errorf("error in unmarshal resp in node")
+	}
+	err = utils.JsonUnMarshal(respType.Data, &pods)
+	if err != nil {
+		logger.Errorf("error in unmarshal pods in node")
+	}
 	k.PodStatMap = make(map[string]core.PodStatus)
 	k.PodConfigMap = make(map[string]core.Pod)
+	for _, pod := range pods {
+		k.PodConfigMap[fmt.Sprintf("%s-%s", pod.MetaData.Name, pod.MetaData.Namespace)] = pod
+		k.PodStatMap[fmt.Sprintf("%s-%s", pod.MetaData.Name, pod.MetaData.Namespace)] = pod.Status
+	}
 	k.Server = gin.Default()
 }
 

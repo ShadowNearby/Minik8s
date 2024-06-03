@@ -110,3 +110,30 @@ func UpdateNodeHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"data": "ok"})
 }
+
+// GetPodsInNodeHandler GET /api/v1/nodes/:name/pods
+func GetPodsInNodeHandler(c *gin.Context) {
+	var node core.Node
+	name := c.Param("name")
+	key := fmt.Sprintf("/nodes/object/%s", name)
+	err := storage.Get(key, &node)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "cannot find node"})
+		return
+	}
+	pods := []core.Pod{}
+	podKey := "/pods/object"
+	err = storage.RangeGet(podKey, &pods)
+	if err != nil {
+		logger.Errorf("get error: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get pods"})
+		return
+	}
+	selectdPods := []core.Pod{}
+	for _, pod := range pods {
+		if pod.Status.HostIP == node.Spec.NodeIP {
+			selectdPods = append(selectdPods, pod)
+		}
+	}
+	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(selectdPods)})
+}

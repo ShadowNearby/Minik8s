@@ -26,7 +26,7 @@ func Run() {
 var cfgFile string
 
 var rootCmd = &cobra.Command{
-	Use:   "monitor",
+	Use:   "kmonitor",
 	Short: "",
 	Long:  "",
 	Run: func(cmd *cobra.Command, args []string) {
