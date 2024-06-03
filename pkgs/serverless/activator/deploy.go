@@ -133,7 +133,7 @@ func getAvailablePods(name string) ([]string, error) {
 		record.Replicas = len(podIps)
 		autoscaler.RecordMap[name] = record
 	}
-	if record.CallCount > replicaSet.Status.RealReplicas && record.CallCount < config.FunctionThreshold {
+	if record.CallCount > replicaSet.Status.RealReplicas && record.CallCount < int(config.FunctionThreshold) {
 		replicaSet.Spec.Replicas = record.CallCount
 		log.Infof("scale up %s to %d", name, replicaSet.Spec.Replicas)
 		err = utils.SetObject(core.ObjReplicaSet, replicaSet.MetaData.Namespace, replicaSet.MetaData.Name, replicaSet)

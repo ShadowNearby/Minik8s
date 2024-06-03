@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: HPA
+metadata:
+  name: test-hpa
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: v1
+    kind: Replicas
+    name: hpa-replicaset
+    namespace: default
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+    type: Resource
+    resources:
+    - name: memory
+      target:
+        type: Utilization
+        averageUtilization: 10
