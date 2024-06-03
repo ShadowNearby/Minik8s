@@ -165,7 +165,7 @@ func getHandler(cmd *cobra.Command, args []string) {
 				for k, v := range service.Spec.Selector.MatchLabels {
 					selector = append(selector, fmt.Sprintf("%s=%s", k, v))
 				}
-				t.AppendRow(table.Row{service.MetaData.Name, service.Spec.Type, strings.Join(selector, ","), service.Spec.ClusterIP, strings.Join(portStrs, " ")})
+				t.AppendRow(table.Row{service.MetaData.Name, service.Spec.Type, strings.Join(selector, ", "), service.Spec.ClusterIP, strings.Join(portStrs, " ")})
 			}
 		}
 	case core.ObjJob:
@@ -189,8 +189,12 @@ func getHandler(cmd *cobra.Command, args []string) {
 				hpalist = append(hpalist, hpa)
 			}
 			for _, hpa := range hpalist {
-				target := ""
-				t.AppendRow(table.Row{hpa.MetaData.Name, fmt.Sprintf("%s/%s", hpa.Spec.ScaleTargetRef.Kind, hpa.Spec.ScaleTargetRef.Name), target, hpa.Spec.MinReplicas, hpa.Spec.MaxReplicas})
+				targets := []string{}
+				for _, resource := range hpa.Spec.Metrics.Resources {
+					target := fmt.Sprintf("%s/%s:%d", resource.Name, resource.Target.Type, resource.Target.AverageUtilization)
+					targets = append(targets, target)
+				}
+				t.AppendRow(table.Row{hpa.MetaData.Name, fmt.Sprintf("%s/%s", hpa.Spec.ScaleTargetRef.Kind, hpa.Spec.ScaleTargetRef.Name), strings.Join(targets, "\n"), hpa.Spec.MinReplicas, hpa.Spec.MaxReplicas})
 			}
 		}
 	case core.ObjFunction:
@@ -259,7 +263,7 @@ func getHandler(cmd *cobra.Command, args []string) {
 					for _, dest := range bind.Destinations {
 						dests = append(dests, fmt.Sprintf("%s:%d", dest.IP, dest.Port))
 					}
-					targets = fmt.Sprintf("%s:%d -> %s", endpoint.ServiceClusterIP, bind.ServicePort, strings.Join(dests, ","))
+					targets = fmt.Sprintf("%s:%d -> %s", endpoint.ServiceClusterIP, bind.ServicePort, strings.Join(dests, ", "))
 				}
 				t.AppendRow(table.Row{endpoint.MetaData.Name, targets})
 			}

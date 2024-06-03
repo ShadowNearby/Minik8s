@@ -1,4 +1,5 @@
 nerdctl stop `nerdctl ps -aq` && nerdctl rm `nerdctl ps -aq`
+service systemd-resolved stop && service coredns start
 
 # node test
 ./bin/kubectl get node
@@ -60,3 +61,16 @@ nerdctl exec -it service-pod1-test-container /bin/bash
 ./bin/kubectl delete service service2
 ./bin/kubectl delete dns dns-test
 
+# hpa test
+./bin/kubectl apply -f ./example/hpa/replicaset.yaml
+./bin/kubectl apply -f ./example/hpa/hpa.yaml
+./bin/kubectl apply -f ./example/hpa/service.yaml
+./bin/kubectl get pod
+./bin/kubectl get hpa
+./bin/kubectl get replicas
+./bin/kubectl get service
+./bin/kubectl get endpoint
+nerdctl exec -it --- /bin/bash
+stress --vm 2 --vm-bytes 500M --vm-keep
+./bin/kubectl delete hpa test-hpa
+./bin/kubectl delete service hpa-service

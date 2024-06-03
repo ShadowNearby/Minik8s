@@ -25,6 +25,9 @@ func (rsc *ReplicaSetController) BackGroundTask() {
 		rsTxt := utils.GetObject(core.ObjReplicaSet, "default", "")
 		utils.JsonUnMarshal(rsTxt, &replicas)
 		for _, replica := range replicas {
+			if replica.MetaData.OwnerReference.Controller {
+				continue
+			}
 			pods, err := utils.FindRSPods(replica.MetaData.Name)
 			if err != nil {
 				continue

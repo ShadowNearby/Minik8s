@@ -1,62 +1,44 @@
 package main
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
 	"runtime"
-	"sync"
 	"time"
 )
 
-type LoadRequest struct {
-	CPUDuration    int `json:"cpu_duration"`
-	CPULoad        int `json:"cpu_load"`
-	MemorySize     int `json:"memory_size"`
-	MemoryDuration int `json:"memory_duration"`
-}
+const size = 1024
+const interval = 5 * time.Second
 
-func cpuLoad(duration, load int, wg *sync.WaitGroup) {
-	defer wg.Done()
-	end := time.Now().Add(time.Duration(duration) * time.Second)
-	for time.Now().Before(end) {
-		for i := 0; i < load*1000000; i++ {
-			_ = i * i
+func CPUHandler(w http.ResponseWriter, r *http.Request) {
+	go func() {
+		end := time.Now().Add(interval)
+		for time.Now().Before(end) {
+			for i := 0; i < 1000000; i++ {
+				_ = i * i
+			}
 		}
-	}
+		fmt.Print("finish cpu compute")
+	}()
+	w.WriteHeader(http.StatusOK)
 }
 
-func memoryLoad(size, duration int, wg *sync.WaitGroup) {
-	defer wg.Done()
-	memory := make([]byte, size*1024*1024)
-	time.Sleep(time.Duration(duration) * time.Second)
-	_ = memory // 使用 memory 以防止编译器优化
-}
-
-func loadHandler(w http.ResponseWriter, r *http.Request) {
-	var loadReq LoadRequest
-	if err := json.NewDecoder(r.Body).Decode(&loadReq); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	var wg sync.WaitGroup
-
-	if loadReq.CPUDuration > 0 && loadReq.CPULoad > 0 {
-		wg.Add(1)
-		go cpuLoad(loadReq.CPUDuration, loadReq.CPULoad, &wg)
-	}
-
-	if loadReq.MemorySize > 0 && loadReq.MemoryDuration > 0 {
-		wg.Add(1)
-		go memoryLoad(loadReq.MemorySize, loadReq.MemoryDuration, &wg)
-	}
-
-	wg.Wait()
-	w.Write([]byte(`{"status": "load completed"}`))
+func MemHandler(w http.ResponseWriter, r *http.Request) {
+	go func() {
+		memory := make([]byte, size*1024*1024)
+		time.Sleep(interval)
+		_ = memory
+		fmt.Print("finish mem alloc\n")
+	}()
+	w.WriteHeader(http.StatusOK)
 }
 
 func main() {
-	runtime.GOMAXPROCS(runtime.NumCPU()) // 使用所有可用的CPU核心
-	http.HandleFunc("/load", loadHandler)
-	http.ListenAndServe(":8080", nil)
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	http.HandleFunc("/cpu", CPUHandler)
+	http.HandleFunc("/memory", MemHandler)
+	err := http.ListenAndServe(":7070", nil)
+	if err != nil {
+		fmt.Print(err.Error())
+	}
 }

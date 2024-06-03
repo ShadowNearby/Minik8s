@@ -34,6 +34,7 @@ func CreatePodHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot store data"})
 		return
 	}
+	pod.Status = core.PodStatus{}
 	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelPod, constants.ChannelCreate), pod)
 	pods := []core.Pod{core.Pod{}, pod}
 	logger.Info("[create pods successfully]")

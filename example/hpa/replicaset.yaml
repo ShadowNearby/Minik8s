@@ -18,7 +18,13 @@ spec:
         app: hpa-test
     spec:
       containers:
-      - name: nginx_test
+      - name: hpa-load
         image: docker.io/shadownearby/system_load:v1
         imagePullPolicy: IfNotPresent
+      - name: hpa-ip-return
+        image: docker.io/shadownearby/ip_return:v1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+          name: p1
       restartPolicy: OnFailure

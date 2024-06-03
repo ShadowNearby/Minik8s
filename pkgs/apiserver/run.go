@@ -13,6 +13,7 @@ import (
 	rsc "minik8s/pkgs/controller/replicaset"
 	scheduler "minik8s/pkgs/controller/scheduler"
 	"minik8s/utils"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -20,13 +21,15 @@ import (
 
 func Run() {
 	server := server.CreateAPIServer(config.DefaultEtcdEndpoints)
+	go server.Run(fmt.Sprintf("%s:%s", config.ClusterMasterIP, config.ApiServerPort))
+	time.Sleep(3 * time.Second)
 	var schedulerController scheduler.Scheduler
 	go schedulerController.Run(constants.PolicyCPU)
 	var podController podcontroller.PodController
 	go controller.StartController(&podController)
 	var replicaSet rsc.ReplicaSetController
 	go controller.StartController(&replicaSet)
-	replicaSet.BackGroundTask()
+	go replicaSet.BackGroundTask()
 	var hpa autoscaler.HPAController
 	go controller.StartController(&hpa)
 	// start hpa background work
@@ -36,11 +39,10 @@ func Run() {
 	go functionController.ListenOtherChannels()
 	var taskController function.TaskController
 	go controller.StartController(&taskController)
-	taskController.StartTaskController()
+	go taskController.StartTaskController()
 	// start heartbeat
 	go heartbeat.Run()
-
-	server.Run(fmt.Sprintf("%s:%s", config.ClusterMasterIP, config.ApiServerPort))
+	select {}
 }
 
 var cfgFile string
@@ -67,5 +69,5 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "/home/k8s/ly/minik8s/config/config.json", "config file (default is ./config/config.json)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "./config/config.json", "config file (default is ./config/config.json)")
 }

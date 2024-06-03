@@ -54,9 +54,13 @@ func (cmg *ContainerManager) CreateContainer(ctx context.Context, config core.Co
 	}
 	if config.Resource.Cpu != core.EmptyCpu {
 		specs = append(specs, oci.WithCPUs(config.Resource.Cpu))
+	} else {
+		specs = append(specs, oci.WithCPUs("0-1"))
 	}
 	if config.Resource.Memory != core.EmptyMemory {
 		specs = append(specs, oci.WithMemoryLimit(config.Resource.Memory))
+	} else {
+		specs = append(specs, oci.WithMemoryLimit(1024*1024*1024*4))
 	}
 	if len(config.Envs) > 0 {
 		specs = append(specs, oci.WithEnv(config.Envs))

@@ -68,7 +68,7 @@ func UnbindEndpoint(serviceIP string, servicePort uint32, destIP string, destPor
 	rmEndpointArgs := []string{"-d", "-t", fmt.Sprintf("%s:%d", serviceIP, servicePort), "-r", fmt.Sprintf("%s:%d", destIP, destPort)}
 	output, err := exec.Command("ipvsadm", rmEndpointArgs...).CombinedOutput()
 	if err != nil {
-		log.Errorf("failed to unbind endpoint: %s output: %s", err.Error(), output)
+		log.Errorf("failed to unbind endpoint: %s output: %s destIP:%s destPort:%d", err.Error(), output, destIP, destPort)
 		return err
 	}
 	return nil

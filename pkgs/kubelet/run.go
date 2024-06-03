@@ -34,14 +34,14 @@ func Run(kconfig core.KubeletConfig, addr string) {
 			}
 		}
 	}()
-	//go func() {
-	//	for {
-	//		for _, podConfig := range runtime.KubeletInstance.PodConfigMap {
-	//			kubeletcontroller.InspectPod(&podConfig, runtime.ExecProbe)
-	//		}
-	//		time.Sleep(5 * time.Second)
-	//	}
-	//}()
+	// go func() {
+	// 	for {
+	// 		for _, podConfig := range runtime.KubeletInstance.PodConfigMap {
+	// 			kubeletcontroller.InspectPod(&podConfig, runtime.ExecProbe)
+	// 		}
+	// 		time.Sleep(30 * time.Second)
+	// 	}
+	// }()
 	select {}
 }
 
@@ -79,5 +79,5 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "/home/k8s/ly/minik8s/config/config.json", "config file (default is ./config/config.json)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "./config/config.json", "config file (default is ./config/config.json)")
 }

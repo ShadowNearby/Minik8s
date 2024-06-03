@@ -145,7 +145,7 @@ func GetContainerMetrics(container containerd.Container) (core.ContainerMetrics,
 					memoryUsageBytes = data.Memory.Usage.Usage
 				} else {
 					cpuUsageUsec = data.CPU.Usage.Total - cpuUsageUsec
-					memoryUsageBytes = (data.Memory.Usage.Usage - memoryUsageBytes) / 2
+					memoryUsageBytes = (data.Memory.Usage.Usage + memoryUsageBytes) / 2
 				}
 			}
 		default:
@@ -159,9 +159,9 @@ func GetContainerMetrics(container containerd.Container) (core.ContainerMetrics,
 
 	// 计算CPU,MEM使用率
 	cpuUsageRate := (float64(cpuUsageUsec) / float64(elapsedTime)) * 100
-	memUsageRage := float64(memoryUsageBytes)
+	memUsageVal := float64(memoryUsageBytes)
 	containerMetrics.CpuUsage = cpuUsageRate
-	containerMetrics.MemoryUsage = memUsageRage
+	containerMetrics.MemoryUsage = memUsageVal
 	return containerMetrics, nil
 }
 
