@@ -17,29 +17,19 @@ def welecome():
 
 @app.route("/", methods=['POST'])
 def callCloudFuncByPost():
+    params = request.json
+    headers = {'Content-Type': 'text/plain'}
     try:
-        userparams = json.loads(request.get_data())
-    except json.JSONDecodeError:
-        userparams = ""
-    finally:
-        res = func.main(userparams)
-    return json.dumps(res)
+        result = func.run(**params)
+        response = Response(str(result), headers=headers, status=200)
+        return response
+    except TypeError as e:
+        response = Response("", headers=headers, status=200)
+        return response
+    except Exception as e:
+        response = Response(str(e), headers=headers, status=500)
+        return str(e)
 
-@app.route("/", methods=['PUT'])
-def callCloudFuncByPut():
-    try:
-        userparams = json.loads(request.get_data())
-    except json.JSONDecodeError:
-        userparams = ""
-    finally:
-        res = func.main(userparams)
-    return json.dumps(res)
-
-# @app.route("/test", methods=['GET'])
-# def test():
-#     userparams = "json.loads(request.get_data())"
-#     res = func.main(userparams)
-#     return json.dumps(res)
 
 @app.route("/config", methods=['GET'])
 def getConfig():

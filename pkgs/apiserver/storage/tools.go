@@ -37,10 +37,11 @@ func Put(key string, val any) error {
 func Get(key string, ptr any) error {
 	err := RedisInstance.redisGet(key, ptr)
 	if err == nil {
+
 		return err
 	}
 	err = etcdClient.Get(ctx, key, ptr)
-	//// ？
+
 	if err != nil {
 		return err
 	}

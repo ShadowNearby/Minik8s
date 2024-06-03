@@ -51,6 +51,7 @@ func trigger(cmd *cobra.Command, args []string) {
 	name, _ := api.GetNameFromParamsFile(fileContent)
 	paramsContent, err := api.GetParamsFromParamsFile(fileContent)
 	if err != nil {
+
 		log.Error(err)
 	}
 	log.Infoln("[Path]: ", filePath, "	[DATA]:	", paramsContent)

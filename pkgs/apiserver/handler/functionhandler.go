@@ -37,6 +37,7 @@ func CreateFunctionHandler(c *gin.Context) {
 		return
 	}
 	key := FunctionKeyPrefix(function.Name)
+	function.Status = core.CREATE
 	err = storage.Put(key, function)
 	logger.Info("[FunctionCreateHandler] init function finished")
 	if err != nil {
@@ -47,13 +48,11 @@ func CreateFunctionHandler(c *gin.Context) {
 		c.JSON(http.StatusOK, []byte("create: "+"function create success"))
 	}
 	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelFunction, constants.ChannelCreate), function)
-	newFunction := []core.Function{core.Function{}, function}
-	storage.RedisInstance.PublishMessage(constants.ChannelPodSchedule, utils.JsonMarshal(newFunction))
 	if err != nil {
 		logger.Error("[FunctionCreateHandler] error: ", err.Error())
 		c.JSON(http.StatusInternalServerError, []byte("create: "+err.Error()))
 	} else {
-		c.JSON(http.StatusOK, gin.H{})
+		c.JSON(http.StatusOK, gin.H{"function": function})
 	}
 }
 
@@ -96,8 +95,7 @@ func DeleteFunctionHandler(c *gin.Context) {
 	}
 	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelFunction, constants.ChannelDelete), function)
 	newFunction := []core.Function{core.Function{}, function}
-	storage.RedisInstance.PublishMessage(constants.ChannelPodSchedule, utils.JsonMarshal(newFunction))
-	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(function)})
+	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(newFunction)})
 }
 
 // UpdateFunctionHandler PUT /api/v1/functions/:name
@@ -164,7 +162,6 @@ func TriggerFunctionHandler(c *gin.Context) {
 	}
 	logger.Info("[TriggerFunctionHandler] function: ", functionName)
 	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelFunction, constants.ChannelTrigger), utils.JsonMarshal(request))
-
 	if err != nil {
 		// send request error
 		c.JSON(http.StatusInternalServerError, gin.H{

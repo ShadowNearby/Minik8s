@@ -10,7 +10,6 @@ import (
 	"minik8s/pkgs/serverless/autoscaler"
 	"minik8s/pkgs/serverless/function"
 	"minik8s/utils"
-	"net"
 	"sort"
 	"time"
 
@@ -84,37 +83,13 @@ func getPodIpList(pods []core.Pod) []string {
 	log.Info(result)
 	return result
 }
-func CheckConnection(ip string) error {
-	timer := time.NewTimer(config.FunctionConnectTime)
-	for {
-		select {
-		case <-timer.C:
-			return errors.New("timeout")
-		default:
-			{
-				// try to connect to the ip
-				address := ip + ":" + config.ServerlessIP
-				conn, err := net.DialTimeout("tcp", address, time.Second)
-				if err != nil {
-					continue
-				}
-				defer conn.Close()
-				log.Info("[CheckConnection] Connection is ok")
-				return nil
-			}
-		}
-
-	}
-}
-
 func InitFunc(name string, path string) error {
 	err := function.CreateImage(path, name)
 	if err != nil {
 		log.Error("[InitFunc] create image error: ", err)
 		return err
 	}
-	imageName := fmt.Sprintf("%s:%s/%s:latest", config.LocalServerIp, config.ApiServerPort, name)
-
+	imageName := fmt.Sprintf("%s:%s/%s:latest", config.ImagePath, config.ServerlessIP, name)
 	replicaSet := GenerateReplicaSet(name, "serverless", imageName, 0)
 	log.Info("[InitFunc] create record replicaSet: ", replicaSet)
 
@@ -135,10 +110,9 @@ func InitFunc(name string, path string) error {
 	}
 	return nil
 }
-func IfDeployed(name string) ([]string, error) {
+func CheckPrepare(name string) ([]string, error) {
 	log.Info("[CheckPrepare] check prepare for function: ", name)
 	// 1. find the pods
-
 	response := utils.GetObject(core.ObjReplicaSet, "serverless", name)
 	var replicaSet *core.ReplicaSet
 	if response == "" {
@@ -238,7 +212,6 @@ func DeleteFunc(name string) error {
 
 	// 1. delete the replicaset
 	err := utils.DeleteObject(core.ObjReplicaSet, "serverless", name)
-
 	if err != nil {
 		log.Error("[DeleteFunc] delete replicas error: ", err)
 		return err
@@ -267,7 +240,7 @@ func TriggerFunc(name string, params []byte) ([]byte, error) {
 	retry := 3
 	for retry > 0 {
 		retry -= 1
-		podIps, err := IfDeployed(name)
+		podIps, err := CheckPrepare(name)
 		if err != nil {
 			log.Error("[TriggerFunc] check prepare error: ", err)
 			continue
@@ -298,15 +271,9 @@ func TriggerFunc(name string, params []byte) ([]byte, error) {
 		log.Info("[TriggerFunc] prettyJSON: ", string(prettyJSON), "url: ", url)
 
 		// 4. send the request
-		// first check the connection
-		err = CheckConnection(podIp)
-		if err != nil {
-			log.Error("[TriggerFunc] check connection error: ", err)
-			continue
-		}
 		log.Info("[TriggerFunc] connection is finished")
 		_, ret, err := utils.SendRequest("POST", url, params)
-		log.Info("[TriggerFunc] ret: ", string(ret))
+		log.Info("[TriggerFunc] ret: ", ret)
 		result := bytes.NewBufferString(ret).Bytes()
 		if err != nil {
 			log.Error("[TriggerFunc] send request error: ", err)
@@ -323,7 +290,6 @@ func LoadBalance(name string, podIps []string) (string, error) {
 		log.Error("[LoadBalance] pod ip list is empty")
 		return "", errors.New("pod ip list is empty")
 	}
-
 	autoscaler.RecordMutex.RLock()
 	record := autoscaler.GetRecord(name)
 	autoscaler.RecordMutex.RUnlock()

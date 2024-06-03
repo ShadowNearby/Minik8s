@@ -17,6 +17,7 @@ var (
 	NodePort             = "10250"
 	DefaultEtcdEndpoints = []string{"localhost:2380"}
 	HeartbeatInterval    = 15 * time.Second
+	ServerlessPort       = "18080"
 )
 
 var (
@@ -49,7 +50,8 @@ var (
 	FunctionServerIp          = "master"
 	FunctionThreshold   int32 = 6
 	FunctionConnectTime       = 30 * time.Second
-	ServerlessIP              = "8081"
+	ServerlessIP              = "localhost"
+	ImagePath                 = "shadownearby"
 )
 
 func InitConfig(configPath string) error {

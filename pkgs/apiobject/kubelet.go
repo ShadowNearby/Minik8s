@@ -159,5 +159,7 @@ type NodeStatusPhase string
 
 const (
 	Ready              NodeStatusPhase = "Ready"
+	DiskPressure       NodeStatusPhase = "DiskPressure"
+	MemoryPressure     NodeStatusPhase = "MemoryPressure"
 	NetworkUnavailable NodeStatusPhase = "NetworkUnavailable"
 )

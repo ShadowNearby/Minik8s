@@ -4,19 +4,17 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"io"
+	"minik8s/config"
 	"minik8s/utils"
 	"os"
 	"os/exec"
 	"strings"
 )
 
-const ImagePath = "shadownearby"
-
 /* build image for function*/
 func CreateImage(path string, name string) error {
 	// 1. create the image
 	// 1.1 copy the target file to the func.py
-	name = fmt.Sprintf("%s/%s:v1", ImagePath, name)
 	srcFile, err := os.Open(path)
 	if err != nil {
 		log.Error("[CreateImage] open src file error: ", err)
@@ -45,6 +43,12 @@ func CreateImage(path string, name string) error {
 		log.Error("[CreateImage] docker create image :", name, "at ", utils.RootPath, "/serverless/image/", " error: ", err)
 		return err
 	}
+	cmd = exec.Command("docker", "tag", name, config.ImagePath+"/"+name+":latest")
+	err = cmd.Run()
+	if err != nil {
+		log.Error("[CreateImage] tag image error: ", err)
+		return err
+	}
 	/* 2 save the image */
 	err = SaveImage(name)
 	if err != nil {
@@ -58,7 +62,8 @@ func CreateImage(path string, name string) error {
 /* save the image into the registry rootPath/name:v1 */
 func SaveImage(name string) error {
 	/* push the image into the registry */
-	cmd := exec.Command("docker", "push", name)
+	imageName := fmt.Sprintf("%s/%s:latest", config.ImagePath, name)
+	cmd := exec.Command("docker", "push", imageName)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
@@ -114,7 +119,7 @@ func FindContainer(name string) bool {
 /* delete the image */
 func DeleteImage(name string) error {
 	// if the image not exist, just ignore
-	imageName := fmt.Sprintf("%s/%s:v1", ImagePath, name)
+	imageName := fmt.Sprintf("%s/%s:latest", config.ImagePath, name)
 	if FindContainer(name) {
 		cmd := exec.Command("docker", "stop", name)
 		err := cmd.Run()
@@ -140,7 +145,7 @@ func DeleteImage(name string) error {
 
 /*RunImage to run image for function*/
 func RunImage(name string) error {
-	imageName := fmt.Sprintf("%s/%s:v1", ImagePath, name)
+	imageName := fmt.Sprintf("%s/%s:latest", config.ImagePath, name)
 	// 1. run the image
 	log.Info("[RunImage] run image ", name, " to start serverless")
 	cmd := exec.Command("docker", "run", "-d", "--name", name, imageName)
