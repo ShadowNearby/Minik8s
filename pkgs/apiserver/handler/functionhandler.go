@@ -1,56 +1,48 @@
 package handler
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/apiserver/storage"
 	"minik8s/pkgs/constants"
 	"minik8s/utils"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	logger "github.com/sirupsen/logrus"
 )
 
 func FunctionKeyPrefix(name string) string {
-	return fmt.Sprintf("/registry/functions/%s", name)
+	return fmt.Sprintf("/functions/object/%s", name)
 }
 
 // CreateFunctionHandler POST /api/v1/functions
 func CreateFunctionHandler(c *gin.Context) {
 	var function core.Function
-
 	err := c.Bind(&function)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	logger.Info("[FunctionCreateHandler] function: ", function)
 	// check the parameters
 	if function.Name == "" {
-		logger.Errorf("put error: %s", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "function is empty"})
+		logger.Errorf("Function name is empty")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "function is empty"})
 		return
 	}
 	if function.Path == "" {
-		logger.Errorf("put error: %s", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"create": "function path is empty"})
+		logger.Errorf("Funtion path is empty")
+		c.JSON(http.StatusBadRequest, gin.H{"create": "function path is empty"})
 		return
 	}
 	key := FunctionKeyPrefix(function.Name)
 	err = storage.Put(key, function)
-	logger.Info("[FunctionCreateHandler] init function finished")
 	if err != nil {
 		logger.Error("[FunctionCreateHandler] error: ", err.Error())
-		c.JSON(http.StatusInternalServerError, []byte("create: "+err.Error()))
-	} else {
-		logger.Info("[FunctionCreateHandler] success")
-		c.JSON(http.StatusOK, []byte("create: "+"function create success"))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
-	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelFunction, constants.ChannelCreate), function)
-	newFunction := []core.Function{core.Function{}, function}
-	storage.RedisInstance.PublishMessage(constants.ChannelPodSchedule, utils.JsonMarshal(newFunction))
-	c.JSON(http.StatusOK, gin.H{})
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelFunction, constants.ChannelCreate), utils.JsonMarshal(function))
+	c.JSON(http.StatusOK, gin.H{"data": "create function success"})
 }
 
 // GetFunctionHandler GET /api/v1/functions/:name
@@ -58,6 +50,7 @@ func GetFunctionHandler(c *gin.Context) {
 	name := c.Param("name")
 	if name == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "function name is empty"})
+		return
 	}
 	var function core.Function
 	functionName := FunctionKeyPrefix(name)
@@ -84,42 +77,19 @@ func DeleteFunctionHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get data"})
 		return
 	}
-	function.Status = core.DELETE
 	err = storage.Del(functionName)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot delete function"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(function)})
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelFunction, constants.ChannelDelete), utils.JsonMarshal(function))
+	c.JSON(http.StatusOK, gin.H{"data": "ok"})
 }
 
 // UpdateFunctionHandler PUT /api/v1/functions/:name
 func UpdateFunctionHandler(c *gin.Context) {
-	name := c.Param("name")
-	if name == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "function name is empty"})
-	}
-	functionConfig := &core.Function{}
-	if err := c.Bind(functionConfig); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	functionName := FunctionKeyPrefix(name)
-	preFunctionConfig := &core.Function{}
-	if err := storage.Get(functionName, &preFunctionConfig); err != nil {
-		logger.Errorf("get error: %s", err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get data"})
-		return
-	}
-	if err := storage.Put(functionName, &preFunctionConfig); err != nil {
-		logger.Errorf("function %s not found", name)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "function put error"})
-		return
-	}
-	////TODO : adjust update
-	functions := []core.Function{*preFunctionConfig, *functionConfig}
-	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelFunction, constants.ChannelUpdate), utils.JsonMarshal(functions))
-	c.JSON(http.StatusOK, gin.H{"data": "success"})
+	c.JSON(http.StatusBadRequest, gin.H{"error": "the system do not support update function"})
+	return
 }
 
 // TriggerFunctionHandler POST /api/v1/functions/:name/trigger
@@ -133,53 +103,120 @@ func TriggerFunctionHandler(c *gin.Context) {
 		return
 	}
 
-	params, err := c.GetRawData()
+	triggerMsg := core.TriggerMessage{}
+	err := c.Bind(&triggerMsg)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	request, err := json.Marshal(
-		struct {
-			Name   string          `json:"name"`
-			Params json.RawMessage `json:"params"`
-		}{
-			Name:   name,
-			Params: params,
-		})
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	logger.Info("[TriggerFunctionHandler] function: ", functionName)
-	/* TODO : Send trigger request to handler ； Waiting for list-watcher to implement */
-	err = storage.Put(functionName, string(request))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	}
-	logger.Info("[TriggerFunctionHandler] function: ", functionName)
-	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelFunction, constants.ChannelTrigger), utils.JsonMarshal(request))
-
-	if err != nil {
-		// send request error
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "expect trigger message type"})
 		return
 	}
 
-	/* TODO : check result*/
-
+	storage.RedisInstance.PublishMessage(constants.ChannelFunctionTrigger, utils.JsonMarshal(triggerMsg))
+	// TODO: should it be sync or async
+	c.JSON(http.StatusOK, gin.H{"data": "ok"})
 }
 
 // GetAllFunctionsHandler GET /api/v1/functions
 func GetAllFunctionsHandler(c *gin.Context) {
-	var functionConfigs []core.Pod
-	err := storage.RangeGet("/registry/functions", &functionConfigs)
+	var functionConfigs []core.Function
+	err := storage.RangeGet("/functions/object", &functionConfigs)
 	if err != nil {
 		logger.Errorf("get error: %s", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get data"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(functionConfigs)})
+}
 
+// CreateTaskHandler /api/v1/functions/task POST
+func CreateTaskHandler(c *gin.Context) {
+	var task core.PingSource
+	err := c.Bind(&task)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "expect Ping source type"})
+		return
+	}
+	if task.MetaData.Name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "task name cannot be empty"})
+		return
+	}
+	if task.Spec.Sink.Ref.Name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "trigger function name cannot be empty"})
+		return
+	}
+	err = storage.Put(fmt.Sprintf("/functions/tasks/%s", task.MetaData.Name), task)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot save task"})
+		return
+	}
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelTask, constants.ChannelCreate), utils.JsonMarshal(task))
+	c.JSON(http.StatusOK, gin.H{"data": "ok"})
+
+}
+
+// UpdateTaskHandler /api/v1/functions/task/:name "POST"
+func UpdateTaskHandler(c *gin.Context) {
+	var task core.PingSource
+	var newTask core.PingSource
+	name := c.Param("name")
+	err := c.Bind(&newTask)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "expect ping source type"})
+		return
+	}
+	if newTask.MetaData.Name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "task name cannot be empty"})
+		return
+	}
+	if newTask.Spec.Sink.Ref.Name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "trigger function name cannot be empty"})
+		return
+	}
+	err = storage.Get(fmt.Sprintf("/functions/tasks/%s", name), &task)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "cannot update task does not exist"})
+		return
+	}
+	err = storage.Put(fmt.Sprintf("/functions/tasks/%s", task.MetaData.Name), newTask)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot save task"})
+		return
+	}
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelTask, constants.ChannelUpdate), utils.JsonMarshal(newTask))
+}
+
+// DeleteTaskHandler /api/v1/functions/task/name "DELETE"
+func DeleteTaskHandler(c *gin.Context) {
+	name := c.Param("name")
+	var oldTask core.PingSource
+	err := storage.Get(fmt.Sprintf("/functions/tasks/%s", name), &oldTask)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "cannot delete task does not exist"})
+		return
+	}
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelTask, constants.ChannelDelete), name)
+	c.JSON(http.StatusOK, gin.H{"data": "ok"})
+}
+
+// GetTaskHandler /api/v1/functions/task/:name "GET"
+func GetTaskHandler(c *gin.Context) {
+	name := c.Param("name")
+	var task core.PingSource
+	err := storage.Get(fmt.Sprintf("/functions/tasks/%s", name), &task)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "cannot get task does not exist"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(task)})
+}
+
+// GetAllTaskHandler /api/v1/functions/task "GET"
+// this function should be called every time apiserver restart to save data in taskHandler
+func GetAllTaskHandler(c *gin.Context) {
+	var tasks []core.PingSource
+	err := storage.RangeGet("/functions/tasks", &tasks)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get data"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(tasks)})
 }

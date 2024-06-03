@@ -136,30 +136,25 @@ func ExecuteTask(task core.TaskState, functionName string, params []byte) ([]byt
 		}
 	}
 	log.Info("Triggering Function ======>")
-	result, err := activator.TriggerFunc(functionName, inputParams)
+	err = activator.TriggerFunc(functionName, inputParams)
 	log.Info("======> Success")
 	if err != nil {
 		return nil, err
 	}
-	log.Info(result)
+	return nil, nil
 
 	// python's dict is single quotes, need to replace it with double quotes
 
-	paramsStr := string(result)
-	paramsStr = replaceSingleQuotesWithDoubleQuotes(paramsStr)
-	result = []byte(paramsStr)
-	log.Info(paramsStr)
-
 	// if the ResultPath is not empty, need to parse the result to abstract the output
-	if task.ResultPath != "" {
-		result, err = ParseParams(result, task.ResultPath)
-
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return result, nil
+	//if task.ResultPath != "" {
+	//	result, err = ParseParams(result, task.ResultPath)
+	//
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//}
+	//
+	//return result, nil
 }
 func ExecuteFail(fail core.FailState) string {
 	result := fmt.Sprintf("Fail: %s, Cause: %s", fail.Error, fail.Cause)

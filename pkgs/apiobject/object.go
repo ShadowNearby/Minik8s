@@ -1,7 +1,5 @@
 package core
 
-import "encoding/json"
-
 type MetaData struct {
 	Name            string            `json:"name" yaml:"name"`
 	Namespace       string            `json:"namespace" yaml:"namespace,omitempty"`
@@ -26,8 +24,3 @@ const (
 	UPDATE VersionLabel = "update"
 	CREATE VersionLabel = "create"
 )
-
-// MarshalJSONList the object list to json
-func MarshalJSONList(list interface{}) ([]byte, error) {
-	return json.Marshal(list)
-}

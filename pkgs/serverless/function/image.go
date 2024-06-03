@@ -4,6 +4,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"io"
+	"minik8s/config"
 	"minik8s/utils"
 	"os"
 	"os/exec"
@@ -12,66 +13,85 @@ import (
 
 const ImagePath = "shadownearby"
 
-/* build image for function*/
+// CreateImage build image for function
 func CreateImage(path string, name string) error {
-	// 1. create the image
-	// 1.1 copy the target file to the func.py
-	name = fmt.Sprintf("%s/%s:v1", ImagePath, name)
-	srcFile, err := os.Open(path)
-	if err != nil {
-		log.Error("[CreateImage] open src file error: ", err)
-		return err
-	}
-	defer srcFile.Close()
-	dstFile, err := os.OpenFile(utils.RootPath+"/image/func.py", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
-	if err != nil {
-		log.Error("[CreateImage] open dst file error: ", err)
-		return err
-	}
-	defer dstFile.Close()
-	_, err = io.Copy(dstFile, srcFile)
-	log.Info(srcFile.Name(), "      ", dstFile.Name())
-	if err != nil {
-		log.Error("[CreateImage] copy file error: ", err)
-		return err
-	}
+	fullName := fmt.Sprintf("%s:v1", name)
+	if FindImage(name) {
+		log.Info("image existed")
+	} else {
+		srcFile, err := os.Open(path)
+		if err != nil {
+			log.Error("[CreateImage] open src file error: ", err)
+			return err
+		}
+		defer srcFile.Close()
 
-	// 1.2 create the image
-	//sudo usermod -aG docker $USER
-	cmd := exec.Command("docker", "build", "-t", name, utils.RootPath+"/image/")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
-	if err != nil {
-		log.Error("[CreateImage] docker create image :", name, "at ", utils.RootPath, "/serverless/image/", " error: ", err)
-		return err
+		dstFile, err := os.OpenFile(utils.RootPath+"/image/func.py", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
+		if err != nil {
+			log.Error("[CreateImage] open dst file error: ", err)
+			return err
+		}
+		defer dstFile.Close()
+
+		_, err = io.Copy(dstFile, srcFile)
+		if err != nil {
+			log.Error("[CreateImage] copy file error: ", err)
+			return err
+		}
+		log.Info("[CreateImage] copy file success")
+		cmd := exec.Command("docker", "build", "-t", fullName, utils.RootPath+"/image/")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err = cmd.Run()
+		if err != nil {
+			log.Errorf("create image %s error %s", fullName, err.Error())
+			return err
+		}
 	}
-	// 2. save the image to the registry
-	err = SaveImage(name)
+	err := saveImage(fullName)
 	if err != nil {
 		log.Error("[CreateImage] save image error: ", err)
 		return err
 	}
-	log.Info("[CreateImage] create image success")
 	return nil
 }
 
-/* save the image into the registry*/
-func SaveImage(name string) error {
-	// 2. push the image into the registry
-	cmd := exec.Command("docker", "push", name)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err != nil {
-		log.Error("[SaveImage] push image ", name, " error: ", err)
+// saveImage  save the image into the registry
+func saveImage(name string) error {
+	// docker tag <old-name> <new-name>
+	// e.g. docker tag serverless_test:v1 localhost:5000/serverless_test:v1
+	registryImgName := fmt.Sprintf("%s/%s", ImagePath, name)
+	log.Infof("tagged name: %s", registryImgName)
+	tagCmd := exec.Command("docker", "tag", name, registryImgName)
+	tagCmd.Stdout = os.Stdout
+	tagCmd.Stdin = os.Stdin
+	if err := tagCmd.Run(); err != nil {
+		log.Errorf("tag image error: %s", err.Error())
 		return err
 	}
-	log.Info("[SaveImage] save image ", name, " success")
+	cmd := exec.Command("docker", "push", registryImgName)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		log.Errorf("push image error: %s", err.Error())
+		return err
+	}
+
 	return nil
 }
 
-/* find the image */
+func PullImage(name string) error {
+	registryImgName := fmt.Sprintf("%s/%s:v1", config.ClusterMasterIP, name)
+	nerdCmd := exec.Command("nerdctl", "pull", registryImgName)
+	nerdCmd.Stdout = os.Stdout
+	nerdCmd.Stdin = os.Stdin
+	if err := nerdCmd.Run(); err != nil {
+		log.Errorf("nerdctl pull image image error: %s", err.Error())
+	}
+	return nil
+}
+
+// FindImage  find the image
 func FindImage(name string) bool {
 	cmd := exec.Command("docker", "images", name)
 
@@ -92,7 +112,7 @@ func FindImage(name string) bool {
 	}
 }
 
-/* delete the image */
+// DeleteImage delete the image
 func DeleteImage(name string) error {
 	// if the image not exist, just ignore
 	imageName := fmt.Sprintf("%s/%s:v1", ImagePath, name)
@@ -104,25 +124,14 @@ func DeleteImage(name string) error {
 			return err
 		}
 	}
-
-	if FindImage(name) {
-		cmd := exec.Command("docker", "rmi", name+":latest")
-		err := cmd.Run()
-		if err != nil {
-			log.Error("[DeleteImage] delete second image error: ", err)
-			return err
-		}
-	}
-
-	log.Info("[DeleteImage] delete image finished")
 	return nil
 }
 
 /*RunImage to run image for function*/
+// we don't need docker interface to run image
 func RunImage(name string) error {
 	imageName := fmt.Sprintf("%s/%s:v1", ImagePath, name)
 	// 1. run the image
-	log.Info("[RunImage] run image ", name, " to start serverless")
 	cmd := exec.Command("docker", "run", "-d", "--name", name, imageName)
 
 	cmd.Stdout = os.Stdout

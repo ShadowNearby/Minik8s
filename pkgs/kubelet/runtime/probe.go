@@ -2,10 +2,11 @@ package runtime
 
 import (
 	"context"
-	"github.com/containerd/containerd"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/kubelet/resources"
 	"minik8s/utils"
+
+	"github.com/containerd/containerd"
 )
 
 type ProbeType string
@@ -52,12 +53,12 @@ func (k *Kubelet) DoProbe(pType ProbeType, containers []containerd.Container, po
 		if pType == ExecProbe {
 			execOk := k.execProbe(container, pod, containerStatus)
 			if !execOk {
-				pod.Status.Phase = core.PhasePending
+				pod.Status.Condition = core.CondPending
 				// try to restart container
 				err := restartContainer(pod, &container, containerStatus)
 				if err != nil {
 					// cannot restart
-					pod.Status.Phase = core.PhaseFailed
+					pod.Status.Condition = core.CondFailed
 					return err
 				}
 			}

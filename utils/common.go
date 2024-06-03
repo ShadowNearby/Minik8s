@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
-	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/constants"
 	"net"
 
@@ -67,10 +66,4 @@ func MatchLabel(l map[string]string, r map[string]string) bool {
 		}
 	}
 	return true
-}
-func GetPodListFromRS(rs *core.ReplicaSet) []*core.Pod {
-	var podList []*core.Pod
-	info := []byte(GetObject(core.ObjPod, rs.MetaData.Namespace, ""))
-	json.Unmarshal(info, &podList)
-	return podList
 }

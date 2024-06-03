@@ -12,7 +12,7 @@ type IController interface {
 	HandleCreate(message string) error
 	HandleUpdate(message string) error
 	HandleDelete(message string) error
-	//HandleTrigger(message string) error
+	//HandleHttpTrigger(message string) error
 }
 
 func StartController(controller IController) {

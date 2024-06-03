@@ -7,7 +7,6 @@ import (
 
 func InitPodStatus(podConfig *core.Pod) core.PodStatus {
 	var podStat = core.PodStatus{
-		Phase:            core.PhasePending,
 		HostIP:           podConfig.Status.HostIP,
 		PodIP:            "",
 		StartTime:        time.Now(),

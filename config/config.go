@@ -12,7 +12,8 @@ import (
 var (
 	LocalServerIp        = "127.0.0.1"
 	ApiServerPort        = "8090"
-	ClusterMasterIP      = "127.0.0.1"
+	RegistryPort         = "5000"
+	ClusterMasterIP      = "172.31.184.139"
 	PodCIDR              = "10.244.0.0/16"
 	NodePort             = "10250"
 	DefaultEtcdEndpoints = []string{"localhost:2380"}
@@ -45,11 +46,11 @@ var (
 )
 
 var (
-	FunctionRetryTimes        = 10
-	FunctionServerIp          = "master"
-	FunctionThreshold   int32 = 6
-	FunctionConnectTime       = 30 * time.Second
-	ServelessIP               = "8081"
+	FunctionRetryTimes  = 10
+	FunctionServerIp    = "master"
+	FunctionThreshold   = 6
+	FunctionConnectTime = 30 * time.Second
+	ServerlessPort      = "18080"
 )
 
 func InitConfig(configPath string) error {
@@ -98,13 +99,13 @@ func InitConfig(configPath string) error {
 	}
 	FunctionRetryTimes = cfg.FunctionRetryTimes
 	FunctionServerIp = cfg.FunctionServerIp
-	FunctionThreshold = cfg.FunctionThreshold
+	FunctionThreshold = int(cfg.FunctionThreshold)
 	FunctionConnectTime, err = time.ParseDuration(cfg.FunctionConnectTime)
 	if err != nil {
 		logrus.Errorf("error in parse FunctionConnectTime %s", err.Error())
 		return err
 	}
-	ServelessIP = cfg.ServelessIP
+	ServerlessPort = cfg.ServelessIP
 
 	logrus.Info("Configuration parsed successfully")
 	return nil
@@ -137,5 +138,5 @@ type Config struct {
 	FunctionServerIp         string   `json:"FunctionServerIp"`
 	FunctionThreshold        int32    `json:"FunctionThreshold"`
 	FunctionConnectTime      string   `json:"FunctionConnectTime"`
-	ServelessIP              string   `json:"ServelessIP"`
+	ServelessIP              string   `json:"ServerlessPort"`
 }

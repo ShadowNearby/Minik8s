@@ -25,7 +25,6 @@ var EmptyContainerMetrics = ContainerMetrics{
 }
 
 type PodStatus struct {
-	Phase            PhaseLabel        `json:"phase" yaml:"phase"`
 	HostIP           string            `json:"hostIP" yaml:"hostIP"` /* node ip */
 	PodIP            string            `json:"podIP" yaml:"podIP"`
 	StartTime        time.Time         `yaml:"startTime"`
@@ -72,13 +71,6 @@ const PauseContainerName string = "pause-container"
 const (
 	EmptyCpu    string = ""
 	EmptyMemory uint64 = 0
-)
-const (
-	PhasePending PhaseLabel = "pending"
-	PhaseRunning PhaseLabel = "running"
-	PhaseSucceed PhaseLabel = "succeed"
-	PhaseFailed  PhaseLabel = "failed"
-	PhaseUnknown PhaseLabel = "unknown"
 )
 
 const (

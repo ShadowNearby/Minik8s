@@ -1,4 +1,4 @@
 kind: function
 apiVersion: app/v1
 name: test
-path: /home/minik8s/example/serverless/single.py
+path: serverless/single.py
