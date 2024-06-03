@@ -26,6 +26,7 @@ func Run() {
 	go controller.StartController(&podController)
 	var replicaSet rsc.ReplicaSetController
 	go controller.StartController(&replicaSet)
+	replicaSet.BackGroundTask()
 	var hpa autoscaler.HPAController
 	go controller.StartController(&hpa)
 	// start hpa background work
