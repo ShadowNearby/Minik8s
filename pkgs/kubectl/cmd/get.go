@@ -284,7 +284,7 @@ func getHandler(cmd *cobra.Command, args []string) {
 			for _, dns := range dnslist {
 				paths := []string{}
 				for _, path := range dns.Paths {
-					paths = append(paths, fmt.Sprintf("%s/%s:%d", path.Service, path.IP, path.Port))
+					paths = append(paths, fmt.Sprintf("/%s -> %s:%d", path.Service, path.IP, path.Port))
 				}
 				t.AppendRow(table.Row{dns.MetaData.Name, dns.Host, strings.Join(paths, "\n")})
 			}

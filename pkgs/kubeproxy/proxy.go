@@ -10,6 +10,7 @@ import (
 
 // CreateService 创建虚拟节点，serviceIP 和 servicePort 代表虚拟节点的 IP 和端口，将虚拟节点添加到本地flannel网卡，添加SNAT功能
 func CreateService(serviceIP string, servicePort uint32) error {
+	log.Infof("create service on %s:%d", serviceIP, servicePort)
 	createIPArgs := []string{"-A", "-t", fmt.Sprintf("%s:%d", serviceIP, servicePort), "-s", "rr"}
 	output, err := exec.Command("ipvsadm", createIPArgs...).CombinedOutput()
 	if err != nil {
@@ -33,6 +34,7 @@ func CreateService(serviceIP string, servicePort uint32) error {
 }
 
 func DeleteService(serviceIP string, servicePort uint32) error {
+	log.Infof("delete service on %s:%d", serviceIP, servicePort)
 	deleteArgs := []string{"-D", "-t", fmt.Sprintf("%s:%d", serviceIP, servicePort)}
 	output, err := exec.Command("ipvsadm", deleteArgs...).CombinedOutput()
 	if err != nil {

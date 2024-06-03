@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: DNS
+metadata:
+  name: dns-test
+  namespace: default
+host: dnstest.com
+paths:
+- path: service1
+  service: service1
+- path: service2
+  service: service2
