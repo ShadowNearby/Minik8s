@@ -76,40 +76,36 @@ func DeleteFunc(name string) error {
 // if the function is not deployed, deploy it first
 func TriggerFunc(name string, params []byte) error {
 	// 1. check if the function is deployed
-	retry := 3
-	for retry > 0 {
-		retry -= 1
-		podIps, err := getAvailablePods(name)
-		if err != nil {
-			log.Error("[TriggerFunc] check prepare error: ", err)
-			continue
-		}
-		// 2. load balance
-		podIp, err := autoscaler.LoadBalance(name, podIps)
-		if err != nil {
-			log.Error("[TriggerFunc] load balance error: ", err)
-			continue
-		}
-
-		// 3. trigger the function
-		url := fmt.Sprintf("http://%s:8081", podIp)
-		err = checkConnection(podIp)
-		if err != nil {
-			log.Error("[TriggerFunc] check connection error: ", err)
-			continue
-		}
-		log.Info("[TriggerFunc] connection is finished")
-		request := core.TriggerRequest{
-			Url:    url,
-			Params: params,
-		}
-		err = utils.SendTriggerRequest(request)
-		if err != nil {
-			return err
-		}
-		return nil
+	podIps, err := getAvailablePods(name)
+	if err != nil {
+		log.Error("[TriggerFunc] check prepare error: ", err)
+		return errors.New("cannot asign pod to node")
 	}
-	return errors.New("exceed retry times")
+	// 2. load balance
+	podIp, err := autoscaler.LoadBalance(name, podIps)
+	if err != nil {
+		log.Error("[TriggerFunc] load balance error: ", err)
+		return errors.New("cannot load balance")
+	}
+
+	// 3. trigger the function
+	url := fmt.Sprintf("http://%s:18080", podIp)
+	err = checkConnection(podIp)
+	if err != nil {
+		log.Error("[TriggerFunc] check connection error: ", err)
+		return errors.New("cannot connect to selected node")
+	}
+	request := core.TriggerRequest{
+		Url:    url,
+		Params: params,
+	}
+	log.Info(params)
+	err = utils.SendTriggerRequest(request)
+	if err != nil {
+		log.Errorf("[SendTriggerRequest] tigger request failed: %s", err.Error())
+		return err
+	}
+	return nil
 }
 
 func getAvailablePods(name string) ([]string, error) {
@@ -138,7 +134,6 @@ func getAvailablePods(name string) ([]string, error) {
 		record.Replicas = len(podIps)
 		autoscaler.RecordMap[name] = record
 	}
-	log.Infof("find pods ip: %v", podIps)
 	if record.CallCount > replicaSet.Status.RealReplicas && record.CallCount < config.FunctionThreshold {
 		replicaSet.Spec.Replicas = record.CallCount
 		log.Infof("scale up %s to %d", name, replicaSet.Spec.Replicas)
@@ -164,10 +159,11 @@ func getAvailablePods(name string) ([]string, error) {
 			log.Errorf("find rs pods failed %s", err.Error())
 			return nil, err
 		}
-		podsIp := getPodIpList(&pods)
+		podsIp = getPodIpList(&pods)
 		if len(podsIp) >= record.CallCount {
 			break
 		}
+		time.Sleep(5 * time.Second)
 	}
 
 	return podsIp, nil
@@ -179,8 +175,9 @@ func getPodIpList(pods *[]core.Pod) []string {
 		return result
 	}
 	for _, pod := range *pods {
-		log.Infof("phase: %s, podIP: %s", pod.Status.Phase, pod.Status.PodIP)
-		if pod.Status.Phase != core.PhasePending && pod.Status.PodIP != "" {
+		log.Infof("phase: %s, podIP: %s", pod.Status.Condition, pod.Status.PodIP)
+		if pod.Status.Condition == core.CondRunning && pod.Status.PodIP != "" {
+			log.Info("append into result")
 			result = append(result, pod.Status.PodIP)
 		}
 	}
@@ -194,10 +191,11 @@ func checkConnection(ip string) error {
 			return errors.New("timeout")
 		default:
 			{
-				// try to connect to the ip
-				address := ip + ":" + config.ServerlessPort
+				address := fmt.Sprintf("%s:%s", ip, "18080") // TODO: cannot read config
+				log.Infof("address: %s", address)
 				conn, err := net.DialTimeout("tcp", address, time.Second)
 				if err != nil {
+					time.Sleep(1 * time.Second)
 					continue
 				}
 				defer conn.Close()

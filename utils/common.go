@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
-	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/constants"
 	"net"
 

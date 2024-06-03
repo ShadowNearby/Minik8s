@@ -37,7 +37,7 @@ func TestCreateFunction(t *testing.T) {
 }
 
 func TestTriggerFunction(t *testing.T) {
-	url := fmt.Sprintf("http://%s:8090/api/v1/functions/%s/trigger", config.ClusterMasterIP, "serverless_test")
+	url := fmt.Sprintf("http://%s:8090/api/v1/functions/%s/trigger", config.ClusterMasterIP, "serverless_app")
 	file, err := os.ReadFile(fmt.Sprintf("%s/%s", utils.ExamplePath, "trigger.json"))
 	if err != nil {
 		t.Errorf("read file error")

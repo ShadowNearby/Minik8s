@@ -50,7 +50,7 @@ var (
 	FunctionServerIp    = "master"
 	FunctionThreshold   = 6
 	FunctionConnectTime = 30 * time.Second
-	ServerlessPort      = "8081"
+	ServerlessPort      = "18080"
 )
 
 func InitConfig(configPath string) error {

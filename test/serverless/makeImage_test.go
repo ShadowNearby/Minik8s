@@ -1,7 +1,6 @@
 package serverless
 
 import (
-	"minik8s/pkgs/serverless/activator"
 	"minik8s/pkgs/serverless/function"
 	"minik8s/utils"
 	"os/exec"

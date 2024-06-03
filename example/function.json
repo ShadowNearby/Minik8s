@@ -1,6 +1,6 @@
 {
   "kind": "functions",
   "apiVersion": "v1",
-  "name": "serverless_test",
+  "name": "serverless_app",
   "path": "/home/k8s/ly/minik8s/example/serverless/single.py"
 }

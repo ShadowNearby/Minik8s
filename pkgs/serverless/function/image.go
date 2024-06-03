@@ -73,7 +73,7 @@ func saveImage(name string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		log.Error("push image error: %s", err.Error())
+		log.Errorf("push image error: %s", err.Error())
 		return err
 	}
 

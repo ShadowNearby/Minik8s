@@ -194,8 +194,8 @@ func getHandler(cmd *cobra.Command, args []string) {
 			}
 		}
 	case core.ObjFunction:
-		t.AppendHeader(table.Row{"NAME", "PATH", "STATUS"})
-		functions := []core.Function{}
+		t.AppendHeader(table.Row{"NAME", "PATH"})
+		var functions []core.Function
 		if resp != "" {
 			if name == "" {
 				err := utils.JsonUnMarshal(resp, &functions)
@@ -211,7 +211,7 @@ func getHandler(cmd *cobra.Command, args []string) {
 				functions = append(functions, function)
 			}
 			for _, function := range functions {
-				t.AppendRow(table.Row{function.Name, function.Path, function.Status})
+				t.AppendRow(table.Row{function.Name, function.Path})
 			}
 		}
 	case core.ObjWorkflow:
