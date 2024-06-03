@@ -33,9 +33,11 @@ func Run() {
 	var functionController function.FuncController
 	go controller.StartController(&functionController)
 	go functionController.ListenOtherChannels()
+	var taskController function.TaskController
+	go controller.StartController(&taskController)
+	taskController.StartTaskController()
 	// start heartbeat
 	go heartbeat.Run()
-
 
 	server.Run(fmt.Sprintf("%s:%s", config.ClusterMasterIP, config.ApiServerPort))
 }

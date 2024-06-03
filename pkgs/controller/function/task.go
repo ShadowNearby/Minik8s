@@ -1,13 +1,14 @@
 package function
 
 import (
-	"github.com/robfig/cron/v3"
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/constants"
 	"minik8s/pkgs/serverless/activator"
 	"minik8s/utils"
 	"sync"
+
+	"github.com/robfig/cron/v3"
+	logger "github.com/sirupsen/logrus"
 )
 
 type TaskController struct {
@@ -18,6 +19,37 @@ type TaskController struct {
 
 func (t *TaskController) StartTaskController() {
 	t.cronManager = cron.New()
+	t.entryIDMap = make(map[string]cron.EntryID)
+	allTasks := getAllTasks()
+	logger.Infof("old task length: %d", len(allTasks))
+	for _, task := range allTasks {
+		funcName := task.Spec.Sink.Ref.Name
+		params := task.Spec.JsonData
+		entryID, err := t.cronManager.AddFunc(task.Spec.Schedule, func() {
+			logger.Infof("do task trigger func")
+			err := activator.TriggerFunc(funcName, []byte(params))
+			if err != nil {
+				logger.Errorf("trigger function %s error", funcName)
+				return
+			}
+		})
+		if err != nil {
+			logger.Errorf("register task error: %s", err.Error())
+		}
+		t.entryIDMap[funcName] = entryID
+		logger.Info("haha")
+	}
+	t.cronManager.Start()
+}
+
+func getAllTasks() []core.PingSource {
+	tasksTxt := utils.GetObjectWONamespace(core.ObjFunction, string(core.ObjTask))
+	var tasks []core.PingSource
+	err := utils.JsonUnMarshal(tasksTxt, &tasks)
+	if err != nil {
+		logger.Errorf("there's no task now")
+	}
+	return tasks
 }
 
 func (t *TaskController) GetChannel() string {
@@ -25,13 +57,16 @@ func (t *TaskController) GetChannel() string {
 }
 
 func (t *TaskController) HandleCreate(message string) error {
+	logger.Infof("handle create")
 	var pingSource core.PingSource
 	utils.JsonUnMarshal(message, &pingSource)
 	funcName := pingSource.Spec.Sink.Ref.Name
 	params := pingSource.Spec.JsonData
 
+	logger.Info("add func")
+
 	entryID, err := t.cronManager.AddFunc(pingSource.Spec.Schedule, func() {
-		err := activator.TriggerFunc(funcName, params)
+		err := activator.TriggerFunc(funcName, []byte(params))
 		if err != nil {
 			logger.Errorf("trigger function %s error", funcName)
 			return
@@ -56,7 +91,7 @@ func (t *TaskController) HandleUpdate(message string) error {
 	if entryID, ok := t.entryIDMap[funcName]; ok {
 		t.cronManager.Remove(entryID)
 		entryID, err := t.cronManager.AddFunc(pingSource.Spec.Schedule, func() {
-			err := activator.TriggerFunc(funcName, params)
+			err := activator.TriggerFunc(funcName, []byte(params))
 			if err != nil {
 				logger.Errorf("trigger function error: %s", err.Error())
 				return

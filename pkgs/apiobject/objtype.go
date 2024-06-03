@@ -14,6 +14,7 @@ const (
 	ObjJob        ObjType = "jobs"
 	ObjHpa        ObjType = "hpa"
 	ObjFunction   ObjType = "functions"
+	ObjTask       ObjType = "tasks"
 	ObjWorkflow   ObjType = "workflows"
 	ObjEndPoint   ObjType = "endpoints"
 	ObjDNS        ObjType = "dns"

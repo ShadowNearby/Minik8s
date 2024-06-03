@@ -13,7 +13,7 @@ type TriggerRequest struct {
 }
 
 type TriggerMessage struct {
-	Name   string `yaml:"name" yaml:"name"`
+	Name   string `yaml:"name" json:"name"`
 	Params string `yaml:"params" json:"params"`
 }
 
@@ -37,7 +37,7 @@ type PingSource struct {
 
 type PingSourceSpec struct {
 	Schedule string `json:"schedule" yaml:"schedule"`
-	JsonData []byte `json:"jsonData" yaml:"jsonData"`
+	JsonData string `json:"jsonData" yaml:"jsonData"`
 	Sink     Sink   `json:"sink" yaml:"sink"`
 	TaskID   int    `json:"taskID" yaml:"taskID"` // cron will return a task id, we should save this in etcd
 }

@@ -57,3 +57,24 @@ func TestTriggerFunction(t *testing.T) {
 	}
 
 }
+
+func TestCreateTask(t *testing.T) {
+	url := fmt.Sprintf("http://%s:8090/api/v1/functions/tasks", config.ClusterMasterIP)
+	file, err := os.ReadFile(fmt.Sprintf("%s/%s", utils.ExamplePath, "function/task.json"))
+	if err != nil {
+		t.Errorf("read file error")
+		return
+	}
+	var task core.PingSource
+	utils.JsonUnMarshal(string(file), &task)
+	code, info, err := utils.SendRequest("POST", url, file)
+	if err != nil {
+		t.Errorf("error: %s", err.Error())
+		return
+	}
+	if code != http.StatusOK {
+		var infoType core.InfoType
+		utils.JsonUnMarshal(info, &infoType)
+		t.Errorf("internal error: %d: %s", code, infoType.Error)
+	}
+}
