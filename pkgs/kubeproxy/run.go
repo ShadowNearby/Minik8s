@@ -28,6 +28,8 @@ var rootCmd = &cobra.Command{
 
 		var serviceController ServiceController
 		serviceController.Run()
+		var endpointController EndpointController
+		endpointController.Run()
 		select {}
 	},
 }

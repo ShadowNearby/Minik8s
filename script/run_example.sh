@@ -21,6 +21,7 @@ nerdctl exec -it pod-on-worker-test-container /bin/bash
 ./bin/kubectl apply -f ./example/service/service_clusterip.yaml
 ./bin/kubectl apply -f ./example/service/service_nodeport.yaml
 ./bin/kubectl get service 
+./bin/kubectl get endpoint
 ./bin/kubectl delete service service-clusterip
 ./bin/kubectl delete service service-nodeport
 ./bin/kubectl delete pod service-pod

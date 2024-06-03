@@ -101,6 +101,7 @@ func DeletePodHandler(c *gin.Context) {
 		return
 	}
 	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelPod, constants.ChannelDelete), utils.JsonMarshal(pod))
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelEndpoint, constants.ChannelDelete), utils.JsonMarshal(pod))
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }
 
@@ -199,6 +200,10 @@ func UpdatePodStatusHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get old pod"})
 		return
 	}
+
+	// publish status change to endpoint controller to change service endpoint
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelEndpoint, constants.ChannelUpdate), utils.JsonMarshal([]core.Pod{oldPod, pod}))
+
 	oldPod.MetaData.OwnerReference = pod.MetaData.OwnerReference
 	oldPod.Status = pod.Status
 	err = storage.Put(key, oldPod)
