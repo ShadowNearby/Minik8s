@@ -99,7 +99,6 @@ func TriggerFunc(name string, params []byte) error {
 		Url:    url,
 		Params: params,
 	}
-	log.Info(params)
 	err = utils.SendTriggerRequest(request)
 	if err != nil {
 		log.Errorf("[SendTriggerRequest] tigger request failed: %s", err.Error())
