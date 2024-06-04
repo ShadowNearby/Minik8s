@@ -74,18 +74,18 @@ func DeleteFunc(name string) error {
 
 // TriggerFunc trigger the function with some parameters
 // if the function is not deployed, deploy it first
-func TriggerFunc(name string, params []byte) error {
+func TriggerFunc(name string, params []byte) (string, error) {
 	// 1. check if the function is deployed
 	podIps, err := getAvailablePods(name)
 	if err != nil {
 		log.Error("[TriggerFunc] check prepare error: ", err)
-		return errors.New("cannot asign pod to node")
+		return "", errors.New("cannot asign pod to node")
 	}
 	// 2. load balance
 	podIp, err := autoscaler.LoadBalance(name, podIps)
 	if err != nil {
 		log.Error("[TriggerFunc] load balance error: ", err)
-		return errors.New("cannot load balance")
+		return "", errors.New("cannot load balance")
 	}
 
 	// 3. trigger the function
@@ -93,18 +93,18 @@ func TriggerFunc(name string, params []byte) error {
 	err = checkConnection(podIp)
 	if err != nil {
 		log.Error("[TriggerFunc] check connection error: ", err)
-		return errors.New("cannot connect to selected node")
+		return "", errors.New("cannot connect to selected node")
 	}
 	request := core.TriggerRequest{
 		Url:    url,
 		Params: params,
 	}
-	err = utils.SendTriggerRequest(request)
+	info, err := utils.SendTriggerRequest(request)
 	if err != nil {
 		log.Errorf("[SendTriggerRequest] tigger request failed: %s", err.Error())
-		return err
+		return "", err
 	}
-	return nil
+	return info, nil
 }
 
 func getAvailablePods(name string) ([]string, error) {
@@ -176,7 +176,6 @@ func getPodIpList(pods *[]core.Pod) []string {
 	for _, pod := range *pods {
 		log.Infof("phase: %s, podIP: %s", pod.Status.Condition, pod.Status.PodIP)
 		if pod.Status.Condition == core.CondRunning && pod.Status.PodIP != "" {
-			log.Info("append into result")
 			result = append(result, pod.Status.PodIP)
 		}
 	}
@@ -191,14 +190,12 @@ func checkConnection(ip string) error {
 		default:
 			{
 				address := fmt.Sprintf("%s:%s", ip, "18080") // TODO: cannot read config
-				log.Infof("address: %s", address)
 				conn, err := net.DialTimeout("tcp", address, time.Second)
 				if err != nil {
 					time.Sleep(1 * time.Second)
 					continue
 				}
 				defer conn.Close()
-				log.Info("[checkConnection] Connection is ok")
 				return nil
 			}
 		}

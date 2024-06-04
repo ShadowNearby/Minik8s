@@ -1,4 +1,4 @@
 {
-  "name": "serverless_app",
+  "name": "serverless_getsum",
   "params": "{\"x\": 3, \"y\": 5}"
 }

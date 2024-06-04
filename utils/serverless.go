@@ -3,24 +3,26 @@ package utils
 import (
 	"errors"
 	"fmt"
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
+	logger "github.com/sirupsen/logrus"
 )
 
-func SendTriggerRequest(request core.TriggerRequest) error {
+func SendTriggerRequest(request core.TriggerRequest) (string, error) {
 	code, info, err := SendRequest("POST", request.Url, request.Params)
 	if err != nil {
 		logger.Errorf("send reqeust error: %s", err.Error())
-		return err
+		return "", err
 	}
 	if code != http.StatusOK {
 		var returnInfo core.InfoType
 		JsonUnMarshal(info, returnInfo)
 		logger.Errorf("request error: %s", returnInfo.Error)
-		return errors.New(returnInfo.Error)
+		return "", errors.New(returnInfo.Error)
 	}
-	return nil
+	return info, nil
 }
 
 // GenerateRSConfig  Generate Replicaset to save function*/
@@ -74,4 +76,42 @@ func GenerateRSConfig(name string, namespace string, image string, replicas int)
 			RealReplicas: 0,
 		},
 	}
+}
+
+func ParseWorkStateMap(input map[string]core.WorkState) map[string]core.WorkState {
+	result := make(map[string]core.WorkState)
+	for key, workstate := range input {
+		raw := JsonMarshal(workstate)
+		var rawState core.RawState
+		if err := JsonUnMarshal(raw, &rawState); err != nil {
+			logger.Errorf("error parse workstate")
+			return result
+		}
+		var state core.WorkState
+		switch rawState.Type {
+		case core.Task:
+			var taskState core.TaskState
+			if err := JsonUnMarshal(raw, &taskState); err != nil {
+				log.Fatalf("Error unmarshaling TaskState: %v", err)
+			}
+			state = taskState
+		case core.Fail:
+			var failState core.FailState
+			if err := JsonUnMarshal(raw, &failState); err != nil {
+				log.Fatalf("Error unmarshaling FailState: %v", err)
+			}
+			state = failState
+		case core.Choice:
+			var choiceState core.ChoiceState
+			if err := JsonUnMarshal(raw, &choiceState); err != nil {
+				log.Fatalf("Error unmarshaling ChoiceState: %v", err)
+			}
+			state = choiceState
+		default:
+			log.Fatalf("Unknown state type: %v", rawState.Type)
+		}
+
+		result[key] = state
+	}
+	return result
 }

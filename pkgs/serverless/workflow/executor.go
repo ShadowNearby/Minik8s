@@ -8,6 +8,7 @@ import (
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/serverless/activator"
 	"minik8s/utils"
+	"net/http"
 	"reflect"
 	"strings"
 
@@ -17,12 +18,11 @@ import (
 
 const epsilon = 10e-4
 
-func CheckNode(nodeName string) bool {
+func checkValidFunc(nodeName string) bool {
 	url := fmt.Sprintf("http://%s:%s/api/v1/functions/%s", config.ClusterMasterIP, config.ApiServerPort, nodeName)
 
-	_, _, err := utils.SendRequest("GET", url, nil)
-	log.Error("CheckNode ", err)
-	if err != nil {
+	code, _, err := utils.SendRequest("GET", url, nil)
+	if err != nil || code != http.StatusOK {
 		return false
 	}
 	return true
@@ -49,84 +49,89 @@ func ParseParams(params []byte, inputPath string) ([]byte, error) {
 }
 
 func ExecuteWorkflow(workflow *core.Workflow, params []byte) ([]byte, error) {
+	log.Info(workflow)
 	startNode := workflow.StartAt
 	if startNode == "" {
 		log.Error("[ExecuteWorkflow] the workflow start node is not exist")
 		return nil, errors.New("workflow start node is empty")
 	}
-	currentNode, ok := workflow.States[startNode]
+	currentState, ok := workflow.States[startNode]
 	if !ok {
 		log.Error("[ExecuteWorkflow] the workflow states is not exist")
 		return nil, errors.New("workflow states is empty")
 	}
 	currentNodeName := startNode
-	log.Info("[ExecuteWorkflow] current node name is: ", currentNodeName, " with params: ", string(params), " and type ", reflect.TypeOf(currentNode))
+	log.Info("[ExecuteWorkflow] current node name is: ", currentNodeName, " with params: ", string(params), " and type ", reflect.TypeOf(currentState))
 
 	for {
-		prevNodeName := currentNode
+		prevNodeName := currentNodeName
 		err := error(nil)
 
-		switch reflect.TypeOf(currentNode).Name() {
-		case string(core.Task):
+		switch currentState := currentState.(type) {
+		case core.TaskState:
 			{
-				params, err = ExecuteTask(currentNode.(core.TaskState), currentNodeName, params)
+				params, err = ExecuteTask(currentState, currentNodeName, params)
 				if err != nil {
 					log.Error("[ExecuteWorkflow] task execution failed, the current node is ", currentNodeName)
 					return nil, err
 				}
+				if currentState.End {
+					return params, nil
+				}
+				currentNodeName = currentState.Next
 
 			}
-		case string(core.Choice):
+		case core.ChoiceState:
 			{
-				currentNodeName, err = ExecuteChoice(currentNode.(core.ChoiceState), params)
+				currentNodeName, err = ExecuteChoice(currentState, params)
 				if err != nil {
 					log.Error("[ExecuteWorkflow] choice execution failed, the current node is ", currentNodeName)
 					return nil, err
 				}
 			}
-		case string(core.Fail):
+		case core.FailState:
 			{
-				result := ExecuteFail(currentNode.(core.FailState))
+				result := ExecuteFail(currentState)
 				return []byte(result), nil
 			}
 		default:
 			{
-				log.Info(reflect.TypeOf(currentNode).Name())
+				log.Info(reflect.TypeOf(currentState).Name())
 				return nil, errors.New("the current node's type is invalid")
 			}
 		}
-		currentNode = workflow.States[currentNodeName]
+		currentState = workflow.States[currentNodeName]
 
 		// don't allow loop now
-		if currentNode == nil || prevNodeName == currentNodeName {
+		if currentState == nil || prevNodeName == currentNodeName {
+			log.Error("current state is nil or in loop")
 			break
 		}
 	}
 	return []byte(currentNodeName), errors.New("the workflow is not valid")
 }
-func replaceSingleQuotesWithDoubleQuotes(str string) string {
-	// the default string in dict is single quotes, need to replace it with double quotes
-	bytes := []byte(str)
-	for i := 0; i < len(bytes); i++ {
-		if bytes[i] == '\'' {
-			bytes[i] = '"'
-		}
-	}
-	return string(bytes)
-}
+
+// func replaceSingleQuotesWithDoubleQuotes(str string) string {
+// 	// the default string in dict is single quotes, need to replace it with double quotes
+// 	bytes := []byte(str)
+// 	for i := 0; i < len(bytes); i++ {
+// 		if bytes[i] == '\'' {
+// 			bytes[i] = '"'
+// 		}
+// 	}
+// 	return string(bytes)
+// }
 
 func ExecuteTask(task core.TaskState, functionName string, params []byte) ([]byte, error) {
-
+	log.Info("execute task")
 	if functionName == "" {
 		return nil, errors.New("task resource is empty")
 	}
 
 	// check the function is valid or not
-	if !CheckNode(functionName) {
+	if !checkValidFunc(functionName) {
 		return nil, errors.New("function is not valid")
 	}
-	// try to trigger the function
-	// if the InputPath is not empty, need to parse the params to abstract the input
 	inputParams := params
 	err := error(nil)
 	if task.InputPath != "" {
@@ -135,26 +140,8 @@ func ExecuteTask(task core.TaskState, functionName string, params []byte) ([]byt
 			return nil, err
 		}
 	}
-	log.Info("Triggering Function ======>")
-	err = activator.TriggerFunc(functionName, inputParams)
-	log.Info("======> Success")
-	if err != nil {
-		return nil, err
-	}
-	return nil, nil
-
-	// python's dict is single quotes, need to replace it with double quotes
-
-	// if the ResultPath is not empty, need to parse the result to abstract the output
-	//if task.ResultPath != "" {
-	//	result, err = ParseParams(result, task.ResultPath)
-	//
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//}
-	//
-	//return result, nil
+	result, err := activator.TriggerFunc(functionName, inputParams)
+	return []byte(result), err
 }
 func ExecuteFail(fail core.FailState) string {
 	result := fmt.Sprintf("Fail: %s, Cause: %s", fail.Error, fail.Cause)
@@ -168,15 +155,15 @@ func HasField(obj interface{}, fieldName string) bool {
 }
 
 // isNumeric check whether the variable's type is numeric
-func isNumeric(variable interface{}) bool {
-	switch variable.(type) {
-	// actually, if use gjson to get the value, the type is float64 default
-	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, complex64, complex128:
-		return true
-	default:
-		return false
-	}
-}
+// func isNumeric(variable interface{}) bool {
+// 	switch variable.(type) {
+// 	// actually, if use gjson to get the value, the type is float64 default
+// 	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, complex64, complex128:
+// 		return true
+// 	default:
+// 		return false
+// 	}
+// }
 
 // isString check whether the variable's type is string
 func isString(variable interface{}) bool {
@@ -189,6 +176,7 @@ func isString(variable interface{}) bool {
 }
 
 func ExecuteChoice(choiceState core.ChoiceState, params []byte) (string, error) {
+	log.Info("execute choice")
 	for _, choice := range choiceState.Choices {
 		variable := gjson.Get(string(params), choice.Variable[2:])
 		if !variable.Exists() {
