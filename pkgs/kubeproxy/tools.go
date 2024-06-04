@@ -67,7 +67,7 @@ func CreateEndpointObject(service *core.Service) error {
 	}
 	selectedPods := []core.Pod{}
 	for _, pod := range pods {
-		if utils.MatchLabel(service.Spec.Selector.MatchLabels, pod.MetaData.Labels) {
+		if utils.MatchLabel(service.Spec.Selector.MatchLabels, pod.MetaData.Labels) && pod.Status.Condition == core.CondRunning {
 			selectedPods = append(selectedPods, pod)
 		}
 	}

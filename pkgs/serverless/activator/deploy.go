@@ -113,7 +113,7 @@ func getAvailablePods(name string) ([]string, error) {
 		log.Errorf("cannot find serverless replicaset: %s", err.Error())
 		return nil, err
 	}
-	pods, err := utils.FindRSPods(replicaSet.MetaData.Name, replicaSet.MetaData.Namespace)
+	pods, err := utils.FindRSPods(true, replicaSet.MetaData.Name, replicaSet.MetaData.Namespace)
 	if err != nil {
 		log.Errorf("cannot find rs's pods: %s", err.Error())
 	}
@@ -153,7 +153,7 @@ func getAvailablePods(name string) ([]string, error) {
 	var podsIp []string
 	for i := 0; i < config.FunctionRetryTimes; i++ {
 		log.Info("[CheckPrepare] get the current pod ip list and return")
-		pods, err = utils.FindRSPods(replicaSet.MetaData.Name, "default")
+		pods, err = utils.FindRSPods(true, replicaSet.MetaData.Name, "default")
 		if err != nil {
 			log.Errorf("find rs pods failed %s", err.Error())
 			return nil, err

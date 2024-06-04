@@ -18,7 +18,7 @@ func (rsc *ReplicaSetController) GetChannel() string {
 }
 
 func (rsc *ReplicaSetController) BackGroundTask() {
-	ticker := time.NewTicker(1 * time.Minute)
+	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 	for range ticker.C {
 		var replicas []core.ReplicaSet
@@ -28,7 +28,7 @@ func (rsc *ReplicaSetController) BackGroundTask() {
 			if replica.MetaData.OwnerReference.Controller {
 				continue
 			}
-			pods, err := utils.FindRSPods(replica.MetaData.Name)
+			pods, err := utils.FindRSPods(true, replica.MetaData.Name)
 			if err != nil {
 				continue
 			}
@@ -68,7 +68,7 @@ func (rsc *ReplicaSetController) deleteReplicas(info string) error {
 	if replica.MetaData.OwnerReference.Controller {
 		return nil
 	}
-	pods, _ := utils.FindRSPods(replica.MetaData.Name)
+	pods, _ := utils.FindRSPods(false, replica.MetaData.Name)
 	replica.Spec.Replicas = 0
 	err = rsc.scaleDown(&replica, pods)
 	return err
@@ -117,7 +117,7 @@ func (rsc *ReplicaSetController) manageUpdateReplicas(oldRs *core.ReplicaSet, ne
 	// if template changes we should delete all existed pods and create new (we don't consider this case currently)
 
 	// get pods managed by this replica
-	pods, err := utils.FindRSPods(newRs.MetaData.Name)
+	pods, err := utils.FindRSPods(true, newRs.MetaData.Name)
 	if err != nil {
 		logger.Errorf("failed getting rs pods")
 		return err

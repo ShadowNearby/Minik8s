@@ -2,8 +2,9 @@ package utils
 
 import (
 	"errors"
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
+
+	logger "github.com/sirupsen/logrus"
 )
 
 // FilterOwner give original pods, returns pods owned by controller<kind-namespace-name>
@@ -20,7 +21,7 @@ func FilterOwner(origin *[]core.Pod, name string, kind core.ObjType) []core.Pod 
 	return result
 }
 
-func FindRSPods(rsName string, namespace ...string) ([]core.Pod, error) {
+func FindRSPods(filterRunning bool, rsName string, namespace ...string) ([]core.Pod, error) {
 	// rsNamespace should be default
 	// get all pods
 	var pods []core.Pod
@@ -33,19 +34,43 @@ func FindRSPods(rsName string, namespace ...string) ([]core.Pod, error) {
 		logger.Debugf("not pods found")
 		return nil, nil
 	}
-	JsonUnMarshal(podsTxt, &pods)
-	// filter pods with this rs owner-reference
+	err := JsonUnMarshal(podsTxt, &pods)
+	if err != nil {
+		logger.Error("error in unmarshal pods")
+	}
+	if filterRunning {
+		runningPods := []core.Pod{}
+		for _, pod := range pods {
+			if pod.Status.Condition == core.CondRunning {
+				runningPods = append(runningPods, pod)
+			}
+		}
+		// filter pods with this rs owner-reference
+		return FilterOwner(&runningPods, rsName, core.ObjReplicaSet), nil
+	}
 	return FilterOwner(&pods, rsName, core.ObjReplicaSet), nil
 }
 
-func FindHPAPods(hpaName string) ([]core.Pod, error) {
+func FindHPAPods(filterRunning bool, hpaName string) ([]core.Pod, error) {
 	var pods []core.Pod
 	podsTxt := GetObject(core.ObjPod, "", "")
 	if podsTxt == "" {
 		logger.Errorf("cannot find hpa pods")
 		return nil, nil
 	}
-	JsonUnMarshal(podsTxt, &pods)
+	err := JsonUnMarshal(podsTxt, &pods)
+	if err != nil {
+		logger.Error("error in unmarshal pods")
+	}
+	if filterRunning {
+		runningPods := []core.Pod{}
+		for _, pod := range pods {
+			if pod.Status.Condition == core.CondRunning {
+				runningPods = append(runningPods, pod)
+			}
+		}
+		return FilterOwner(&runningPods, hpaName, core.ObjHpa), nil
+	}
 	return FilterOwner(&pods, hpaName, core.ObjHpa), nil
 }
 

@@ -9,6 +9,12 @@ service systemd-resolved stop && service coredns start
 ./bin/kubectl get pod
 ./bin/kubectl delete pod pod-net1
 
+# pod kill test
+./bin/kubectl apply -f ./example/pod/system_load_pod.yaml
+./bin/kubectl get pod
+curl :7070/memory
+./bin/kubectl delete pod pod-load
+
 # pod and pv test
 ./bin/kubectl apply -f ./example/volume/volume.yaml
 ./bin/kubectl get volume
@@ -39,8 +45,19 @@ nerdctl exec -it pod-on-worker-test-container /bin/bash
 ./bin/kubectl apply -f ./example/replicaset/rs_service.yaml
 ./bin/kubectl apply -f ./example/replicaset/replicaset.yaml -u ip-return-deployment
 ./bin/kubectl get service
-./bin/kubectl delete replicas ip-return-deployment
 ./bin/kubectl delete service rs-service
+./bin/kubectl delete replicas ip-return-deployment
+
+# replicaset fail test
+./bin/kubectl apply -f ./example/replicaset/rs_fail.yaml
+./bin/kubectl get pod
+./bin/kubectl apply -f ./example/replicaset/rs_fail_service.yaml
+./bin/kubectl get service
+./bin/kubectl get endpoint
+curl :7070/memory
+./bin/kubectl delete service rs-fail-service
+./bin/kubectl delete replicas fail-deployment
+
 
 # dns test
 ./bin/kubectl apply -f ./example/dns/pod1.yaml

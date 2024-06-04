@@ -4,6 +4,6 @@ COPY ./system_load /system_load
 
 RUN apt update && apt install stress
 
-EXPOSE 8080
+EXPOSE 7070
 
 ENTRYPOINT ["/system_load"]

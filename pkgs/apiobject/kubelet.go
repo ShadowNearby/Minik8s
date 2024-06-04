@@ -89,7 +89,7 @@ type ResourceLimit struct {
 
 type ResourcesConfig struct {
 	Limit   ResourceLimit `json:"limit"`
-	Request ResourceLimit `json:"Request"`
+	Request ResourceLimit `json:"request"`
 }
 
 type ContainerdSpec struct {

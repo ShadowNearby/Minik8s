@@ -102,7 +102,7 @@ func (h *HPAController) Apply(autoscaler core.HorizontalPodAutoscaler) error {
 		return err
 	}
 	// change pods managed by rs owner_reference to hpa
-	pods, err := utils.FindRSPods(rs.MetaData.Name)
+	pods, err := utils.FindRSPods(false, rs.MetaData.Name)
 	for _, pod := range pods {
 		setPodController(&pod, autoscaler)
 		utils.SetObjectStatus(core.ObjPod, pod.MetaData.Namespace, pod.MetaData.Name, pod)
@@ -148,7 +148,7 @@ func (h *HPAController) Update(autoscaler core.HorizontalPodAutoscaler) error {
 		return nil
 	}
 	// get all pods managed by hpa
-	pods, err := utils.FindHPAPods(autoscaler.MetaData.Name)
+	pods, err := utils.FindHPAPods(true, autoscaler.MetaData.Name)
 	if err != nil {
 		logger.Errorf("get hpa pods error: %s", err.Error())
 		return err
@@ -193,7 +193,7 @@ func (h *HPAController) Delete(autoscaler core.HorizontalPodAutoscaler) error {
 	// get replicaset and delete
 	utils.DeleteObject(core.ObjReplicaSet, "default", autoscaler.Spec.ScaleTargetRef.Name)
 	// get pods and delete
-	pods, err := utils.FindHPAPods(autoscaler.MetaData.Name)
+	pods, err := utils.FindHPAPods(false, autoscaler.MetaData.Name)
 	if err != nil {
 		logger.Error("cannot find hpa pods: ", err.Error())
 		return err

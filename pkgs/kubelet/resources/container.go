@@ -124,8 +124,11 @@ func (cmg *ContainerManager) GetContainerInfo(namespace string, containerID stri
 
 func (cmg *ContainerManager) GetPodContainers(pConfig *core.Pod) []containerd.Container {
 	cmg.createClient(pConfig.MetaData.Namespace)
-	cs, err := cmg.Client.Containers(context.Background(), fmt.Sprintf("labels.%q==%s",
-		constants.MiniK8SPod, pConfig.MetaData.Name), fmt.Sprintf("labels.%q==%s", constants.MiniK8SNamespace, pConfig.MetaData.Namespace))
+	filters := []string{
+		fmt.Sprintf("labels.%q==%s", constants.MiniK8SPod, pConfig.MetaData.Name),
+		fmt.Sprintf("labels.%q==%s", constants.MiniK8SNamespace, pConfig.MetaData.Namespace),
+	}
+	cs, err := cmg.Client.Containers(context.Background(), strings.Join(filters, ","))
 	if err != nil {
 		logger.Errorf("filter containers failed: %s", err.Error())
 		return nil

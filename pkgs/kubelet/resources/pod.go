@@ -10,6 +10,7 @@ import (
 	"minik8s/pkgs/volume"
 	"minik8s/utils"
 
+	"github.com/containerd/containerd"
 	logger "github.com/sirupsen/logrus"
 )
 
@@ -28,20 +29,19 @@ func CreatePod(podConfig *core.Pod, pStatusChan chan<- core.PodStatus, cStatusCh
 	utils.CheckPodMetaData(podConfig)
 	var pauseConfig = core.Container{
 		Name:            core.PauseContainerName,
-		Image:           "registry.cn-hangzhou.aliyuncs.com/google_containers/pause:3.9",
+		Image:           constants.PauseImage,
 		Cmd:             []string{"/pause"},
 		ImagePullPolicy: core.PullIfNeeds,
 	}
 	var pauseSpec = utils.GenerateContainerSpec(*podConfig, pauseConfig)
 	ctx := context.Background()
-	output, err := utils.NerdRun([]string{"run", "-d", "--name", pauseSpec.Name, "--namespace", pauseSpec.Namespace, "--net", "flannel", "--label", fmt.Sprintf("%s=%s", "name", pauseSpec.Name), "--label", fmt.Sprintf("%s=%s", constants.MiniK8SPod, pauseSpec.PodName), pauseSpec.Image}...)
+	output, err := utils.NerdRun([]string{"run", "-d", "--name", pauseSpec.Name, "--namespace", pauseSpec.Namespace, "--net", "flannel", "--label", fmt.Sprintf("%s=%s", "name", pauseSpec.Name), "--label", fmt.Sprintf("%s=%s", constants.MiniK8SPod, pauseSpec.PodName), "--label", fmt.Sprintf("%s=%s", constants.MiniK8SNamespace, podConfig.MetaData.Namespace), pauseSpec.Image}...)
 	var startedContainer = make([]core.Container, 0)
 	if err != nil {
 		logger.Errorf("Run Pause Container Failed: %s\n output: %s", err.Error(), output)
 		return err
 	}
 	pauseSpec.ID = output[:12]
-
 	// change pod ip
 	pStat.PodIP, _ = ContainerManagerInstance.GetContainerInfo(podConfig.MetaData.Namespace, pauseSpec.ID, "NetworkSettings", "IPAddress")
 	pStatusChan <- pStat
@@ -51,7 +51,7 @@ func CreatePod(podConfig *core.Pod, pStatusChan chan<- core.PodStatus, cStatusCh
 			ID:           pauseSpec.ID,
 			Name:         pauseSpec.Name,
 			Image:        pauseSpec.Image,
-			State:        core.ContainerRunning,
+			Status:       containerd.Running,
 			RestartCount: 0,
 			Environment:  nil,
 		}
@@ -126,7 +126,7 @@ func CreatePod(podConfig *core.Pod, pStatusChan chan<- core.PodStatus, cStatusCh
 				ID:           utils.GenerateContainerIDByName(cConfig.Name, podConfig.MetaData.UUID),
 				Name:         cConfig.Name,
 				Image:        cConfig.Image,
-				State:        core.ContainerRunning,
+				Status:       containerd.Running,
 				RestartCount: 0,
 				Environment:  cConfig.Env,
 			}

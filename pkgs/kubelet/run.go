@@ -34,14 +34,28 @@ func Run(kconfig core.KubeletConfig, addr string) {
 			}
 		}
 	}()
-	// go func() {
-	// 	for {
-	// 		for _, podConfig := range runtime.KubeletInstance.PodConfigMap {
-	// 			kubeletcontroller.InspectPod(&podConfig, runtime.ExecProbe)
-	// 		}
-	// 		time.Sleep(30 * time.Second)
-	// 	}
-	// }()
+	go func() {
+		for {
+			for i, podConfig := range runtime.KubeletInstance.PodConfigMap {
+				if podConfig.Status.Condition != core.CondRunning {
+					continue
+				}
+				err := kubeletcontroller.InspectPod(&podConfig, runtime.ExecProbe)
+				if err != nil {
+					logrus.Errorf("error in inspect pod %s", podConfig.MetaData.Name)
+				}
+				if podConfig.Status.Condition != core.CondRunning {
+					runtime.KubeletInstance.PodConfigMap[i] = podConfig
+					logrus.Warnf("pod status changed")
+					err := utils.SetObjectStatus(core.ObjPod, podConfig.MetaData.Namespace, podConfig.MetaData.Name, podConfig)
+					if err != nil {
+						logrus.Errorf("error in update pod status")
+					}
+				}
+			}
+			time.Sleep(10 * time.Second)
+		}
+	}()
 	select {}
 }
 

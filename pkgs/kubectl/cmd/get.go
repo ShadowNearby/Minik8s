@@ -257,15 +257,15 @@ func getHandler(cmd *cobra.Command, args []string) {
 				endpoints = append(endpoints, endpoint)
 			}
 			for _, endpoint := range endpoints {
-				targets := ""
+				targets := []string{}
 				for _, bind := range endpoint.Binds {
 					dests := []string{}
 					for _, dest := range bind.Destinations {
 						dests = append(dests, fmt.Sprintf("%s:%d", dest.IP, dest.Port))
 					}
-					targets = fmt.Sprintf("%s:%d -> %s", endpoint.ServiceClusterIP, bind.ServicePort, strings.Join(dests, ", "))
+					targets = append(targets, fmt.Sprintf("%s:%d -> %s", endpoint.ServiceClusterIP, bind.ServicePort, strings.Join(dests, ", ")))
 				}
-				t.AppendRow(table.Row{endpoint.MetaData.Name, targets})
+				t.AppendRow(table.Row{endpoint.MetaData.Name, strings.Join(targets, "\n")})
 			}
 		}
 	case core.ObjDNS:

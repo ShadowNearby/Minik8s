@@ -2,6 +2,8 @@ package core
 
 import (
 	"time"
+
+	"github.com/containerd/containerd"
 )
 
 // NodeMetrics usage means percentage
@@ -34,22 +36,16 @@ type PodStatus struct {
 }
 
 type ContainerStatus struct {
-	ID           string         `json:"ID"`
-	Name         string         `json:"name"`
-	Image        string         `json:"image"`
-	State        ContainerState `json:"state"`
-	RestartCount int32          `json:"restartCount"`
-	Environment  []EnvConfig    `json:"environment"`
+	ID           string                   `json:"ID"`
+	Name         string                   `json:"name"`
+	Image        string                   `json:"image"`
+	Status       containerd.ProcessStatus `json:"state"`
+	RestartCount int32                    `json:"restartCount"`
+	Environment  []EnvConfig              `json:"environment"`
 	//Mounts       []VolumeMountConfig `json:"mounts,omitempty"`
 }
 
 type ContainerState string
-
-const (
-	ContainerWaiting    ContainerState = "waiting"
-	ContainerRunning    ContainerState = "running"
-	ContainerTerminated ContainerState = "terminated"
-)
 
 type Status struct {
 	Reason   string    `json:"reason"`

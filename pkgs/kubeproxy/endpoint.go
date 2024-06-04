@@ -86,8 +86,8 @@ func (sc *EndpointController) HandleUpdate(message string) error {
 	prePod := pods[0]
 	pod := pods[1]
 
-	if prePod.Status.PodIP == pod.Status.PodIP {
-		log.Info("podIP not changed")
+	if prePod.Status.PodIP == pod.Status.PodIP && prePod.Status.Condition == core.CondRunning && pod.Status.Condition == core.CondRunning {
+		log.Info("podIP not changed & pod is still running")
 		return nil
 	}
 
@@ -97,10 +97,15 @@ func (sc *EndpointController) HandleUpdate(message string) error {
 		return err
 	}
 	for _, service := range services {
-		if prePod.Status.PodIP != "" {
-			UpdateEndpointObjectByPodDelete(&service, &prePod)
+		if prePod.Status.PodIP != pod.Status.PodIP {
+			if prePod.Status.PodIP != "" {
+				UpdateEndpointObjectByPodDelete(&service, &prePod)
+			}
+			UpdateEndpointObjectByPodCreate(&service, &pod)
 		}
-		UpdateEndpointObjectByPodCreate(&service, &pod)
+		if prePod.Status.Condition == core.CondRunning && pod.Status.Condition != core.CondRunning {
+			UpdateEndpointObjectByPodDelete(&service, &pod)
+		}
 	}
 	return nil
 }
