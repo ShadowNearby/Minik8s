@@ -14,15 +14,12 @@ type WorkFlowController struct{}
 
 func (w *WorkFlowController) StartController() {
 	triggerMessage := storage.RedisInstance.SubscribeChannel(constants.ChannelWorkflowTrigger)
-	go func() {
-		for message := range triggerMessage {
-			err := w.HandleTrigger(message.Payload)
-			if err != nil {
-				logger.Errorf("handle trigger error: %s", err.Error())
-			}
+	for message := range triggerMessage {
+		err := w.HandleTrigger(message.Payload)
+		if err != nil {
+			logger.Errorf("handle trigger error: %s", err.Error())
 		}
-	}()
-	select {}
+	}
 }
 
 func (w *WorkFlowController) GetChannel() string {

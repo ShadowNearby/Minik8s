@@ -2,13 +2,14 @@ package function
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"minik8s/config"
 	"minik8s/utils"
 	"os"
 	"os/exec"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const ImagePath = "shadownearby"

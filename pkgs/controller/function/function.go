@@ -19,15 +19,12 @@ func (f *FuncController) GetChannel() string {
 
 func (f *FuncController) ListenOtherChannels() {
 	httpTriggerMessage := storage.RedisInstance.SubscribeChannel(constants.ChannelFunctionTrigger)
-	go func() {
-		for message := range httpTriggerMessage {
-			err := f.HandleHttpTrigger(message.Payload)
-			if err != nil {
-				logger.Errorf("handle trigger error: %s", err.Error())
-			}
+	for message := range httpTriggerMessage {
+		err := f.HandleHttpTrigger(message.Payload)
+		if err != nil {
+			logger.Errorf("handle trigger error: %s", err.Error())
 		}
-	}()
-	select {}
+	}
 }
 func (f *FuncController) HandleCreate(message string) error {
 	var fnc core.Function

@@ -1,0 +1,4 @@
+kind: functions
+apiVersion: v1
+name: preprocess
+path: "/home/k8s/ly/minik8s/example/serverless/application/preprocess.py"

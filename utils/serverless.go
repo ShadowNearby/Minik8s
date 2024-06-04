@@ -67,6 +67,12 @@ func GenerateRSConfig(name string, namespace string, image string, replicas int)
 								"python3",
 								"server.py",
 							},
+							VolumeMounts: []core.VolumeMountConfig{
+								{
+									Name:          "test-pv",
+									ContainerPath: "/test_mount",
+								},
+							},
 						},
 					},
 				},

@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: workflow
+name: app-yolo
+startAt: preprocess
+comment: using pipline to classify photo
+states: 
+  preprocess:
+    type: TaskState
+    inputPath: "$.path"
+    resultPath: "$.full_path"
+    next: "judgePath"
+  judgePath:
+    type: ChoiceState
+    choices:
+    - variable: "$.full_path"
+      StringEquals: "/test_mount/test-pv/error.jpg"
+      next: errorState
+    default: infer
+  infer:
+    type: TaskState
+    inputPath: "$.full_path"
+    resultPath: $.result"
+    end: true
+  errorState:
+    type: FailState
+    error: DefaultStateError
+    cause: "manual error"
+    

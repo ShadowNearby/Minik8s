@@ -37,7 +37,6 @@ func (t *TaskController) StartTaskController() {
 			logger.Errorf("register task error: %s", err.Error())
 		}
 		t.entryIDMap[funcName] = entryID
-		logger.Info("haha")
 	}
 	t.cronManager.Start()
 }

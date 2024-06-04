@@ -1,4 +1,4 @@
-FROM python:3.8-slim
+FROM pytorch/pytorch:latest
 
 COPY ./  /app
 
@@ -13,5 +13,3 @@ EXPOSE 18080
 ENTRYPOINT ["python3"]
 
 CMD ["server.py"]
-
-# docker build -t musicminion/func-server:latest .

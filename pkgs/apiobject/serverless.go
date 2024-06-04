@@ -39,7 +39,6 @@ type PingSourceSpec struct {
 	Schedule string `json:"schedule" yaml:"schedule"`
 	JsonData string `json:"jsonData" yaml:"jsonData"`
 	Sink     Sink   `json:"sink" yaml:"sink"`
-	TaskID   int    `json:"taskID" yaml:"taskID"` // cron will return a task id, we should save this in etcd
 }
 
 type Sink struct {
