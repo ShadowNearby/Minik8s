@@ -2,9 +2,14 @@ package autoscaler
 
 import (
 	"errors"
-	log "github.com/sirupsen/logrus"
+	"minik8s/config"
+	core "minik8s/pkgs/apiobject"
+	"minik8s/utils"
 	"sort"
 	"sync"
+	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Record struct {
@@ -16,18 +21,47 @@ type Record struct {
 	PodIps map[string]int `json:"podIps"`
 	// the call count of the function
 	CallCount int `json:"callCount"`
+	// last call time
+	LastCallTime time.Time `json:"lastCallTime"`
 }
 
 var (
-	RecordMap   = make(map[string]*Record)
+	RecordMap   = make(map[string]Record)
 	RecordMutex sync.RWMutex // protect the access of RecordMap
 )
 
-func GetRecord(name string) *Record {
-	return RecordMap[name]
+func RecordBackGroundCheck() {
+	ticker := time.NewTicker(config.ServerlessScaleToZeroTime)
+	defer ticker.Stop()
+	for range ticker.C {
+		RecordMutex.Lock()
+		currTime := time.Now()
+		for _, record := range RecordMap {
+			if currTime.Sub(record.LastCallTime) > config.ServerlessScaleToZeroTime {
+				log.Info("rescale to zero")
+				// should rescale to zero
+				// get the replicaset and reset the spec.replica to zero
+				var replica core.ReplicaSet
+				rsTxt := utils.GetObject(core.ObjReplicaSet, "default", record.Name)
+				utils.JsonUnMarshal(rsTxt, &replica)
+				replica.Spec.Replicas = 0
+				utils.SetObject(core.ObjReplicaSet, "default", record.Name, replica)
+				record.CallCount = 0
+			}
+		}
+		RecordMutex.Unlock()
+	}
 }
 
-func SetRecord(name string, record *Record) {
+func GetRecord(name string) (Record, error) {
+	if record, ok := RecordMap[name]; ok {
+		return record, nil
+	}
+	return Record{}, errors.New("no record available")
+}
+
+func SetRecord(name string, record Record) {
+	record.LastCallTime = time.Now()
 	RecordMap[name] = record
 }
 
@@ -36,12 +70,11 @@ func DeleteRecord(name string) {
 }
 
 func UpdateRecord(name string) {
-	record := GetRecord(name)
-	if record == nil {
-		return
+	if record, ok := RecordMap[name]; ok {
+		record.CallCount++
+		record.LastCallTime = time.Now()
+		RecordMap[name] = record
 	}
-	record.CallCount++
-	SetRecord(name, record)
 }
 
 // LoadBalance choose a pod ip to trigger the function, will maintain metadata at the same time
@@ -52,10 +85,9 @@ func LoadBalance(name string, podIps []string) (string, error) {
 	}
 
 	RecordMutex.RLock()
-	record := GetRecord(name)
+	record, err := GetRecord(name)
 	RecordMutex.RUnlock()
-
-	if record == nil {
+	if err != nil {
 		log.Error("[LoadBalance] record not found")
 		return "", errors.New("record not found")
 	}

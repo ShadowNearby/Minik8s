@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
-	"minik8s/pkgs/serverless/autoscaler"
+	"minik8s/pkgs/controller/autoscaler"
 	"minik8s/pkgs/serverless/function"
 	"minik8s/utils"
 	"net"
@@ -29,7 +29,7 @@ func InitFunction(name string, path string) error {
 	// create the record
 	log.Info("[InitFunction] create the record")
 	autoscaler.RecordMutex.Lock()
-	autoscaler.RecordMap[name] = &autoscaler.Record{
+	autoscaler.RecordMap[name] = autoscaler.Record{
 		Name:      name,
 		Replicas:  0,
 		PodIps:    make(map[string]int),
@@ -119,9 +119,9 @@ func getAvailablePods(name string) ([]string, error) {
 	}
 	podIps := getPodIpList(&pods)
 	autoscaler.RecordMutex.Lock()
-	record := autoscaler.GetRecord(name)
-	if record == nil {
-		autoscaler.RecordMap[name] = &autoscaler.Record{
+	record, err := autoscaler.GetRecord(name)
+	if err != nil {
+		autoscaler.RecordMap[name] = autoscaler.Record{
 			Name:      name,
 			Replicas:  len(podIps),
 			PodIps:    make(map[string]int),

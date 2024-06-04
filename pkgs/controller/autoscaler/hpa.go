@@ -27,15 +27,9 @@ type HPAController struct {
 func (h *HPAController) StartBackground() {
 	ticker := time.NewTicker(5 * time.Minute)
 	defer ticker.Stop()
-
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				h.BackgroundWork()
-			}
-		}
-	}()
+	for range ticker.C {
+		h.BackgroundWork()
+	}
 }
 
 func (h *HPAController) GetChannel() string {

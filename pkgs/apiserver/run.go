@@ -43,6 +43,7 @@ func Run() {
 	var workFlowController function.WorkFlowController
 	go controller.StartController(&workFlowController)
 	go workFlowController.StartController()
+	go autoscaler.RecordBackGroundCheck()
 	// start heartbeat
 	go heartbeat.Run()
 	select {}

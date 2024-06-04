@@ -32,5 +32,6 @@
   "FunctionServerIp": "master",
   "FunctionThreshold": 6,
   "FunctionConnectTime": "30s",
+  "ServerlessScaleToZeroTime": "30s",
   "ServelessIP": "8081"
 }

@@ -111,17 +111,6 @@ func ExecuteWorkflow(workflow *core.Workflow, params []byte) ([]byte, error) {
 	return []byte(currentNodeName), errors.New("the workflow is not valid")
 }
 
-// func replaceSingleQuotesWithDoubleQuotes(str string) string {
-// 	// the default string in dict is single quotes, need to replace it with double quotes
-// 	bytes := []byte(str)
-// 	for i := 0; i < len(bytes); i++ {
-// 		if bytes[i] == '\'' {
-// 			bytes[i] = '"'
-// 		}
-// 	}
-// 	return string(bytes)
-// }
-
 func ExecuteTask(task core.TaskState, functionName string, params []byte) ([]byte, error) {
 	log.Info("execute task")
 	if functionName == "" {
@@ -153,17 +142,6 @@ func HasField(obj interface{}, fieldName string) bool {
 	value := t.FieldByName(fieldName)
 	return value.Kind() == reflect.Ptr && !value.IsNil()
 }
-
-// isNumeric check whether the variable's type is numeric
-// func isNumeric(variable interface{}) bool {
-// 	switch variable.(type) {
-// 	// actually, if use gjson to get the value, the type is float64 default
-// 	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64, complex64, complex128:
-// 		return true
-// 	default:
-// 		return false
-// 	}
-// }
 
 // isString check whether the variable's type is string
 func isString(variable interface{}) bool {
