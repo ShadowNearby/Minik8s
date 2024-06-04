@@ -12,7 +12,7 @@ import (
 
 func TestCreateFunction(t *testing.T) {
 	url := fmt.Sprintf("http://%s:8090/api/v1/functions/", config.ClusterMasterIP)
-	file, err := os.ReadFile(fmt.Sprintf("%s/%s", utils.ExamplePath, "function/function.json"))
+	file, err := os.ReadFile(fmt.Sprintf("%s/%s", utils.ExamplePath, "function/func_printsum.json"))
 	if err != nil {
 		t.Errorf("read file error")
 		return
@@ -37,7 +37,7 @@ func TestCreateFunction(t *testing.T) {
 }
 
 func TestTriggerFunction(t *testing.T) {
-	url := fmt.Sprintf("http://%s:8090/api/v1/functions/%s/trigger", config.ClusterMasterIP, "serverless_app")
+	url := fmt.Sprintf("http://%s:8090/api/v1/functions/%s/trigger", config.ClusterMasterIP, "serverless_getsum")
 	file, err := os.ReadFile(fmt.Sprintf("%s/%s", utils.ExamplePath, "function/trigger.json"))
 	if err != nil {
 		t.Errorf("read file error")

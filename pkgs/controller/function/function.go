@@ -1,16 +1,16 @@
 package function
 
 import (
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/apiserver/storage"
 	"minik8s/pkgs/constants"
 	"minik8s/pkgs/serverless/activator"
 	"minik8s/utils"
+
+	logger "github.com/sirupsen/logrus"
 )
 
 type FuncController struct {
-	taskList []string // tick task list
 }
 
 func (f *FuncController) GetChannel() string {
@@ -62,9 +62,10 @@ func (f *FuncController) HandleHttpTrigger(message string) error {
 	// message is TriggerMessage
 	var triggerMessage core.TriggerMessage
 	utils.JsonUnMarshal(message, &triggerMessage)
-	err := activator.TriggerFunc(triggerMessage.Name, []byte(triggerMessage.Params))
+	result, err := activator.TriggerFunc(triggerMessage.Name, []byte(triggerMessage.Params))
 	if err != nil {
 		logger.Errorf("trigger function error: %s", err.Error())
 	}
+	logger.Infof("trigger result: %s", string(result))
 	return err
 }

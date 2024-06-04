@@ -103,6 +103,10 @@ func (h *HPAController) Apply(autoscaler core.HorizontalPodAutoscaler) error {
 	}
 	// change pods managed by rs owner_reference to hpa
 	pods, err := utils.FindRSPods(false, rs.MetaData.Name)
+	if err != nil {
+		logger.Errorf("cannot find rs pods: %s", err.Error())
+		return err
+	}
 	for _, pod := range pods {
 		setPodController(&pod, autoscaler)
 		utils.SetObjectStatus(core.ObjPod, pod.MetaData.Namespace, pod.MetaData.Name, pod)

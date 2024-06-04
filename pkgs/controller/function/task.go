@@ -27,7 +27,7 @@ func (t *TaskController) StartTaskController() {
 		params := task.Spec.JsonData
 		entryID, err := t.cronManager.AddFunc(task.Spec.Schedule, func() {
 			logger.Infof("do task trigger func")
-			err := activator.TriggerFunc(funcName, []byte(params))
+			_, err := activator.TriggerFunc(funcName, []byte(params))
 			if err != nil {
 				logger.Errorf("trigger function %s error", funcName)
 				return
@@ -66,7 +66,7 @@ func (t *TaskController) HandleCreate(message string) error {
 	logger.Info("add func")
 
 	entryID, err := t.cronManager.AddFunc(pingSource.Spec.Schedule, func() {
-		err := activator.TriggerFunc(funcName, []byte(params))
+		_, err := activator.TriggerFunc(funcName, []byte(params))
 		if err != nil {
 			logger.Errorf("trigger function %s error", funcName)
 			return
@@ -91,7 +91,7 @@ func (t *TaskController) HandleUpdate(message string) error {
 	if entryID, ok := t.entryIDMap[funcName]; ok {
 		t.cronManager.Remove(entryID)
 		entryID, err := t.cronManager.AddFunc(pingSource.Spec.Schedule, func() {
-			err := activator.TriggerFunc(funcName, []byte(params))
+			_, err := activator.TriggerFunc(funcName, []byte(params))
 			if err != nil {
 				logger.Errorf("trigger function error: %s", err.Error())
 				return

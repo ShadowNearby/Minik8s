@@ -40,6 +40,10 @@ func Run() {
 	var taskController function.TaskController
 	go controller.StartController(&taskController)
 	go taskController.StartTaskController()
+	var workFlowController function.WorkFlowController
+	go controller.StartController(&workFlowController)
+	go workFlowController.StartController()
+	go autoscaler.RecordBackGroundCheck()
 	// start heartbeat
 	go heartbeat.Run()
 	select {}
