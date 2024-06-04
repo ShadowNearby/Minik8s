@@ -27,15 +27,9 @@ type HPAController struct {
 func (h *HPAController) StartBackground() {
 	ticker := time.NewTicker(5 * time.Minute)
 	defer ticker.Stop()
-
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				h.BackgroundWork()
-			}
-		}
-	}()
+	for range ticker.C {
+		h.BackgroundWork()
+	}
 }
 
 func (h *HPAController) GetChannel() string {
@@ -107,6 +101,10 @@ func (h *HPAController) Apply(autoscaler core.HorizontalPodAutoscaler) error {
 	}
 	// change pods managed by rs owner_reference to hpa
 	pods, err := utils.FindRSPods(rs.MetaData.Name)
+	if err != nil {
+		logger.Errorf("cannot find rs pods: %s", err.Error())
+		return err
+	}
 	for _, pod := range pods {
 		setPodController(&pod, autoscaler)
 		utils.SetObjectStatus(core.ObjPod, pod.MetaData.Namespace, pod.MetaData.Name, pod)
@@ -127,6 +125,7 @@ func (h *HPAController) Apply(autoscaler core.HorizontalPodAutoscaler) error {
 				Spec:       rs.Spec.Template.Spec,
 				Status:     core.PodStatus{},
 			}
+			setPodController(&pod, autoscaler)
 			err = scaleUp(0, desiredInt, pod, &autoscaler)
 		}
 	} else {
@@ -174,6 +173,7 @@ func (h *HPAController) Update(autoscaler core.HorizontalPodAutoscaler) error {
 				Spec:       rs.Spec.Template.Spec,
 				Status:     core.PodStatus{},
 			}
+			setPodController(&pod, autoscaler)
 			err = scaleUp(len(pods), desiredInt, pod, &autoscaler)
 		} else {
 			err = scaleUp(len(pods), desiredInt, pods[0], &autoscaler)

@@ -3,12 +3,10 @@ package utils
 import (
 	"errors"
 	"fmt"
+	logger "github.com/sirupsen/logrus"
 	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
 	"net/http"
-	"strings"
-
-	logger "github.com/sirupsen/logrus"
 )
 
 // SetObject this function will use update message
@@ -127,22 +125,6 @@ func CreateObject(objType core.ObjType, namespace string, object any) error {
 		return nil
 	}
 }
-func UpdateObject(objType core.ObjType, namespace string, object any) error {
-	if namespace == "" {
-		namespace = "default"
-	}
-	var url string
-	objectTxt := JsonMarshal(object)
-	logger.Debugln(objectTxt)
-	url = fmt.Sprintf("http://%s:%s/api/v1/namespaces/%s/%s",
-		config.ClusterMasterIP, config.ApiServerPort, namespace, objType)
-	if code, info, err := SendRequest("PUT", url, []byte(objectTxt)); err != nil || code != http.StatusOK {
-		logger.Errorf("[create obj error]: %s", info)
-		return err
-	} else {
-		return nil
-	}
-}
 
 func CreateObjectWONamespace(objType core.ObjType, object any) error {
 	var url string
@@ -179,58 +161,5 @@ func DeleteObjectWONamespace(objType core.ObjType, name string) error {
 		return err
 	} else {
 		return nil
-	}
-}
-
-func SplitChannelInfo(key string) (namespace, name string, err error) {
-	parts := strings.Split(key, "/")
-	switch len(parts) {
-	case 1:
-		// name only, no namespace
-		return "", parts[0], nil
-	case 2:
-		// namespace and name
-		return parts[0], parts[1], nil
-	}
-
-	return "", "", fmt.Errorf("unexpected key format: %q", key)
-}
-func CreateFunction(objType core.ObjType, object any) error {
-	var url string
-	objectTxt := JsonMarshal(object)
-	logger.Debugln(objectTxt)
-	url = fmt.Sprintf("http://%s:%s/api/v1/functions",
-		config.ClusterMasterIP, config.ApiServerPort)
-	if code, info, err := SendRequest("PUT", url, []byte(objectTxt)); err != nil || code != http.StatusOK {
-		logger.Errorf("[create obj error]: %s", info)
-		return err
-	} else {
-		return nil
-	}
-}
-func GetFunction(name string) (string, error) {
-	url := fmt.Sprintf("http://%s:%s/api/v1/functions/%s",
-		config.ClusterMasterIP, config.ApiServerPort, name)
-	var retInfo core.InfoType
-	if code, info, err := SendRequest("GET", url, make([]byte, 0)); err != nil || code != http.StatusOK {
-		logger.Errorf("[delete object error]: %s", info)
-		err = JsonUnMarshal(info, &retInfo)
-		return retInfo.Data, err
-	} else {
-		return "", err
-	}
-
-}
-func TriggerFunction(name string, object any) (string, error) {
-	//"/api/v1/functions/:name/trigger"
-	url := fmt.Sprintf("http://%s:%s/api/v1/functions/%s/trigger",
-		config.ClusterMasterIP, config.ApiServerPort, name)
-	var retInfo core.InfoType
-	if code, info, err := SendRequest("POST", url, make([]byte, 0)); err != nil || code != http.StatusOK {
-		logger.Errorf("[delete object error]: %s", info)
-		err = JsonUnMarshal(info, &retInfo)
-		return retInfo.Data, err
-	} else {
-		return "", err
 	}
 }

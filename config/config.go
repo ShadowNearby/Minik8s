@@ -12,7 +12,8 @@ import (
 var (
 	LocalServerIp        = "127.0.0.1"
 	ApiServerPort        = "8090"
-	ClusterMasterIP      = "127.0.0.1"
+	RegistryPort         = "5000"
+	ClusterMasterIP      = "172.31.184.139"
 	PodCIDR              = "10.244.0.0/16"
 	NodePort             = "10250"
 	DefaultEtcdEndpoints = []string{"localhost:2380"}
@@ -47,9 +48,10 @@ var (
 var (
 	FunctionRetryTimes        = 10
 	FunctionServerIp          = "master"
-	FunctionThreshold   int32 = 6
+	FunctionThreshold         = 6
 	FunctionConnectTime       = 30 * time.Second
-	ServelessIP               = "8081"
+	ServerlessScaleToZeroTime = 30 * time.Second
+	ServerlessPort            = "18080"
 )
 
 func InitConfig(configPath string) error {
@@ -98,44 +100,51 @@ func InitConfig(configPath string) error {
 	}
 	FunctionRetryTimes = cfg.FunctionRetryTimes
 	FunctionServerIp = cfg.FunctionServerIp
-	FunctionThreshold = cfg.FunctionThreshold
+	FunctionThreshold = int(cfg.FunctionThreshold)
 	FunctionConnectTime, err = time.ParseDuration(cfg.FunctionConnectTime)
 	if err != nil {
 		logrus.Errorf("error in parse FunctionConnectTime %s", err.Error())
 		return err
 	}
-	ServelessIP = cfg.ServelessIP
+	ServerlessScaleToZeroTime, err = time.ParseDuration(cfg.ServerlessScaleToZeroTime)
+	if err != nil {
+		logrus.Errorf("error in parse ServerlessScaleToZeroTime %s", err.Error())
+		return err
+
+	}
+	ServerlessPort = cfg.ServelessIP
 
 	logrus.Info("Configuration parsed successfully")
 	return nil
 }
 
 type Config struct {
-	LocalServerIp            string   `json:"LocalServerIp"`
-	ApiServerPort            string   `json:"ApiServerPort"`
-	ClusterMasterIP          string   `json:"ClusterMasterIP"`
-	PodCIDR                  string   `json:"PodCIDR"`
-	NodePort                 string   `json:"NodePort"`
-	DefaultEtcdEndpoints     []string `json:"DefaultEtcdEndpoints"`
-	HeartbeatInterval        string   `json:"HeartbeatInterval"`
-	CsiSockAddr              string   `json:"CsiSockAddr"`
-	CsiStagingTargetPath     string   `json:"CsiStagingTargetPath"`
-	CsiMntPath               string   `json:"CsiMntPath"`
-	CsiServerIP              string   `json:"CsiServerIP"`
-	CsiStorageClassName      string   `json:"CsiStorageClassName"`
-	DNSPathPrefix            string   `json:"DNSPathPrefix"`
-	NginxListenIP            string   `json:"NginxListenIP"`
-	NginxStarted             bool     `json:"NginxStarted"`
-	ContainerResolvPath      string   `json:"ContainerResolvPath"`
-	TempResolvPath           string   `json:"TempResolvPath"`
-	ContainerHostsPath       string   `json:"ContainerHostsPath"`
-	TempHostsPath            string   `json:"TempHostsPath"`
-	PrometheusNodeFilePath   string   `json:"PrometheusNodeFilePath"`
-	PrometheusPodFilePath    string   `json:"PrometheusPodFilePath"`
-	PrometheusScrapeInterval string   `json:"PrometheusScrapeInterval"`
-	FunctionRetryTimes       int      `json:"FunctionRetryTimes"`
-	FunctionServerIp         string   `json:"FunctionServerIp"`
-	FunctionThreshold        int32    `json:"FunctionThreshold"`
-	FunctionConnectTime      string   `json:"FunctionConnectTime"`
-	ServelessIP              string   `json:"ServelessIP"`
+	LocalServerIp             string   `json:"LocalServerIp"`
+	ApiServerPort             string   `json:"ApiServerPort"`
+	ClusterMasterIP           string   `json:"ClusterMasterIP"`
+	PodCIDR                   string   `json:"PodCIDR"`
+	NodePort                  string   `json:"NodePort"`
+	DefaultEtcdEndpoints      []string `json:"DefaultEtcdEndpoints"`
+	HeartbeatInterval         string   `json:"HeartbeatInterval"`
+	CsiSockAddr               string   `json:"CsiSockAddr"`
+	CsiStagingTargetPath      string   `json:"CsiStagingTargetPath"`
+	CsiMntPath                string   `json:"CsiMntPath"`
+	CsiServerIP               string   `json:"CsiServerIP"`
+	CsiStorageClassName       string   `json:"CsiStorageClassName"`
+	DNSPathPrefix             string   `json:"DNSPathPrefix"`
+	NginxListenIP             string   `json:"NginxListenIP"`
+	NginxStarted              bool     `json:"NginxStarted"`
+	ContainerResolvPath       string   `json:"ContainerResolvPath"`
+	TempResolvPath            string   `json:"TempResolvPath"`
+	ContainerHostsPath        string   `json:"ContainerHostsPath"`
+	TempHostsPath             string   `json:"TempHostsPath"`
+	PrometheusNodeFilePath    string   `json:"PrometheusNodeFilePath"`
+	PrometheusPodFilePath     string   `json:"PrometheusPodFilePath"`
+	PrometheusScrapeInterval  string   `json:"PrometheusScrapeInterval"`
+	FunctionRetryTimes        int      `json:"FunctionRetryTimes"`
+	FunctionServerIp          string   `json:"FunctionServerIp"`
+	FunctionThreshold         int32    `json:"FunctionThreshold"`
+	FunctionConnectTime       string   `json:"FunctionConnectTime"`
+	ServerlessScaleToZeroTime string   `json:"ServerlessScaleToZeroTime"`
+	ServelessIP               string   `json:"ServerlessPort"`
 }

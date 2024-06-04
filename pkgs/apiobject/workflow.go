@@ -3,6 +3,11 @@ package core
 type WorkState interface {
 }
 
+// for parsing
+type RawState struct {
+	Type StateType `json:"type"`
+}
+
 type TaskState struct {
 	Type       StateType `json:"type" yaml:"type"`
 	InputPath  string    `json:"inputPath,omitempty" yaml:"inputPath,omitempty"`
@@ -62,4 +67,9 @@ type Workflow struct {
 	States map[string]WorkState `json:"states" yaml:"states"`
 
 	Comment string `json:"comment,omitempty" yaml:"comment,omitempty"`
+}
+
+type WorkFlowTriggerRequest struct {
+	Name   string `json:"name" yaml:"name"`
+	Params string `json:"params" yaml:"params"`
 }

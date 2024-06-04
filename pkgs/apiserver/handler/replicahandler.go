@@ -24,11 +24,6 @@ func CreateReplicaHandler(c *gin.Context) {
 	}
 	namespace = "default"
 	rsName := fmt.Sprintf("/replicas/object/%s/%s", namespace, replica.MetaData.Name)
-	//if err = storage.Get(rsName, &replicaOld); err == nil {
-	//	logger.Errorf("has existed")
-	//	c.JSON(http.StatusBadRequest, gin.H{"error": "replica has existed"})
-	//	return
-	//}
 	err = storage.Put(rsName, utils.JsonMarshal(replica))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot put data"})
