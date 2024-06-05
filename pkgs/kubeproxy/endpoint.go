@@ -86,7 +86,7 @@ func (sc *EndpointController) HandleUpdate(message string) error {
 	prePod := pods[0]
 	pod := pods[1]
 
-	if prePod.Status.PodIP == pod.Status.PodIP && prePod.Status.Condition == core.CondRunning && pod.Status.Condition == core.CondRunning {
+	if prePod.Status.PodIP == pod.Status.PodIP && prePod.Status.Phase == core.PodPhaseRunning && pod.Status.Phase == core.PodPhaseRunning {
 		log.Info("podIP not changed & pod is still running")
 		return nil
 	}
@@ -103,7 +103,7 @@ func (sc *EndpointController) HandleUpdate(message string) error {
 			}
 			UpdateEndpointObjectByPodCreate(&service, &pod)
 		}
-		if prePod.Status.Condition == core.CondRunning && pod.Status.Condition != core.CondRunning {
+		if prePod.Status.Phase == core.PodPhaseRunning && pod.Status.Phase != core.PodPhaseRunning {
 			UpdateEndpointObjectByPodDelete(&service, &pod)
 		}
 	}

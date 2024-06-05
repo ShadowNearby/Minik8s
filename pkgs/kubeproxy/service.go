@@ -90,7 +90,8 @@ func (sc *ServiceController) HandleCreate(message string) error {
 			CreateService(clusterIP, port.Port)
 		}
 	} else if service.Spec.Type == core.ServiceTypeNodePort {
-		NodeIP := utils.GetIP()
+		// NodeIP := utils.GetIP()
+		NodeIP := constants.AllIP
 		for _, port := range service.Spec.Ports {
 			CreateService(NodeIP, port.NodePort)
 		}

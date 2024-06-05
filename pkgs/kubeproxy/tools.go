@@ -67,7 +67,7 @@ func CreateEndpointObject(service *core.Service) error {
 	}
 	selectedPods := []core.Pod{}
 	for _, pod := range pods {
-		if utils.MatchLabel(service.Spec.Selector.MatchLabels, pod.MetaData.Labels) && pod.Status.Condition == core.CondRunning {
+		if utils.MatchLabel(service.Spec.Selector.MatchLabels, pod.MetaData.Labels) && pod.Status.Phase == core.PodPhaseRunning {
 			selectedPods = append(selectedPods, pod)
 		}
 	}
@@ -103,7 +103,7 @@ func CreateEndpointObject(service *core.Service) error {
 				Namespace: service.MetaData.Namespace,
 			},
 		}
-		NodeIP := constants.Localhost
+		NodeIP := constants.AllIP
 		for _, port := range service.Spec.Ports {
 			Destinations := []core.EndpointDestination{}
 			for _, pod := range selectedPods {

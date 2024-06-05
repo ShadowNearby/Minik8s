@@ -26,10 +26,3 @@ spec:
         ports:
         - containerPort: 7070
           name: p2
-      - name: pod-ip-return
-        image: docker.io/shadownearby/ip_return:v1
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 80
-          name: p1
-      restartPolicy: Never

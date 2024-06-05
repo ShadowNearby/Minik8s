@@ -39,7 +39,7 @@ func CreatePod(pConfig *core.Pod) error {
 		case done := <-doneChan:
 			if done {
 				pStat.StartTime = time.Now()
-				pStat.Condition = core.CondRunning
+				pStat.Phase = core.PodPhaseRunning
 			} else {
 				return errors.New("create pod failed")
 			}
@@ -58,6 +58,7 @@ func CreatePod(pConfig *core.Pod) error {
 
 // StopPod stop and remove container
 func StopPod(pConfig core.Pod) error {
+	logger.Infof("stoping pod %s:%s", pConfig.MetaData.Namespace, pConfig.MetaData.Name)
 	runtime.KubeletInstance.DelPodConfig(pConfig.MetaData.Name, pConfig.MetaData.Namespace)
 	runtime.KubeletInstance.DelPodStat(pConfig.MetaData.Name, pConfig.MetaData.Namespace)
 	return resources.StopPod(pConfig)

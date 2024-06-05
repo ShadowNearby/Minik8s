@@ -88,7 +88,13 @@ func getHandler(cmd *cobra.Command, args []string) {
 				pods = append(pods, pod)
 			}
 			for _, pod := range pods {
-				t.AppendRow(table.Row{pod.MetaData.Name, pod.Status.Condition, time.Since(pod.Status.StartTime).Round(time.Second), pod.Status.PodIP, pod.Status.HostIP})
+				age := ""
+				if pod.Status.StartTime.IsZero() {
+					age = ""
+				} else {
+					age = time.Since(pod.Status.StartTime).Round(time.Second).String()
+				}
+				t.AppendRow(table.Row{pod.MetaData.Name, pod.Status.Phase, age, pod.Status.PodIP, pod.Status.HostIP})
 			}
 		}
 	case core.ObjNode:

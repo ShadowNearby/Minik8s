@@ -5,7 +5,8 @@ metadata:
   namespace: default
 spec:
   selector:
-    app: deploy-1
+    matchLabels:
+      app: deploy-1
   type: NodePort
   ports:
   - name: service-port1

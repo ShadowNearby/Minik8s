@@ -10,7 +10,6 @@ import (
 	"minik8s/pkgs/volume"
 	"minik8s/utils"
 
-	"github.com/containerd/containerd"
 	logger "github.com/sirupsen/logrus"
 )
 
@@ -51,7 +50,7 @@ func CreatePod(podConfig *core.Pod, pStatusChan chan<- core.PodStatus, cStatusCh
 			ID:           pauseSpec.ID,
 			Name:         pauseSpec.Name,
 			Image:        pauseSpec.Image,
-			Status:       containerd.Running,
+			State:        core.ContainerRunning,
 			RestartCount: 0,
 			Environment:  nil,
 		}
@@ -126,7 +125,7 @@ func CreatePod(podConfig *core.Pod, pStatusChan chan<- core.PodStatus, cStatusCh
 				ID:           utils.GenerateContainerIDByName(cConfig.Name, podConfig.MetaData.UUID),
 				Name:         cConfig.Name,
 				Image:        cConfig.Image,
-				Status:       containerd.Running,
+				State:        core.ContainerRunning,
 				RestartCount: 0,
 				Environment:  cConfig.Env,
 			}

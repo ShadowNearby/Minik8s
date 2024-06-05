@@ -37,7 +37,7 @@ var cfgFile string
 var update string
 
 func init() {
-	logrus.SetLevel(logrus.InfoLevel)
+	logrus.SetLevel(logrus.FatalLevel)
 	RootCommand.PersistentFlags().StringVarP(&namespace, "namespace", "n", "default", "kubectl (-n NAMESPACE)")
 	RootCommand.PersistentFlags().StringVar(&cfgFile, "config", "./config/config.json", "config file (default is ./config/config.json)")
 	applyCmd.Flags().StringVarP(&filePath, "filePath", "f", "", "kubectl apply -f <FILENAME>")

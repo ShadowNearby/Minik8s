@@ -174,8 +174,8 @@ func getPodIpList(pods *[]core.Pod) []string {
 		return result
 	}
 	for _, pod := range *pods {
-		log.Infof("phase: %s, podIP: %s", pod.Status.Condition, pod.Status.PodIP)
-		if pod.Status.Condition == core.CondRunning && pod.Status.PodIP != "" {
+		log.Infof("phase: %s, podIP: %s", pod.Status.Phase, pod.Status.PodIP)
+		if pod.Status.Phase == core.PodPhaseRunning && pod.Status.PodIP != "" {
 			result = append(result, pod.Status.PodIP)
 		}
 	}

@@ -41,7 +41,7 @@ func FindRSPods(filterRunning bool, rsName string, namespace ...string) ([]core.
 	if filterRunning {
 		runningPods := []core.Pod{}
 		for _, pod := range pods {
-			if pod.Status.Condition == core.CondRunning {
+			if pod.Status.Phase == core.PodPhaseRunning {
 				runningPods = append(runningPods, pod)
 			}
 		}
@@ -65,7 +65,7 @@ func FindHPAPods(filterRunning bool, hpaName string) ([]core.Pod, error) {
 	if filterRunning {
 		runningPods := []core.Pod{}
 		for _, pod := range pods {
-			if pod.Status.Condition == core.CondRunning {
+			if pod.Status.Phase == core.PodPhaseRunning {
 				runningPods = append(runningPods, pod)
 			}
 		}
