@@ -7,6 +7,7 @@ import (
 	"minik8s/pkgs/constants"
 	"minik8s/utils"
 	"net/http"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -149,6 +150,8 @@ var UsedMapKey = fmt.Sprintf("%s/used", ServiceIPKey)
 
 var ServiceIPMapKey = fmt.Sprintf("%s/map", ServiceIPKey)
 
+var clusterIPLock = sync.Mutex{}
+
 func GetServiceClusterIPHandler(c *gin.Context) {
 	namespace := c.Param("namespace")
 	if namespace == "" {
@@ -163,6 +166,7 @@ func GetServiceClusterIPHandler(c *gin.Context) {
 	usedMap := map[string]bool{}
 	serviceIPMap := map[string]string{}
 	serviceKey := fmt.Sprintf("%s:%s", namespace, name)
+	clusterIPLock.Lock()
 	err1 := storage.Get(UsedMapKey, &usedMap)
 	err2 := storage.Get(ServiceIPMapKey, &serviceIPMap)
 	var newIP string
@@ -178,6 +182,7 @@ func GetServiceClusterIPHandler(c *gin.Context) {
 	}
 	oldIP, ok := serviceIPMap[serviceKey]
 	if ok {
+		clusterIPLock.Unlock()
 		c.JSON(http.StatusOK, gin.H{"data": oldIP})
 		return
 	}
@@ -185,13 +190,17 @@ func GetServiceClusterIPHandler(c *gin.Context) {
 	serviceIPMap[serviceKey] = newIP
 	err := storage.Put(UsedMapKey, usedMap)
 	if err != nil {
+		clusterIPLock.Unlock()
 		log.Errorf("error in put UsedMap")
 		c.JSON(http.StatusOK, gin.H{"error": "error in put UsedMap"})
+		return
 	}
 	err = storage.Put(ServiceIPMapKey, serviceIPMap)
+	clusterIPLock.Unlock()
 	if err != nil {
 		log.Errorf("error in put ServiceIPMap")
 		c.JSON(http.StatusOK, gin.H{"error": "error in put ServiceIPMap"})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": newIP})
 }
@@ -210,28 +219,37 @@ func DeleteServiceClusterIPHandler(c *gin.Context) {
 	usedMap := map[string]bool{}
 	serviceIPMap := map[string]string{}
 	serviceKey := fmt.Sprintf("%s:%s", namespace, name)
+	clusterIPLock.Lock()
 	err1 := storage.Get(UsedMapKey, &usedMap)
 	err2 := storage.Get(ServiceIPMapKey, &serviceIPMap)
 	if err1 != nil || err2 != nil {
+		clusterIPLock.Unlock()
 		log.Errorf("error in get ServiceIPMap or UsedMapKey")
 		c.JSON(http.StatusOK, gin.H{"error": "error in get ServiceIPMap or UsedMapKey"})
+		return
 	}
 	ip, ok := serviceIPMap[serviceKey]
 	if !ok {
+		clusterIPLock.Unlock()
 		log.Errorf("error in find ip for service %s", serviceKey)
 		c.JSON(http.StatusOK, gin.H{"error": "error in find ip for service"})
+		return
 	}
 	delete(serviceIPMap, serviceKey)
 	delete(usedMap, ip)
 	err := storage.Put(UsedMapKey, usedMap)
 	if err != nil {
+		clusterIPLock.Unlock()
 		log.Errorf("error in put UsedMap")
 		c.JSON(http.StatusOK, gin.H{"error": "error in put UsedMap"})
+		return
 	}
 	err = storage.Put(ServiceIPMapKey, serviceIPMap)
+	clusterIPLock.Unlock()
 	if err != nil {
 		log.Errorf("error in put ServiceIPMap")
 		c.JSON(http.StatusOK, gin.H{"error": "error in put ServiceIPMap"})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": "success"})
 }

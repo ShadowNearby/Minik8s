@@ -9,8 +9,7 @@ spec:
       app: nginx
   type: ClusterIP
   ports:
-  - name: rs-service-port
-    protocol: TCP
-    port: 20922
-    targetPort: p1
-  
+    - name: rs-service-port
+      protocol: TCP
+      port: 20922
+      targetPort: p1

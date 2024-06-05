@@ -9,7 +9,7 @@ spec:
       app: fail-deploy
   type: ClusterIP
   ports:
-  - name: rs-load-port
-    protocol: TCP
-    port: 27070
-    targetPort: p2
+    - name: rs-load-port
+      protocol: TCP
+      port: 27070
+      targetPort: p2

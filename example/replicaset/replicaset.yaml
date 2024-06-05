@@ -5,7 +5,7 @@ metadata:
   labels:
     app: nginx
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: nginx
@@ -16,10 +16,10 @@ spec:
         app: nginx
     spec:
       containers:
-      - name: ip-return-test
-        image: docker.io/shadownearby/ip_return:v1
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 80
-          name: p1
+        - name: ip-return-test
+          image: docker.io/shadownearby/ip_return:v1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+              name: p1
       restartPolicy: OnFailure

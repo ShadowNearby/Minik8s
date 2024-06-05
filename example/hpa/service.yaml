@@ -9,8 +9,7 @@ spec:
       app: hpa-test
   type: ClusterIP
   ports:
-  - name: hpa-service-port
-    protocol: TCP
-    port: 20096
-    targetPort: p1
-  
+    - name: hpa-service-port
+      protocol: TCP
+      port: 20096
+      targetPort: p1

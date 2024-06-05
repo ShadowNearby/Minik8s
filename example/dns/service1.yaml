@@ -9,8 +9,7 @@ spec:
       app: deploy-1
   type: ClusterIP
   ports:
-  - name: service-port1
-    protocol: TCP
-    port: 27888
-    targetPort: p1
-  
+    - name: service-port1
+      protocol: TCP
+      port: 27888
+      targetPort: p1

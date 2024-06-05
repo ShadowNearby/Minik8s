@@ -33,5 +33,7 @@
   "FunctionThreshold": 6,
   "FunctionConnectTime": "30s",
   "ServerlessScaleToZeroTime": "30s",
-  "ServelessIP": "8081"
+  "ServelessIP": "8081",
+
+  "HPAScaleInterval": "30s"
 }

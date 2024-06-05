@@ -13,6 +13,7 @@ Also notice that when abs(desiredReplicas - currentReplicas) < 0.1, we do not re
 import (
 	"fmt"
 	"math"
+	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/constants"
 	"minik8s/utils"
@@ -25,7 +26,7 @@ type HPAController struct {
 }
 
 func (h *HPAController) StartBackground() {
-	ticker := time.NewTicker(20 * time.Second)
+	ticker := time.NewTicker(config.HPAScaleInterval)
 	defer ticker.Stop()
 
 	for range ticker.C {

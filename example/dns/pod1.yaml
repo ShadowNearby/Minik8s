@@ -8,18 +8,18 @@ metadata:
 spec:
   selector:
     matchLabels:
-     host: k8s-1
+      host: k8s-1
   containers:
-  - name: example-container
-    image: docker.io/hashicorp/http-echo:latest
-    imagePullPolicy: IfNotPresent
-    cmd:
-    - "/http-echo"
-    - "-listen=:8080"
-    - "-text=hello from service1"
-    ports:
-    - containerPort: 8080
-      name: p1
-  - name: test-container
-    image: docker.io/shadownearby/ubuntu:latest
-    imagePullPolicy: IfNotPresent
+    - name: example-container
+      image: docker.io/hashicorp/http-echo:latest
+      imagePullPolicy: IfNotPresent
+      cmd:
+        - "/http-echo"
+        - "-listen=:8080"
+        - "-text=hello from service1"
+      ports:
+        - containerPort: 8080
+          name: p1
+    - name: test-container
+      image: docker.io/shadownearby/ubuntu:latest
+      imagePullPolicy: IfNotPresent

@@ -6,36 +6,21 @@ metadata:
   labels:
     app: deploy-1
 spec:
+  volumes:
+    - name: pod-pv
+      nfs:
+        server: 192.168.1.12
+        share: "/mnt/ShareFolder"
   containers:
-  - name: hello1
-    image: docker.io/hashicorp/http-echo:latest
-    imagePullPolicy: IfNotPresent
-    cmd:
-    - "/http-echo"
-    - "-listen=:8080"
-    - "-text=hello1"
-    ports:
-    - containerPort: 8080
-      name: p1
-    volumeMounts:
-    - name: test-pv
-      containerPath: "/test_mount"
-  - name: hello2
-    image: docker.io/hashicorp/http-echo:latest
-    imagePullPolicy: IfNotPresent
-    cmd:
-    - "/http-echo"
-    - "-listen=:8090"
-    - "-text=hello2"
-    ports:
-    - containerPort: 8090
-      name: p2
-    volumeMounts:
-    - name: test-pv
-      containerPath: "/test_mount"
-  - name: test-container
-    image: docker.io/shadownearby/ubuntu:latest
-    imagePullPolicy: IfNotPresent
-    volumeMounts:
-    - name: test-pv
-      containerPath: "/test_mount"
+    - name: test1
+      image: docker.io/shadownearby/ubuntu:latest
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+        - name: pod-pv
+          containerPath: "/test_mount"
+    - name: test2
+      image: docker.io/shadownearby/ubuntu:latest
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+        - name: pod-pv
+          containerPath: "/test_mount"

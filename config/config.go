@@ -53,6 +53,10 @@ var (
 	ServerlessPort            = "18080"
 )
 
+var (
+	HPAScaleInterval = 30 * time.Second
+)
+
 func InitConfig(configPath string) error {
 	data, err := os.ReadFile(configPath)
 	if err != nil {
@@ -112,6 +116,11 @@ func InitConfig(configPath string) error {
 
 	}
 	ServerlessPort = cfg.ServelessIP
+	HPAScaleInterval, err = time.ParseDuration(cfg.HPAScaleInterval)
+	if err != nil {
+		logrus.Errorf("error in parse HPAScaleInterval %s", err.Error())
+		return err
+	}
 
 	logrus.Info("Configuration parsed successfully")
 	return nil
@@ -146,4 +155,5 @@ type Config struct {
 	FunctionConnectTime       string   `json:"FunctionConnectTime"`
 	ServerlessScaleToZeroTime string   `json:"ServerlessScaleToZeroTime"`
 	ServelessIP               string   `json:"ServerlessPort"`
+	HPAScaleInterval          string   `json:"HPAScaleInterval"`
 }

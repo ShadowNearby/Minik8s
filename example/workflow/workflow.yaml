@@ -12,12 +12,12 @@ states:
   judgesum:
     type: ChoiceState
     choices:
-    - variable: "$.z"
-      NumericGreaterThan: 5
-      next: printsum
-    - variable: "$.z"
-      NumericLessThan: 5
-      next: printsum
+      - variable: "$.z"
+        NumericGreaterThan: 5
+        next: printsum
+      - variable: "$.z"
+        NumericLessThan: 5
+        next: printsum
     default: printerror
   printsum:
     type: TaskState

@@ -22,6 +22,9 @@ func GeneratePrometheusNodeFile() error {
 
 	configs := []core.PrometheusSdConfig{}
 	for _, node := range nodes {
+		if node.Status.Phase == core.NodeNetworkUnavailable {
+			continue
+		}
 		configs = append(configs, core.PrometheusSdConfig{
 			Targets: []string{fmt.Sprintf("%s:%d", node.Spec.NodeIP, 8080), fmt.Sprintf("%s:%d", node.Spec.NodeIP, 9100)},
 			Labels: map[string]string{

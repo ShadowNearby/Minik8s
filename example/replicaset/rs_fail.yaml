@@ -17,12 +17,12 @@ spec:
         app: fail-deploy
     spec:
       containers:
-      - name: pod-load
-        image: docker.io/shadownearby/system_load:v1
-        imagePullPolicy: IfNotPresent
-        resources: 
-          limit:
-            memory: 200000000
-        ports:
-        - containerPort: 7070
-          name: p2
+        - name: pod-load
+          image: docker.io/shadownearby/system_load:v1
+          imagePullPolicy: IfNotPresent
+          resources:
+            limit:
+              memory: 200000000
+          ports:
+            - containerPort: 7070
+              name: p2

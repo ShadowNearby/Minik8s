@@ -14,7 +14,7 @@ spec:
   metrics:
     type: Resource
     resources:
-    - name: memory
-      target:
-        type: Utilization
-        averageUtilization: 10
+      - name: memory
+        target:
+          type: Utilization
+          averageUtilization: 10
