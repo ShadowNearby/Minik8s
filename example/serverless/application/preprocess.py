@@ -16,5 +16,5 @@ new_width = 320
 new_height = 240
 
 def main(userparams):
-    image_path= userparams.get("path")
-    return resize_pic(image_path, new_width, new_height)
+  image_path= userparams.get("path")
+  return resize_pic(image_path, new_width, new_height)

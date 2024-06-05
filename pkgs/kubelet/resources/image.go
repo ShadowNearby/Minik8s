@@ -3,9 +3,10 @@ package resources
 import (
 	"context"
 	"errors"
+	core "minik8s/pkgs/apiobject"
+
 	"github.com/containerd/containerd"
 	logger "github.com/sirupsen/logrus"
-	core "minik8s/pkgs/apiobject"
 )
 
 type ImageController struct{}

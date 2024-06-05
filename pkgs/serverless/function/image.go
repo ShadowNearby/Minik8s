@@ -12,7 +12,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const ImagePath = "shadownearby"
+var ImagePath = fmt.Sprintf("%s:5000", config.ClusterMasterIP)
 
 // CreateImage build image for function
 func CreateImage(path string, name string) error {
@@ -78,17 +78,6 @@ func saveImage(name string) error {
 		return err
 	}
 
-	return nil
-}
-
-func PullImage(name string) error {
-	registryImgName := fmt.Sprintf("%s/%s:v1", config.ClusterMasterIP, name)
-	nerdCmd := exec.Command("nerdctl", "pull", registryImgName)
-	nerdCmd.Stdout = os.Stdout
-	nerdCmd.Stdin = os.Stdin
-	if err := nerdCmd.Run(); err != nil {
-		log.Errorf("nerdctl pull image image error: %s", err.Error())
-	}
 	return nil
 }
 

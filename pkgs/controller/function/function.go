@@ -42,6 +42,22 @@ func (f *FuncController) HandleCreate(message string) error {
 
 func (f *FuncController) HandleUpdate(message string) error {
 	// we don't support update
+	functions := []core.Function{}
+	err := utils.JsonUnMarshal(message, &functions)
+	if err != nil {
+		logger.Error("unmarshal functions error")
+		return err
+	}
+	err = f.HandleDelete(functions[0].Name)
+	if err != nil {
+		logger.Error("delete functions error")
+		return err
+	}
+	err = f.HandleCreate(utils.JsonMarshal(functions[1]))
+	if err != nil {
+		logger.Error("create functions error")
+		return err
+	}
 	return nil
 }
 

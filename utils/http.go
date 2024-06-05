@@ -2,10 +2,11 @@ package utils
 
 import (
 	"bytes"
-	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
+
+	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 )
 
 var Resources = []string{"pod", "service", "endpoint", "replica", "job", "hpa", "dnsrecord"}
@@ -80,7 +81,7 @@ func SendRequest(method string, url string, body []byte) (int, string, error) {
 			return http.StatusInternalServerError, "", err
 		}
 	} else {
-		length, err := buffer.ReadFrom(response.Body)
+		_, err := buffer.ReadFrom(response.Body)
 		if err != nil {
 			log.Error(err)
 		}
@@ -89,7 +90,7 @@ func SendRequest(method string, url string, body []byte) (int, string, error) {
 			log.Error(err)
 		}
 		// log.Infoln(response.Status)
-		log.Infof("[Send Request] to %s method:%s status:%s receive:%d bytes", url, method, response.Status, length)
+		// log.Infof("[Send Request] to %s method:%s status:%s receive:%d bytes", url, method, response.Status, length)
 	}
 
 	return response.StatusCode, buffer.String(), err

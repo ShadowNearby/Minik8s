@@ -22,7 +22,7 @@ func InitFunction(name string, path string) error {
 		log.Error("[InitFunction] create image error: ", err)
 		return err
 	}
-	imageName := fmt.Sprintf("shadownearby/%s:v1", name)
+	imageName := fmt.Sprintf("%s:5000/%s:v1", config.ClusterMasterIP, name)
 	replicaSet := utils.GenerateRSConfig(name, "default", imageName, 0)
 	log.Info("[InitFunction] create record replicaSet: ", replicaSet)
 
@@ -159,7 +159,8 @@ func getAvailablePods(name string) ([]string, error) {
 			return nil, err
 		}
 		podsIp = getPodIpList(&pods)
-		if len(podsIp) >= record.CallCount {
+		// if len(podsIp) >= record.CallCount {
+		if len(podsIp) >= 1 {
 			break
 		}
 		time.Sleep(5 * time.Second)

@@ -2,7 +2,6 @@ package utils
 
 import (
 	"errors"
-	"fmt"
 	core "minik8s/pkgs/apiobject"
 	"net/http"
 
@@ -54,7 +53,7 @@ func GenerateRSConfig(name string, namespace string, image string, replicas int)
 					Containers: []core.Container{
 						{
 							Name:            name,
-							Image:           fmt.Sprintf("docker.io/%s", image),
+							Image:           image,
 							ImagePullPolicy: core.PullIfNeeds,
 							Ports: []core.PortConfig{
 								{

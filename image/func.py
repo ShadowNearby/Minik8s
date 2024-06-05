@@ -1,20 +1,14 @@
-from PIL import Image
+from ultralytics import YOLO
 
-def resize_pic(image_name, width, height):
-  input_image_path = '/test_mount/test-pv/'+ image_name
-  image = Image.open(input_image_path)
+def infer(image_path):
+    # Load a pretrained YOLOv8n-pose Pose model
+    model = YOLO("/test_mount/test-pv/yolov8n-cls.pt")
 
-  new_size = (width, height)
-  image.thumbnail(new_size)
-
-  output_image_path = '/test_mount/test-pv/'+image_name
-  image.save(output_image_path)
-  return {"full_path": output_image_path}
-
-
-new_width = 320
-new_height = 240
+    results = model(image_path)  # results list
+    print("---------")
+    name =  model.names[results[0].probs.top1]
+    return {"result": name}
 
 def main(userparams):
-    image_path= userparams.get("path")
-    return resize_pic(image_path, new_width, new_height)
+    path = userparams.get("full_path")
+    return infer(image_path=path)

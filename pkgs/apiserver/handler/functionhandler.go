@@ -88,8 +88,27 @@ func DeleteFunctionHandler(c *gin.Context) {
 
 // UpdateFunctionHandler PUT /api/v1/functions/:name
 func UpdateFunctionHandler(c *gin.Context) {
-	c.JSON(http.StatusBadRequest, gin.H{"error": "the system do not support update function"})
-	return
+	name := c.Param("name")
+	var oldFunc, newFunc core.Function
+	key := fmt.Sprintf("/functions/obejct/%s", name)
+	err := storage.Get(key, &oldFunc)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "create before update"})
+		return
+	}
+	err = c.Bind(&newFunc)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "expect function type"})
+		return
+	}
+	err = storage.Put(key, newFunc)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot set object"})
+		return
+	}
+	functions := []core.Function{oldFunc, newFunc}
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelFunction, constants.ChannelUpdate), utils.JsonMarshal(functions))
+	c.JSON(http.StatusOK, gin.H{"data": "ok"})
 }
 
 // TriggerFunctionHandler POST /api/v1/functions/:name/trigger
