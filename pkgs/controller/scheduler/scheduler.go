@@ -67,6 +67,7 @@ func (sched *Scheduler) Schedule(pod core.Pod) (string, error) {
 	var nodes []core.Node
 	utils.JsonUnMarshal(nodesTxt, &nodes)
 	var nodeCandidate = make(map[string]core.NodeMetrics)
+	logger.Infof("node count: %d", len(nodes))
 	for _, node := range nodes {
 		nodeLabels, metrics, err := requestNodeInfos(node)
 		if err != nil {
@@ -87,7 +88,7 @@ func (sched *Scheduler) Schedule(pod core.Pod) (string, error) {
 	if len(nodeCandidate) == 0 {
 		return "", errors.New("cannot schedule the pod: node candidate == 0")
 	}
-	selectedIP := sched.dispatch(nodeCandidate)
+	selectedIP := sched.dispatch(nodeCandidate, nodes...)
 	pod.Status.HostIP = selectedIP
 	// select node over, send message to node
 	response, err := sendCreatePod(selectedIP, pod)
@@ -104,7 +105,7 @@ func (sched *Scheduler) Schedule(pod core.Pod) (string, error) {
 	return selectedIP, nil
 }
 
-func (sched *Scheduler) dispatch(candidates map[string]core.NodeMetrics) string {
+func (sched *Scheduler) dispatch(candidates map[string]core.NodeMetrics, nodes ...core.Node) string {
 	switch sched.Policy {
 	case constants.PolicyCPU:
 		{
@@ -121,12 +122,16 @@ func (sched *Scheduler) dispatch(candidates map[string]core.NodeMetrics) string 
 	default:
 		{
 			// use roundRobin
-			candidatesList := make([]string, 0)
-			for key := range candidates {
-				candidatesList = append(candidatesList, key)
+			// candidatesList := make([]string, 0)
+			// for key := range candidates {
+			// 	candidatesList = append(candidatesList, key)
+			// }
+			candidateList := make([]string, 0)
+			for _, node := range nodes {
+				candidateList = append(candidateList, node.Spec.NodeIP)
 			}
 			sched.rrIdx++
-			return roundRobinPolicy(sched.rrIdx, candidatesList...)
+			return roundRobinPolicy(sched.rrIdx, candidateList...)
 		}
 
 	}
