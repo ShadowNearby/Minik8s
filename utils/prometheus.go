@@ -54,6 +54,9 @@ func GeneratePrometheusPodFile() error {
 	configs := []core.PrometheusSdConfig{}
 
 	for _, pod := range pods {
+		if pod.Status.Phase != core.PodPhaseRunning {
+			continue
+		}
 		if pod.Status.PodIP == "" {
 			continue
 		}
