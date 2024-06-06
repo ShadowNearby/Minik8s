@@ -60,15 +60,16 @@ var RouteTable = [...]Route{
 	{Path: "/api/v1/functions/:name", Method: "GET", Handler: GetFunctionHandler},              // GET, get a function
 	{Path: "/api/v1/functions/:name", Method: "DELETE", Handler: DeleteFunctionHandler},        // DELETE, delete a function
 	{Path: "/api/v1/functions/:name", Method: "PUT", Handler: UpdateFunctionHandler},           // PUT, update a function
-	{Path: "/api/v1/functions/:name/trigger", Method: "POST", Handler: TriggerFunctionHandler}, // POST, trigger a function
 	{Path: "/api/v1/functions", Method: "GET", Handler: GetAllFunctionsHandler},                // GET, list all functions
-	{Path: "/api/v1/functions/tasks", Method: "POST", Handler: CreateTaskHandler},
-	{Path: "/api/v1/functions/tasks/:name", Method: "GET", Handler: GetTaskHandler},
-	{Path: "/api/v1/functions/tasks", Method: "GET", Handler: GetAllTaskHandler},
-	{Path: "/api/v1/functions/tasks/:name", Method: "POST", Handler: UpdateTaskHandler},
-	{Path: "/api/v1/functions/tasks/:name", Method: "DELETE", Handler: DeleteTaskHandler},
+	{Path: "/api/v1/functions/:name/trigger", Method: "POST", Handler: TriggerFunctionHandler}, // POST, trigger a function
 	{Path: "/api/v1/functions/result/:id", Method: "GET", Handler: GetTriggerResult},
 	{Path: "/api/v1/functions/result", Method: "POST", Handler: SetTriggerResult},
+
+	{Path: "/api/v1/tasks", Method: "POST", Handler: CreateTaskHandler},
+	{Path: "/api/v1/tasks/:name", Method: "GET", Handler: GetTaskHandler},
+	{Path: "/api/v1/tasks", Method: "GET", Handler: GetAllTaskHandler},
+	{Path: "/api/v1/tasks/:name", Method: "POST", Handler: UpdateTaskHandler},
+	{Path: "/api/v1/tasks/:name", Method: "DELETE", Handler: DeleteTaskHandler},
 
 	{Path: "/api/v1/namespaces/:namespace/hpa", Method: "POST", Handler: CreateHpaHandler},                   // POST, create a hpa
 	{Path: "/api/v1/namespaces/:namespace/hpa/:name", Method: "GET", Handler: GetHpaHandler},                 // GET, get a hpa

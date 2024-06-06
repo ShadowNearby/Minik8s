@@ -14,13 +14,13 @@ const (
 	ObjJob        ObjType = "jobs"
 	ObjHpa        ObjType = "hpa"
 	ObjFunction   ObjType = "functions"
-	ObjTask       ObjType = "tasks"
 	ObjWorkflow   ObjType = "workflows"
 	ObjEndPoint   ObjType = "endpoints"
 	ObjDNS        ObjType = "dns"
 	ObjVolume     ObjType = "volumes"
 	ObjCsiVolume  ObjType = "csivolumes"
-	ObjTrigger    ObjType = "triggers"
+	ObjTask       ObjType = "tasks"    // ticktok, PingSource
+	ObjTrigger    ObjType = "triggers" // only request
 )
 
 var ObjTypeAll = []string{
@@ -36,6 +36,8 @@ var ObjTypeAll = []string{
 	"workflows",
 	"dns",
 	"volumes",
+	"tasks",
+	"triggers",
 }
 
 var ObjTypeToCoreObjMap = map[ObjType]reflect.Type{
@@ -49,6 +51,8 @@ var ObjTypeToCoreObjMap = map[ObjType]reflect.Type{
 	ObjEndPoint:   reflect.TypeOf(&Endpoint{}).Elem(),
 	ObjDNS:        reflect.TypeOf(&DNSRecord{}).Elem(),
 	ObjVolume:     reflect.TypeOf(&PersistentVolume{}).Elem(),
+	ObjTrigger:    reflect.TypeOf(&TriggerMessage{}).Elem(),
+	ObjTask:       reflect.TypeOf(&PingSource{}).Elem(),
 }
 
 var ObjTypeNamespace = map[ObjType]bool{
@@ -57,6 +61,8 @@ var ObjTypeNamespace = map[ObjType]bool{
 	ObjWorkflow:  false,
 	ObjVolume:    false,
 	ObjCsiVolume: false,
+	ObjTask:      false,
+	ObjTrigger:   false,
 
 	ObjPod:        true,
 	ObjReplicaSet: true,

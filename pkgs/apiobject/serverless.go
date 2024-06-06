@@ -1,22 +1,23 @@
 package core
 
 type Function struct {
-	Kind       string `yaml:"kind" json:"kind,omitempty"`
-	APIVersion string `yaml:"apiVersion" json:"apiVersion,omitempty"`
+	Kind       string `yaml:"kind" json:"kind"`
+	APIVersion string `yaml:"apiVersion" json:"apiVersion"`
 	Name       string `yaml:"name" json:"name"`
 	Path       string `yaml:"path" json:"path"` // this path should be an absolute one
 }
 
+// only for controller
 type TriggerRequest struct {
 	Url    string `json:"url" yaml:"url"`
 	Params []byte `json:"params" yaml:"params"`
 }
 
 type TriggerMessage struct {
+	Kind   string `yaml:"kind" json:"kind"`
 	Name   string `yaml:"name" json:"name"`
-	Type   string `yaml:"type" json:"type"`
 	Params string `yaml:"params" json:"params"`
-	ID     string `yaml:"id" json:"id"`
+	ID     string `yaml:"id,omitempty" json:"id,omitempty"`
 }
 
 type PingSource struct {

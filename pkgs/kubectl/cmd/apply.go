@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/kubectl/api"
 	"minik8s/utils"
@@ -45,16 +44,7 @@ func applyHandler(cmd *cobra.Command, args []string) {
 		return
 	}
 	if objType == core.ObjTrigger {
-		trigger := core.TriggerMessage{}
-		err := yaml.Unmarshal(fileContent, &trigger)
-		if err != nil {
-			log.Fatal(err)
-		}
-		url := fmt.Sprintf("http://%s:%s/api/v1/functions/%s/trigger", config.ClusterMasterIP, config.ApiServerPort, trigger.Name)
-		_, _, err = utils.SendRequest("POST", url, []byte(utils.JsonMarshal(trigger)))
-		if err != nil {
-			log.Fatal(err)
-		}
+		log.Fatal("use kubelet trigger functions/workflows -f [file] to trigger serverless")
 		return
 	}
 	structType, res := core.ObjTypeToCoreObjMap[objType]

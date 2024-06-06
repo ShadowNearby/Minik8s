@@ -37,7 +37,7 @@ var cfgFile string
 var update string
 
 func init() {
-	logrus.SetLevel(logrus.FatalLevel)
+	logrus.SetLevel(logrus.ErrorLevel)
 	RootCommand.PersistentFlags().StringVarP(&namespace, "namespace", "n", "default", "kubectl (-n NAMESPACE)")
 	RootCommand.PersistentFlags().StringVar(&cfgFile, "config", "./config/config.json", "config file (default is ./config/config.json)")
 	applyCmd.Flags().StringVarP(&filePath, "filePath", "f", "", "kubectl apply -f <FILENAME>")
@@ -46,8 +46,13 @@ func init() {
 	if err := config.InitConfig(cfgFile); err != nil {
 		logrus.Fatalf("Error initializing config: %s", err.Error())
 	}
+	triggerCmd.Flags().StringVarP(&filePath, "filePath", "f", "", "kubectl trigger <RESOURCE> -f <FILENAME>")
+	triggerCmd.MarkFlagRequired("filePath")
+
 	RootCommand.AddCommand(applyCmd)
 	RootCommand.AddCommand(deleteCmd)
 	RootCommand.AddCommand(getCmd)
 	RootCommand.AddCommand(describeCmd)
+	RootCommand.AddCommand(triggerCmd)
+	RootCommand.AddCommand(resultCmd)
 }
