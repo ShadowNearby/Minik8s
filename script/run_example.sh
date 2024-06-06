@@ -110,3 +110,8 @@ stress --vm 2 --vm-bytes 1600M --vm-keep
 ./bin/kubectl apply -f ./example/pod/registry_pod.yaml
 ./bin/kubectl get pod
 ./bin/kubectl delete pod pod-on-registry
+
+# test monitor
+./bin/kubectl apply -f ./example/monitor/monitor_pod.yaml
+./bin/kubectl get pod
+./bin/kubectl delete pod monitor-pod
