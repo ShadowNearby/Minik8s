@@ -115,3 +115,19 @@ stress --vm 2 --vm-bytes 1600M --vm-keep
 ./bin/kubectl apply -f ./example/monitor/monitor_pod.yaml
 ./bin/kubectl get pod
 ./bin/kubectl delete pod monitor-pod
+
+
+# test workflow
+./bin/kubectl apply -f ./example/serverless/application/infer.yaml
+./bin/kubectl apply -f ./example/serverless/application/preprocess.yaml
+./bin/kubectl apply -f ./example/serverless/application/application_workflow.yaml
+./bin/kubectl apply -f ./example/volume/volume.yaml
+RESULT_ID = ./bin/kubectl trigger workflows -f ./example/serverless/applications/trigger_workflow.yaml
+echo $(RESULT_ID)
+./bin/kubectl result workflows $(RESULT_ID)
+
+# test function
+./bin/kubectl apply -f ./example/serverless/application/preprocess.yaml
+RESULT_ID = ./bin/kubectl trigger functions -f ./example/serverless/applications/trigger_workflow.yaml
+echo $(RESULT_ID)
+./bin/kubectl result functions $(RESULT_ID)

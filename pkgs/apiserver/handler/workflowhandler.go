@@ -112,7 +112,7 @@ func TriggerWorkflowHandler(c *gin.Context) {
 		return
 	}
 	logger.Infof("request name: %s, params: %s", request.Name, request.Params)
-	request.ID = utils.GenerateUUID(10)
+	request.ID = utils.GenerateUUID(4)
 	storage.RedisInstance.PublishMessage(constants.ChannelWorkflowTrigger, utils.JsonMarshal(request))
 	c.JSON(http.StatusOK, gin.H{"data": request.ID})
 }

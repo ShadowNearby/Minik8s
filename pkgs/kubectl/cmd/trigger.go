@@ -99,7 +99,7 @@ func triggerHandler(cmd *cobra.Command, args []string) {
 		fmt.Printf("code: %d, error: %s\n", code, infoType.Error)
 		return
 	} else {
-		fmt.Printf("trigger id: %s\n", infoType.Data)
+		fmt.Printf("%s\n", infoType.Data)
 	}
 }
 
@@ -144,6 +144,6 @@ func resultHandler(cmd *cobra.Command, args []string) {
 		fmt.Printf("code: %d, error: %s\n", code, infoType.Error)
 		return
 	} else {
-		fmt.Printf("trigger result: %s\n", infoType.Data)
+		fmt.Printf("%s\n", infoType.Data)
 	}
 }
