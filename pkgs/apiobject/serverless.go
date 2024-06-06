@@ -13,6 +13,7 @@ type TriggerRequest struct {
 }
 
 type TriggerMessage struct {
+	Kind   string `yaml:"kind" json:"kind"`
 	Name   string `yaml:"name" json:"name"`
 	Type   string `yaml:"type" json:"type"`
 	Params string `yaml:"params" json:"params"`
