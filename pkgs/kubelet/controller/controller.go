@@ -1,13 +1,17 @@
 package kubeletcontroller
 
 import (
+	"fmt"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/apiserver/handler"
 	"minik8s/pkgs/kubelet/runtime"
+	"minik8s/pkgs/serverless/function"
 	"minik8s/utils"
 	"net/http"
+	"os/exec"
 
 	"github.com/gin-gonic/gin"
+	logger "github.com/sirupsen/logrus"
 )
 
 var KubeletRouter = [...]handler.Route{
@@ -16,6 +20,7 @@ var KubeletRouter = [...]handler.Route{
 	{Path: "/pod/status/:namespace/:name", Method: "GET", Handler: InspectPodController}, // running status
 	{Path: "/metrics/:namespace/:name", Method: "GET", Handler: PodMetricController},     // for auto-scaling
 	{Path: "/metrics", Method: "GET", Handler: NodeMetricsController},
+	{Path: "/images/:name", Method: "DELETE", Handler: DeleteImageHandler},
 }
 
 func CreatePodController(c *gin.Context) {
@@ -66,4 +71,17 @@ func NodeMetricsController(c *gin.Context) {
 	metrics := NodeMetrics()
 	text := utils.JsonMarshal(metrics)
 	c.JSON(http.StatusOK, gin.H{"data": text})
+}
+
+func DeleteImageHandler(c *gin.Context) {
+	name := c.Param("name")
+	fullName := fmt.Sprintf("%s/%s:v1", function.ImagePath, name)
+	cmd := exec.Command("nerdctl", "image", "rm", fullName)
+	_, err := cmd.CombinedOutput()
+	if err != nil {
+		logger.Errorf("delete function error: %s", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": "ok"})
 }

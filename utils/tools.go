@@ -3,10 +3,11 @@ package utils
 import (
 	"errors"
 	"fmt"
-	logger "github.com/sirupsen/logrus"
 	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
 	"net/http"
+
+	logger "github.com/sirupsen/logrus"
 )
 
 // SetObject this function will use update message
@@ -139,6 +140,17 @@ func CreateObjectWONamespace(objType core.ObjType, object any) error {
 		return nil
 	}
 }
+
+func SaveTriggerResult(objType core.ObjType, result core.TriggerResult) error {
+	txt := JsonMarshal(result)
+	url := fmt.Sprintf("http://%s:%s/api/v1/%s/result", config.ClusterMasterIP, config.ApiServerPort, objType)
+	if code, info, err := SendRequest("POST", url, []byte(txt)); err != nil || code != http.StatusOK {
+		logger.Errorf("[save trigger message error]: %s", info)
+		return errors.New("save trigger message error")
+	}
+	return nil
+}
+
 func DeleteObject(objType core.ObjType, namespace string, name string) error {
 	if namespace == "" {
 		namespace = "default"

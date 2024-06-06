@@ -68,8 +68,3 @@ type Workflow struct {
 
 	Comment string `json:"comment,omitempty" yaml:"comment,omitempty"`
 }
-
-type WorkFlowTriggerRequest struct {
-	Name   string `json:"name" yaml:"name"`
-	Params string `json:"params" yaml:"params"`
-}

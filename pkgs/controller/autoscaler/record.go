@@ -36,7 +36,7 @@ func RecordBackGroundCheck() {
 	for range ticker.C {
 		RecordMutex.Lock()
 		currTime := time.Now()
-		for _, record := range RecordMap {
+		for key, record := range RecordMap {
 			if currTime.Sub(record.LastCallTime) > config.ServerlessScaleToZeroTime {
 				log.Info("rescale to zero")
 				// should rescale to zero
@@ -47,6 +47,7 @@ func RecordBackGroundCheck() {
 				replica.Spec.Replicas = 0
 				utils.SetObject(core.ObjReplicaSet, "default", record.Name, replica)
 				record.CallCount = 0
+				RecordMap[key] = record
 			}
 		}
 		RecordMutex.Unlock()
@@ -107,7 +108,7 @@ func LoadBalance(name string, podIps []string) (string, error) {
 	record.PodIps[chosenPodIp]++
 
 	RecordMutex.Lock()
-	RecordMap[name] = record
+	SetRecord(name, record)
 	RecordMutex.Unlock()
 
 	return chosenPodIp, nil

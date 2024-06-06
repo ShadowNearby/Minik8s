@@ -1,0 +1,4 @@
+kind: functions
+apiVersion: v1
+name: infer
+path: /root/ly/minik8s/example/serverless/application/yolo.py

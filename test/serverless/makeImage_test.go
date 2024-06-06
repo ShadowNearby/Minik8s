@@ -18,7 +18,7 @@ func TestCreateImage(t *testing.T) {
 	function.CreateImage(utils.ExamplePath+"/serverless/single.py", "serverless_test")
 }
 func TestDeleteImage(t *testing.T) {
-	err := function.DeleteImage("serverless_example")
+	err := function.DeleteImage("print-sum")
 	if err != nil {
 		t.Errorf("DeleteImage failed, error: %s", err)
 	}

@@ -2,10 +2,11 @@ package utils
 
 import (
 	"bytes"
-	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
+
+	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 )
 
 var Resources = []string{"pod", "service", "endpoint", "replica", "job", "hpa", "dnsrecord"}

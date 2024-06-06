@@ -32,7 +32,6 @@ func Run() {
 	go replicaSet.BackGroundTask()
 	var hpa autoscaler.HPAController
 	go controller.StartController(&hpa)
-	// start hpa background work
 	go hpa.StartBackground()
 	var functionController function.FuncController
 	go controller.StartController(&functionController)

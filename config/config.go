@@ -12,7 +12,8 @@ import (
 var (
 	LocalServerIp        = "127.0.0.1"
 	ApiServerPort        = "8090"
-	ClusterMasterIP      = "127.0.0.1"
+	RegistryPort         = "5000"
+	ClusterMasterIP      = "192.168.1.12"
 	PodCIDR              = "10.244.0.0/16"
 	NodePort             = "10250"
 	DefaultEtcdEndpoints = []string{"localhost:2380"}
@@ -49,7 +50,7 @@ var (
 	FunctionServerIp          = "master"
 	FunctionThreshold         = 6
 	FunctionConnectTime       = 30 * time.Second
-	ServerlessScaleToZeroTime = 30 * time.Second
+	ServerlessScaleToZeroTime = 90 * time.Second
 	ServerlessPort            = "18080"
 )
 

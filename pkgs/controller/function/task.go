@@ -37,7 +37,6 @@ func (t *TaskController) StartTaskController() {
 			logger.Errorf("register task error: %s", err.Error())
 		}
 		t.entryIDMap[funcName] = entryID
-		logger.Info("haha")
 	}
 	t.cronManager.Start()
 }
@@ -62,8 +61,6 @@ func (t *TaskController) HandleCreate(message string) error {
 	utils.JsonUnMarshal(message, &pingSource)
 	funcName := pingSource.Spec.Sink.Ref.Name
 	params := pingSource.Spec.JsonData
-
-	logger.Info("add func")
 
 	entryID, err := t.cronManager.AddFunc(pingSource.Spec.Schedule, func() {
 		_, err := activator.TriggerFunc(funcName, []byte(params))

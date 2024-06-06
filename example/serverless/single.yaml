@@ -1,4 +1,0 @@
-kind: function
-apiVersion: app/v1
-name: test
-path: serverless/single.py

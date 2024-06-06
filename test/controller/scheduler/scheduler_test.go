@@ -18,7 +18,7 @@ func TestSchedule(t *testing.T) {
 	if err != nil {
 		t.Error("schedule failed")
 	}
-	if ip != "172.31.184.139" && ip != "127.0.0.1" { // TODO
+	if ip != "192.168.1.12" && ip != "127.0.0.1" { // TODO
 		t.Errorf("wrong ip: %s", ip)
 	}
 	mockPod.Spec.Selector = core.Selector{MatchLabels: map[string]string{"test": "nothaha"}}

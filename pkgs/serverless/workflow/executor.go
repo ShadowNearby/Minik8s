@@ -48,17 +48,16 @@ func ParseParams(params []byte, inputPath string) ([]byte, error) {
 	return []byte(jsonData), nil
 }
 
-func ExecuteWorkflow(workflow *core.Workflow, params []byte) ([]byte, error) {
-	log.Info(workflow)
+func ExecuteWorkflow(workflow *core.Workflow, params []byte) (string, error) {
 	startNode := workflow.StartAt
 	if startNode == "" {
 		log.Error("[ExecuteWorkflow] the workflow start node is not exist")
-		return nil, errors.New("workflow start node is empty")
+		return "", errors.New("workflow start node is empty")
 	}
 	currentState, ok := workflow.States[startNode]
 	if !ok {
 		log.Error("[ExecuteWorkflow] the workflow states is not exist")
-		return nil, errors.New("workflow states is empty")
+		return "", errors.New("workflow states is empty")
 	}
 	currentNodeName := startNode
 	log.Info("[ExecuteWorkflow] current node name is: ", currentNodeName, " with params: ", string(params), " and type ", reflect.TypeOf(currentState))
@@ -73,10 +72,10 @@ func ExecuteWorkflow(workflow *core.Workflow, params []byte) ([]byte, error) {
 				params, err = ExecuteTask(currentState, currentNodeName, params)
 				if err != nil {
 					log.Error("[ExecuteWorkflow] task execution failed, the current node is ", currentNodeName)
-					return nil, err
+					return "", err
 				}
 				if currentState.End {
-					return params, nil
+					return string(params), nil
 				}
 				currentNodeName = currentState.Next
 
@@ -86,18 +85,18 @@ func ExecuteWorkflow(workflow *core.Workflow, params []byte) ([]byte, error) {
 				currentNodeName, err = ExecuteChoice(currentState, params)
 				if err != nil {
 					log.Error("[ExecuteWorkflow] choice execution failed, the current node is ", currentNodeName)
-					return nil, err
+					return "", err
 				}
 			}
 		case core.FailState:
 			{
 				result := ExecuteFail(currentState)
-				return []byte(result), nil
+				return result, nil
 			}
 		default:
 			{
 				log.Info(reflect.TypeOf(currentState).Name())
-				return nil, errors.New("the current node's type is invalid")
+				return "", errors.New("the current node's type is invalid")
 			}
 		}
 		currentState = workflow.States[currentNodeName]
@@ -108,7 +107,7 @@ func ExecuteWorkflow(workflow *core.Workflow, params []byte) ([]byte, error) {
 			break
 		}
 	}
-	return []byte(currentNodeName), errors.New("the workflow is not valid")
+	return currentNodeName, errors.New("the workflow is not valid")
 }
 
 func ExecuteTask(task core.TaskState, functionName string, params []byte) ([]byte, error) {
