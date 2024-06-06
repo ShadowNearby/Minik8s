@@ -20,6 +20,7 @@ const (
 	ObjDNS        ObjType = "dns"
 	ObjVolume     ObjType = "volumes"
 	ObjCsiVolume  ObjType = "csivolumes"
+	ObjTrigger    ObjType = "triggers"
 )
 
 var ObjTypeAll = []string{

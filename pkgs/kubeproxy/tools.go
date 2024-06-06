@@ -97,19 +97,20 @@ func CreateEndpointObject(service *core.Service) error {
 			})
 		}
 	} else if service.Spec.Type == core.ServiceTypeNodePort {
+		NodeIP := constants.AllIP
 		endpoint = core.Endpoint{
 			MetaData: core.MetaData{
 				Name:      service.MetaData.Name,
 				Namespace: service.MetaData.Namespace,
 			},
+			ServiceClusterIP: NodeIP,
 		}
-		NodeIP := constants.AllIP
 		for _, port := range service.Spec.Ports {
 			Destinations := []core.EndpointDestination{}
 			for _, pod := range selectedPods {
 				destPort := FindDestPort(port.TargetPort, pod.Spec.Containers)
 				Destinations = append(Destinations, core.EndpointDestination{
-					IP:   NodeIP,
+					IP:   pod.Status.PodIP,
 					Port: destPort,
 				})
 				BindEndpoint(NodeIP, port.NodePort, pod.Status.PodIP, destPort)

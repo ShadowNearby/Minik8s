@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-volumeclaim
+  namespace: default
+  labels:
+    app: deploy-1
+spec:
+  volumes:
+    - name: pod-pv
+      nfs:
+        server: 192.168.1.12
+        share: "/mnt/ShareFolder"
+      persistentVolumeClaim:
+        kind: PersistentVolumeClaim
+        metadata:
+          name: test-pvc
+          namespace: default
+        spec:
+          resources:
+            request:
+              storage: 1000000
+  containers:
+    - name: test1
+      image: docker.io/shadownearby/ubuntu:latest
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+        - name: pod-pv
+          containerPath: "/test_mount"
+    - name: test2
+      image: docker.io/shadownearby/ubuntu:latest
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+        - name: pod-pv
+          containerPath: "/test_mount"

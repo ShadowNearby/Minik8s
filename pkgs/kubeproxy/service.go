@@ -76,12 +76,10 @@ func (sc *ServiceController) HandleCreate(message string) error {
 		return err
 	}
 	var clusterIP string
-	if service.Spec.ClusterIP == "" {
+	if service.Spec.ClusterIP == "" && service.Spec.Type == core.ServiceTypeClusterIP {
 		clusterIP = FindUnusedIP(service.MetaData.Namespace, service.MetaData.Name)
 		service.Spec.ClusterIP = clusterIP
 		utils.SetObject(core.ObjService, service.MetaData.Namespace, service.MetaData.Name, service)
-	} else {
-		clusterIP = service.Spec.ClusterIP
 	}
 
 	// creaete service and alloc ip
@@ -90,10 +88,8 @@ func (sc *ServiceController) HandleCreate(message string) error {
 			CreateService(clusterIP, port.Port)
 		}
 	} else if service.Spec.Type == core.ServiceTypeNodePort {
-		// NodeIP := utils.GetIP()
-		NodeIP := constants.AllIP
 		for _, port := range service.Spec.Ports {
-			CreateService(NodeIP, port.NodePort)
+			CreateService(constants.AllIP, port.NodePort)
 		}
 	}
 
@@ -143,13 +139,22 @@ func (sc *ServiceController) HandleDelete(message string) error {
 		log.Errorf("unmarshal service error: %s", err.Error())
 		return err
 	}
-	for _, port := range service.Spec.Ports {
-		err = DeleteService(service.Spec.ClusterIP, uint32(port.Port))
-		if err != nil {
-			log.Errorf("error in DeleteService err: %s", err.Error())
+	if service.Spec.Type == core.ServiceTypeClusterIP {
+		for _, port := range service.Spec.Ports {
+			err = DeleteService(service.Spec.ClusterIP, uint32(port.Port))
+			if err != nil {
+				log.Errorf("error in DeleteService err: %s", err.Error())
+			}
+		}
+		FreeUsedIP(service.MetaData.Namespace, service.MetaData.Name)
+	} else if service.Spec.Type == core.ServiceTypeNodePort {
+		for _, port := range service.Spec.Ports {
+			err = DeleteService(constants.AllIP, uint32(port.NodePort))
+			if err != nil {
+				log.Errorf("error in DeleteService err: %s", err.Error())
+			}
 		}
 	}
-	FreeUsedIP(service.MetaData.Namespace, service.MetaData.Name)
 	err = DeleteEndpointObject(service)
 	if err != nil {
 		log.Errorf("error in DeleteEndpointObject")

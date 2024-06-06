@@ -2,7 +2,6 @@ package kubeproxy
 
 import (
 	"fmt"
-	"minik8s/pkgs/constants"
 	"os/exec"
 	"strconv"
 
@@ -18,14 +17,14 @@ func CreateService(serviceIP string, servicePort uint32) error {
 		log.Errorf("failed to create ip: %s output: %s\naddr:%s:%d", err.Error(), output, serviceIP, servicePort)
 		return err
 	}
-	if serviceIP != constants.AllIP {
-		bindCommandArg := []string{"addr", "add", fmt.Sprintf("%s/24", serviceIP), "dev", "flannel.1"}
-		output, err = exec.Command("ip", bindCommandArg...).CombinedOutput()
-		if err != nil {
-			log.Errorf("bind ip error: %s output: %s", err.Error(), output)
-			return err
-		}
+	// if serviceIP != constants.AllIP {
+	bindCommandArg := []string{"addr", "add", fmt.Sprintf("%s/24", serviceIP), "dev", "flannel.1"}
+	output, err = exec.Command("ip", bindCommandArg...).CombinedOutput()
+	if err != nil {
+		log.Errorf("bind ip error: %s output: %s", err.Error(), output)
+		return err
 	}
+	// }
 
 	natCommandArg := []string{"-t", "nat", "-A", "POSTROUTING", "-m", "ipvs", "--vaddr", serviceIP, "--vport", strconv.Itoa(int(servicePort)), "-j", "MASQUERADE"}
 	output, err = exec.Command("iptables", natCommandArg...).CombinedOutput()
@@ -44,14 +43,14 @@ func DeleteService(serviceIP string, servicePort uint32) error {
 		log.Errorf("failed to delete ip: %s output: %s serviceIP: %s servicePort: %d", err.Error(), output, serviceIP, servicePort)
 		return err
 	}
-	if serviceIP != constants.AllIP {
-		unbindArgs := []string{"addr", "del", fmt.Sprintf("%s/24", serviceIP), "dev", "flannel.1"}
-		output, err = exec.Command("ip", unbindArgs...).CombinedOutput()
-		if err != nil {
-			log.Errorf("unbind ip error: %s serviceIP: %s output: %s", err.Error(), serviceIP, output)
-			return err
-		}
+	// if serviceIP != constants.AllIP {
+	unbindArgs := []string{"addr", "del", fmt.Sprintf("%s/24", serviceIP), "dev", "flannel.1"}
+	output, err = exec.Command("ip", unbindArgs...).CombinedOutput()
+	if err != nil {
+		log.Errorf("unbind ip error: %s serviceIP: %s output: %s", err.Error(), serviceIP, output)
+		return err
 	}
+	// }
 	return nil
 }
 

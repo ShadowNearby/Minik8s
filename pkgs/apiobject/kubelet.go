@@ -34,7 +34,6 @@ type PodSpec struct {
 
 type restartPolicy string
 type PhaseLabel string
-type dnsPolicy string
 type minReadySeconds int
 
 //type OwnerReference struct {

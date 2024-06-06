@@ -28,15 +28,15 @@ func CreatePodHandler(c *gin.Context) {
 		pod.MetaData.Namespace = "default"
 	}
 	key := fmt.Sprintf("/pods/object/%s/%s", pod.MetaData.Namespace, pod.MetaData.Name)
+	pod.Status = core.PodStatus{Phase: core.PodPhasePending}
 	err = storage.Put(key, pod)
 	if err != nil {
 		logger.Errorf("put error: %s", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot store data"})
 		return
 	}
-	pod.Status = core.PodStatus{Phase: core.PodPhasePending}
 	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelPod, constants.ChannelCreate), pod)
-	pods := []core.Pod{core.Pod{}, pod}
+	pods := []core.Pod{{}, pod}
 	logger.Info("[create pods successfully]")
 	storage.RedisInstance.PublishMessage(constants.ChannelPodSchedule, utils.JsonMarshal(pods))
 	c.JSON(http.StatusOK, gin.H{})

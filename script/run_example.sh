@@ -38,7 +38,7 @@ nerdctl exec -it pod-volume-test2 rm /test_mount/pod-pv/hello.txt
 ./bin/kubectl get pod 
 ./bin/kubectl apply -f ./example/service/service_clusterip.yaml
 ./bin/kubectl apply -f ./example/service/service_nodeport.yaml
-./bin/kubectl get service 
+./bin/kubectl get service
 nerdctl exec -it pod-on-worker-test-container /bin/bash
 ./bin/kubectl get endpoint
 ./bin/kubectl delete service service-clusterip
@@ -105,3 +105,8 @@ nerdctl exec -it --- /bin/bash
 stress --vm 2 --vm-bytes 1600M --vm-keep
 ./bin/kubectl delete hpa test-hpa
 ./bin/kubectl delete service hpa-service
+
+# test registry
+./bin/kubectl apply -f ./example/pod/registry_pod.yaml
+./bin/kubectl get pod
+./bin/kubectl delete pod pod-on-registry
