@@ -3,7 +3,7 @@ kind: workflow
 name: app-yolo
 startAt: preprocess
 comment: using pipline to classify photo
-states: 
+states:
   preprocess:
     type: TaskState
     inputPath: "$.path"
@@ -12,9 +12,9 @@ states:
   judgePath:
     type: ChoiceState
     choices:
-    - variable: "$.full_path"
-      StringEquals: "/test_mount/test-pv/error.jpg"
-      next: errorState
+      - variable: "$.full_path"
+        StringEquals: ""
+        next: errorState
     default: infer
   infer:
     type: TaskState
@@ -24,5 +24,4 @@ states:
   errorState:
     type: FailState
     error: DefaultStateError
-    cause: "manual error"
-    
+    cause: "file does not exist"

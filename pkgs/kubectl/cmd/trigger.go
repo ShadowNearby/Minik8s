@@ -88,7 +88,7 @@ func triggerHandler(cmd *cobra.Command, args []string) {
 	} else {
 		url = fmt.Sprintf("http://%s:%s/api/v1/workflows/%s/trigger", config.ClusterMasterIP, config.ApiServerPort, triggerMsg.Name)
 	}
-	code, info, err := utils.SendRequest("POST", url, fileContent)
+	code, info, err := utils.SendRequest("POST", url, []byte(utils.JsonMarshal(triggerMsg)))
 	if err != nil {
 		logrus.Errorf("send request failed; %s", err.Error())
 		return
@@ -96,10 +96,10 @@ func triggerHandler(cmd *cobra.Command, args []string) {
 	infoType := core.InfoType{}
 	utils.JsonUnMarshal(info, &infoType)
 	if code != http.StatusOK {
-		logrus.Fatalf("code: %d, error: %s", code, infoType.Error)
+		fmt.Printf("code: %d, error: %s\n", code, infoType.Error)
 		return
 	} else {
-		fmt.Printf("trigger id: %s", infoType.Data)
+		fmt.Printf("trigger id: %s\n", infoType.Data)
 	}
 }
 
@@ -141,9 +141,9 @@ func resultHandler(cmd *cobra.Command, args []string) {
 	infoType := core.InfoType{}
 	utils.JsonUnMarshal(info, &infoType)
 	if code != http.StatusOK {
-		logrus.Fatalf("code: %d, error: %s", code, infoType.Error)
+		fmt.Printf("code: %d, error: %s\n", code, infoType.Error)
 		return
 	} else {
-		fmt.Printf("trigger result: %s", infoType.Data)
+		fmt.Printf("trigger result: %s\n", infoType.Data)
 	}
 }

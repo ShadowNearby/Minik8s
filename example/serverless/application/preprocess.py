@@ -1,7 +1,11 @@
 from PIL import Image
+import os
 
 def resize_pic(image_name, width, height):
   input_image_path = '/test_mount/test-pv/'+ image_name
+  if os.path.isfile(input_image_path) != True:
+    # return immediately
+    return {"full_path": ""}
   image = Image.open(input_image_path)
 
   new_size = (width, height)

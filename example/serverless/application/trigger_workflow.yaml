@@ -1,2 +1,3 @@
+kind: triggers
 name: app-yolo
-params: "{\"path\": bus.jpeg}"
+params: '{"path": "bus.jpeg"}'
