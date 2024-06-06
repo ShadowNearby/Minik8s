@@ -41,7 +41,7 @@ func GenerateRSConfig(name string, namespace string, image string, replicas int)
 		Spec: core.ReplicaSetSpec{
 			Replicas: replicas,
 			Selector: core.Selector{
-				MatchLabels: map[string]string{"app": name},
+				// MatchLabels: map[string]string{"app": name},
 			},
 			Template: core.ReplicaSetTemplate{
 				MetaData: core.MetaData{

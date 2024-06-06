@@ -141,7 +141,7 @@ func UpdatePodHandler(c *gin.Context) {
 // GetAllPodsHandler GET /api/v1/pods
 func GetAllPodsHandler(c *gin.Context) {
 	var podConfigs []core.Pod
-	err := storage.RangeGet("/pods", &podConfigs)
+	err := storage.RangeGet("/pods/object", &podConfigs)
 	if err != nil {
 		logger.Errorf("get error: %s", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get data"})

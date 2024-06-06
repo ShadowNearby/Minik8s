@@ -80,6 +80,9 @@ func TriggerFunc(name string, params []byte) (string, error) {
 		log.Error("[TriggerFunc] check prepare error: ", err)
 		return "", errors.New("cannot asign pod to node")
 	}
+	if len(podIps) == 0 {
+		return "", errors.New("cannot get available pod")
+	}
 	// 2. load balance
 	podIp, err := autoscaler.LoadBalance(name, podIps)
 	if err != nil {
@@ -112,60 +115,53 @@ func getAvailablePods(name string) ([]string, error) {
 		log.Errorf("cannot find serverless replicaset: %s", err.Error())
 		return nil, err
 	}
-	pods, err := utils.FindRSPods(true, replicaSet.MetaData.Name, replicaSet.MetaData.Namespace)
-	if err != nil {
-		log.Errorf("cannot find rs's pods: %s", err.Error())
-	}
-	podIps := getPodIpList(&pods)
-	autoscaler.RecordMutex.Lock()
-	record, err := autoscaler.GetRecord(name)
-	if err != nil {
-		autoscaler.RecordMap[name] = autoscaler.Record{
-			Name:      name,
-			Replicas:  len(podIps),
-			PodIps:    make(map[string]int),
-			CallCount: 1,
-		}
-		record = autoscaler.RecordMap[name]
-	} else {
-		record.CallCount++
-		record.Replicas = len(podIps)
-		autoscaler.RecordMap[name] = record
-	}
-	if record.CallCount > replicaSet.Status.RealReplicas && record.CallCount < int(config.FunctionThreshold) {
-		replicaSet.Spec.Replicas = record.CallCount
-		log.Infof("scale up %s to %d", name, replicaSet.Spec.Replicas)
-		err = utils.SetObject(core.ObjReplicaSet, replicaSet.MetaData.Namespace, replicaSet.MetaData.Name, replicaSet)
+
+	for i := 0; i < config.FunctionRetryTimes; i++ {
+		autoscaler.RecordMutex.Lock()
+		pods, err := utils.FindRSPods(true, replicaSet.MetaData.Name, replicaSet.MetaData.Namespace)
 		if err != nil {
-			log.Error("[CheckPrepare] update replica set error: ", err)
+			log.Errorf("cannot find rs's pods: %s", err.Error())
 		}
-	} else {
+		log.Infof("find rs pods: %d", len(pods))
+		podIps := getPodIpList(&pods)
+		record, err := autoscaler.GetRecord(name)
+		if err != nil {
+			autoscaler.RecordMap[name] = autoscaler.Record{
+				Name:         name,
+				Replicas:     len(podIps),
+				PodIps:       make(map[string]int),
+				CallCount:    1,
+				LastCallTime: time.Now(),
+			}
+			record = autoscaler.RecordMap[name]
+		} else {
+			log.Infof("call count: %d", record.CallCount)
+			record.CallCount++
+			record.Replicas = len(podIps)
+			record.LastCallTime = time.Now()
+			autoscaler.RecordMap[name] = record
+		}
+		if (record.CallCount+9)/10 > len(podIps) && record.CallCount < int(config.FunctionThreshold) {
+			replicaSet.Spec.Replicas = (record.CallCount + 9) / 10
+			log.Infof("call count: %d, real replica: %d, scale up %s to %d", record.CallCount, replicaSet.Status.RealReplicas, name, replicaSet.Spec.Replicas)
+			err = utils.SetObject(core.ObjReplicaSet, replicaSet.MetaData.Namespace, replicaSet.MetaData.Name, replicaSet)
+			if err != nil {
+				log.Error("[CheckPrepare] update replica set error: ", err)
+			}
+		} else {
+			if len(podIps) > 0 {
+				autoscaler.RecordMutex.Unlock()
+				return podIps, nil
+			}
+		}
+		autoscaler.RecordMutex.Unlock()
 		if len(podIps) > 0 {
-			autoscaler.RecordMutex.Unlock()
 			return podIps, nil
 		}
+		time.Sleep(3 * time.Second)
 	}
-	autoscaler.RecordMutex.Unlock()
+	return nil, errors.New("cannot get availabel pods")
 
-	time.Sleep(10 * time.Second)
-	// get the current pod ip list and return
-	var podsIp []string
-	for i := 0; i < config.FunctionRetryTimes; i++ {
-		log.Info("[CheckPrepare] get the current pod ip list and return")
-		pods, err = utils.FindRSPods(true, replicaSet.MetaData.Name, "default")
-		if err != nil {
-			log.Errorf("find rs pods failed %s", err.Error())
-			return nil, err
-		}
-		podsIp = getPodIpList(&pods)
-		// if len(podsIp) >= record.CallCount {
-		if len(podsIp) >= 1 {
-			break
-		}
-		time.Sleep(5 * time.Second)
-	}
-
-	return podsIp, nil
 }
 
 func getPodIpList(pods *[]core.Pod) []string {

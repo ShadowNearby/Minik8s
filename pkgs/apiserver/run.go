@@ -24,7 +24,7 @@ func Run() {
 	go server.Run(fmt.Sprintf("%s:%s", config.ClusterMasterIP, config.ApiServerPort))
 	time.Sleep(3 * time.Second)
 	var schedulerController scheduler.Scheduler
-	go schedulerController.Run(constants.PolicyCPU)
+	go schedulerController.Run(constants.PolicyRR)
 	var podController podcontroller.PodController
 	go controller.StartController(&podController)
 	var replicaSet rsc.ReplicaSetController

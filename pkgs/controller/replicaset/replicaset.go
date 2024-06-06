@@ -25,7 +25,8 @@ func (rsc *ReplicaSetController) BackGroundTask() {
 		rsTxt := utils.GetObject(core.ObjReplicaSet, "default", "")
 		utils.JsonUnMarshal(rsTxt, &replicas)
 		for _, replica := range replicas {
-			if replica.MetaData.OwnerReference.Controller {
+			if replica.MetaData.OwnerReference.Controller &&
+				replica.MetaData.OwnerReference.ObjType == core.ObjHpa {
 				continue
 			}
 			pods, err := utils.FindRSPods(true, replica.MetaData.Name)
@@ -151,7 +152,6 @@ func (rsc *ReplicaSetController) manageUpdateReplicas(oldRs *core.ReplicaSet, ne
 		}
 	}
 	logger.Infof("updated replicas, real replica: %d, spec replica: %d", newRs.Status.RealReplicas, newRs.Spec.Replicas)
-
 	return nil
 }
 
