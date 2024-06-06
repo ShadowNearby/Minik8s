@@ -9,6 +9,7 @@ const (
 	ChannelReplica  string = "REPLICASET"
 	ChannelFunction string = "FUNCTION"
 	ChannelHPA      string = "HPA"
+	ChannelEndpoint string = "ENDPOINT"
 	ChannelTask     string = "TASK"
 	ChannelWorkflow string = "WORKFLOW"
 )

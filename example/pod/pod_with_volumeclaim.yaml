@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: pod-volume
+  name: pod-volumeclaim
   namespace: default
   labels:
     app: deploy-1
@@ -11,6 +11,15 @@ spec:
       nfs:
         server: 192.168.1.12
         share: "/mnt/ShareFolder"
+      persistentVolumeClaim:
+        kind: PersistentVolumeClaim
+        metadata:
+          name: test-pvc
+          namespace: default
+        spec:
+          resources:
+            request:
+              storage: 1000000
   containers:
     - name: test1
       image: docker.io/shadownearby/ubuntu:latest

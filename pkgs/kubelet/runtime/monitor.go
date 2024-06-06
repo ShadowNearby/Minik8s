@@ -3,12 +3,13 @@ package runtime
 import (
 	"errors"
 	"fmt"
-	v1 "github.com/google/cadvisor/info/v1"
-	v2 "github.com/google/cadvisor/info/v2"
-	logger "github.com/sirupsen/logrus"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/kubelet/resources"
 	"minik8s/utils"
+
+	v1 "github.com/google/cadvisor/info/v1"
+	v2 "github.com/google/cadvisor/info/v2"
+	logger "github.com/sirupsen/logrus"
 )
 
 func GetNodeState() (core.NodeMetrics, error) {
@@ -91,7 +92,7 @@ func GetPodMetrics(pod *core.Pod) (core.Metrics, error) {
 	}
 	var milliCore = uint64(allCpu) * 10 // milli-core
 	var cpuUtilization = (int(milliCore) / (KubeletInstance.NumCores * 1000)) * 100
-	var memUtilization = int((allMem / float64(KubeletInstance.MemCapacity)) * 100)
+	var memUtilization = int((allMem / float64(KubeletInstance.MemCapacity)) * 100.0)
 	resourceCpu := core.Resource{
 		Name: "cpu",
 		Target: core.ResourceTarget{

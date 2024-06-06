@@ -54,6 +54,10 @@ var (
 	ServerlessPort            = "18080"
 )
 
+var (
+	HPAScaleInterval = 30 * time.Second
+)
+
 func InitConfig(configPath string) error {
 	data, err := os.ReadFile(configPath)
 	if err != nil {
@@ -100,7 +104,7 @@ func InitConfig(configPath string) error {
 	}
 	FunctionRetryTimes = cfg.FunctionRetryTimes
 	FunctionServerIp = cfg.FunctionServerIp
-	FunctionThreshold = int(cfg.FunctionThreshold)
+	FunctionThreshold = cfg.FunctionThreshold
 	FunctionConnectTime, err = time.ParseDuration(cfg.FunctionConnectTime)
 	if err != nil {
 		logrus.Errorf("error in parse FunctionConnectTime %s", err.Error())
@@ -113,6 +117,11 @@ func InitConfig(configPath string) error {
 
 	}
 	ServerlessPort = cfg.ServelessIP
+	HPAScaleInterval, err = time.ParseDuration(cfg.HPAScaleInterval)
+	if err != nil {
+		logrus.Errorf("error in parse HPAScaleInterval %s", err.Error())
+		return err
+	}
 
 	logrus.Info("Configuration parsed successfully")
 	return nil
@@ -143,8 +152,9 @@ type Config struct {
 	PrometheusScrapeInterval  string   `json:"PrometheusScrapeInterval"`
 	FunctionRetryTimes        int      `json:"FunctionRetryTimes"`
 	FunctionServerIp          string   `json:"FunctionServerIp"`
-	FunctionThreshold         int32    `json:"FunctionThreshold"`
+	FunctionThreshold         int      `json:"FunctionThreshold"`
 	FunctionConnectTime       string   `json:"FunctionConnectTime"`
 	ServerlessScaleToZeroTime string   `json:"ServerlessScaleToZeroTime"`
 	ServelessIP               string   `json:"ServerlessPort"`
+	HPAScaleInterval          string   `json:"HPAScaleInterval"`
 }

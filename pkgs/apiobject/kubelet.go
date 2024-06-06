@@ -34,7 +34,6 @@ type PodSpec struct {
 
 type restartPolicy string
 type PhaseLabel string
-type dnsPolicy string
 type minReadySeconds int
 
 //type OwnerReference struct {
@@ -89,7 +88,7 @@ type ResourceLimit struct {
 
 type ResourcesConfig struct {
 	Limit   ResourceLimit `json:"limit"`
-	Request ResourceLimit `json:"Request"`
+	Request ResourceLimit `json:"request"`
 }
 
 type ContainerdSpec struct {

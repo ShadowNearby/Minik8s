@@ -7,26 +7,26 @@ metadata:
     app: deploy-1
 spec:
   containers:
-  - name: hello1
-    image: docker.io/hashicorp/http-echo:latest
-    imagePullPolicy: IfNotPresent
-    cmd:
-    - "/http-echo"
-    - "-listen=:8080"
-    - "-text=hello1"
-    ports:
-    - containerPort: 8080
-      name: p1
-  - name: hello2
-    image: docker.io/hashicorp/http-echo:latest
-    imagePullPolicy: IfNotPresent
-    cmd:
-    - "/http-echo"
-    - "-listen=:8090"
-    - "-text=hello2"
-    ports:
-    - containerPort: 8090
-      name: p2
-  - name: test-container
-    image: docker.io/shadownearby/ubuntu:latest
-    imagePullPolicy: IfNotPresent
+    - name: hello1
+      image: docker.io/hashicorp/http-echo:latest
+      imagePullPolicy: IfNotPresent
+      cmd:
+        - "/http-echo"
+        - "-listen=:8080"
+        - "-text=hello1"
+      ports:
+        - containerPort: 8080
+          name: p1
+    - name: hello2
+      image: docker.io/hashicorp/http-echo:latest
+      imagePullPolicy: IfNotPresent
+      cmd:
+        - "/http-echo"
+        - "-listen=:8090"
+        - "-text=hello2"
+      ports:
+        - containerPort: 8090
+          name: p2
+    - name: test-container
+      image: docker.io/shadownearby/ubuntu:latest
+      imagePullPolicy: IfNotPresent

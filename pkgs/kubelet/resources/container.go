@@ -54,9 +54,13 @@ func (cmg *ContainerManager) CreateContainer(ctx context.Context, config core.Co
 	}
 	if config.Resource.Cpu != core.EmptyCpu {
 		specs = append(specs, oci.WithCPUs(config.Resource.Cpu))
+	} else {
+		specs = append(specs, oci.WithCPUs("0-1"))
 	}
 	if config.Resource.Memory != core.EmptyMemory {
 		specs = append(specs, oci.WithMemoryLimit(config.Resource.Memory))
+	} else {
+		specs = append(specs, oci.WithMemoryLimit(1024*1024*1024*4))
 	}
 	if len(config.Envs) > 0 {
 		specs = append(specs, oci.WithEnv(config.Envs))
@@ -120,8 +124,11 @@ func (cmg *ContainerManager) GetContainerInfo(namespace string, containerID stri
 
 func (cmg *ContainerManager) GetPodContainers(pConfig *core.Pod) []containerd.Container {
 	cmg.createClient(pConfig.MetaData.Namespace)
-	cs, err := cmg.Client.Containers(context.Background(), fmt.Sprintf("labels.%q==%s",
-		constants.MiniK8SPod, pConfig.MetaData.Name), fmt.Sprintf("labels.%q==%s", constants.MiniK8SNamespace, pConfig.MetaData.Namespace))
+	filters := []string{
+		fmt.Sprintf("labels.%q==%s", constants.MiniK8SPod, pConfig.MetaData.Name),
+		fmt.Sprintf("labels.%q==%s", constants.MiniK8SNamespace, pConfig.MetaData.Namespace),
+	}
+	cs, err := cmg.Client.Containers(context.Background(), strings.Join(filters, ","))
 	if err != nil {
 		logger.Errorf("filter containers failed: %s", err.Error())
 		return nil

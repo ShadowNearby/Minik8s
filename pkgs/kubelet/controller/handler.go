@@ -5,7 +5,6 @@ import (
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/kubelet/resources"
 	"minik8s/pkgs/kubelet/runtime"
-	"minik8s/utils"
 	"sync"
 	"time"
 
@@ -40,7 +39,7 @@ func CreatePod(pConfig *core.Pod) error {
 		case done := <-doneChan:
 			if done {
 				pStat.StartTime = time.Now()
-				pStat.Condition = core.CondRunning
+				pStat.Phase = core.PodPhaseRunning
 			} else {
 				return errors.New("create pod failed")
 			}
@@ -59,25 +58,21 @@ func CreatePod(pConfig *core.Pod) error {
 
 // StopPod stop and remove container
 func StopPod(pConfig core.Pod) error {
+	logger.Infof("stoping pod %s:%s", pConfig.MetaData.Namespace, pConfig.MetaData.Name)
 	runtime.KubeletInstance.DelPodConfig(pConfig.MetaData.Name, pConfig.MetaData.Namespace)
 	runtime.KubeletInstance.DelPodStat(pConfig.MetaData.Name, pConfig.MetaData.Namespace)
 	return resources.StopPod(pConfig)
 }
 
 // InspectPod exec_probe of the pod, if a pod failed, then stop it
-func InspectPod(pod *core.Pod, probeType runtime.ProbeType) string {
+func InspectPod(pod *core.Pod, probeType runtime.ProbeType) error {
 	containers := resources.ContainerManagerInstance.GetPodContainers(pod)
-	logger.Infof("container len: %d", len(containers))
 	err := runtime.KubeletInstance.DoProbe(probeType, containers, pod)
 	if err != nil {
 		logger.Errorf("liveness probe error: %s", err.Error())
-		return ""
+		return err
 	}
-	// print status
-	pStat := pod.Status
-	jsonText := utils.JsonMarshal(pStat)
-	logger.Infof("live probe:\n%s", jsonText)
-	return jsonText
+	return nil
 }
 
 // NodeMetrics return the metrics of a node, including ready, cpu, memory, process_num, disk, network

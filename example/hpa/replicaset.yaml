@@ -1,22 +1,27 @@
 apiVersion: v1
-kind: Replicas
+kind: Replica
 metadata:
-  name: ip-return-deployment
+  name: hpa-replicaset
+  namespace: default
   labels:
     app: nginx
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: nginx
   template:
     metadata:
-      name: ip-return
+      name: hpa-test
+      namespace: default
       labels:
-        app: nginx
+        app: hpa-test
     spec:
       containers:
-        - name: ip-return-test
+        - name: hpa-load
+          image: docker.io/shadownearby/system_load:v1
+          imagePullPolicy: IfNotPresent
+        - name: hpa-ip-return
           image: docker.io/shadownearby/ip_return:v1
           imagePullPolicy: IfNotPresent
           ports:

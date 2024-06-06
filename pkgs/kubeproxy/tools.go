@@ -29,7 +29,6 @@ func FindUnusedIP(namespace string, name string) string {
 		log.Errorf("error in get new clusterIP")
 		return ""
 	}
-	log.Info(info.Data)
 	return info.Data
 }
 
@@ -68,7 +67,7 @@ func CreateEndpointObject(service *core.Service) error {
 	}
 	selectedPods := []core.Pod{}
 	for _, pod := range pods {
-		if utils.MatchLabel(service.Spec.Selector.MatchLabels, pod.MetaData.Labels) {
+		if utils.MatchLabel(service.Spec.Selector.MatchLabels, pod.MetaData.Labels) && pod.Status.Phase == core.PodPhaseRunning {
 			selectedPods = append(selectedPods, pod)
 		}
 	}
@@ -98,19 +97,20 @@ func CreateEndpointObject(service *core.Service) error {
 			})
 		}
 	} else if service.Spec.Type == core.ServiceTypeNodePort {
+		NodeIP := constants.AllIP
 		endpoint = core.Endpoint{
 			MetaData: core.MetaData{
 				Name:      service.MetaData.Name,
 				Namespace: service.MetaData.Namespace,
 			},
+			ServiceClusterIP: NodeIP,
 		}
-		NodeIP := constants.Localhost
 		for _, port := range service.Spec.Ports {
 			Destinations := []core.EndpointDestination{}
 			for _, pod := range selectedPods {
 				destPort := FindDestPort(port.TargetPort, pod.Spec.Containers)
 				Destinations = append(Destinations, core.EndpointDestination{
-					IP:   NodeIP,
+					IP:   pod.Status.PodIP,
 					Port: destPort,
 				})
 				BindEndpoint(NodeIP, port.NodePort, pod.Status.PodIP, destPort)
@@ -155,10 +155,15 @@ func UpdateEndpointObjectByPodCreate(service *core.Service, pod *core.Pod) error
 		BindEndpoint(service.Spec.ClusterIP, port.Port, pod.Status.PodIP, destPort)
 		log.Infof("bind endpoint: %s:%d -> %s:%d", service.Spec.ClusterIP, port.Port, pod.Status.PodIP, destPort)
 
-		AddBinds(&endpoint.Binds, port.Port, core.EndpointDestination{
-			IP:   pod.Status.PodIP,
-			Port: destPort,
-		})
+		for i, bind := range endpoint.Binds {
+			if bind.ServicePort != port.Port {
+				continue
+			}
+			endpoint.Binds[i].Destinations = append(bind.Destinations, core.EndpointDestination{
+				IP:   pod.Status.PodIP,
+				Port: destPort,
+			})
+		}
 	}
 	err = utils.SetObject(core.ObjEndPoint, endpoint.MetaData.Namespace, endpoint.MetaData.Name, endpoint)
 	if err != nil {
@@ -181,10 +186,22 @@ func UpdateEndpointObjectByPodDelete(service *core.Service, pod *core.Pod) error
 		UnbindEndpoint(service.Spec.ClusterIP, port.Port, pod.Status.PodIP, destPort)
 		log.Infof("delete endpoint: %s:%d -> %s:%d", service.Spec.ClusterIP, port.Port, pod.Status.PodIP, destPort)
 
-		RemoveBinds(&endpoint.Binds, port.Port, core.EndpointDestination{
+		dest := core.EndpointDestination{
 			IP:   pod.Status.PodIP,
 			Port: destPort,
-		})
+		}
+		newDestinations := []core.EndpointDestination{}
+		for i, bind := range endpoint.Binds {
+			if endpoint.Binds[i].ServicePort != port.Port {
+				continue
+			}
+			for _, d := range bind.Destinations {
+				if d != dest {
+					newDestinations = append(newDestinations, dest)
+				}
+			}
+			endpoint.Binds[i].Destinations = newDestinations
+		}
 	}
 	err = utils.SetObject(core.ObjEndPoint, endpoint.MetaData.Namespace, endpoint.MetaData.Name, endpoint)
 	if err != nil {

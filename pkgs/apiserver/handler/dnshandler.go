@@ -77,10 +77,39 @@ func CreateDNSHandler(c *gin.Context) {
 }
 
 // GetDNSHandler GET /api/v1/namespaces/:namespace/dns/:name
-func GetDNSHandler(c *gin.Context) {}
+func GetDNSHandler(c *gin.Context) {
+	name := c.Param("name")
+	namespace := c.Param("namespace")
+	if len(name) == 0 || len(namespace) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "needs namespace and name"})
+		return
+	}
+	dnsRecord := core.DNSRecord{}
+	err := storage.Get(DNSKeyPrefix(namespace, name), &dnsRecord)
+	if err != nil {
+		logrus.Errorf("error get dns record err: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get all records"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(dnsRecord)})
+}
 
 // GetDNSListHandler GET /api/v1/namespaces/:namespace/dns
-func GetDNSListHandler(c *gin.Context) {}
+func GetDNSListHandler(c *gin.Context) {
+	namespace := c.Param("namespace")
+	if len(namespace) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "needs namespace"})
+		return
+	}
+	dnsRecords := []core.DNSRecord{}
+	err := storage.RangeGet(DNSListKeyPrefix(namespace), &dnsRecords)
+	if err != nil {
+		logrus.Errorf("error get dns records err: %s", err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get all records"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(dnsRecords)})
+}
 
 // GetAllDNSHandler GET /api/v1/dns
 func GetAllDNSHandler(c *gin.Context) {

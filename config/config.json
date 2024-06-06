@@ -4,12 +4,15 @@
   "EtcdServerPort": "2380",
   "ClusterMode": true,
   "ClusterMasterIP": "192.168.1.12",
+  "ClusterMasterIP": "192.168.1.12",
   "PodCIDR": "10.244.0.0/16",
   "NodePort": "10250",
   "DefaultEtcdEndpoints": ["localhost:2380"],
-  "HeartbeatInterval": "30s",
+  "HeartbeatInterval": "15s",
 
   "DNSPathPrefix": "/dnspath",
+  "NginxListenIP": "192.168.1.12",
+  "NginxListenAddr": "192.168.1.12:80",
   "NginxListenIP": "192.168.1.12",
   "NginxListenAddr": "192.168.1.12:80",
   "NginxStarted": false,
@@ -26,12 +29,14 @@
 
   "PrometheusNodeFilePath": "prometheus/sd_node.json",
   "PrometheusPodFilePath": "prometheus/sd_pod.json",
-  "PrometheusScrapeInterval": "30s",
+  "PrometheusScrapeInterval": "1m", 
 
   "FunctionRetryTimes": 10,
   "FunctionServerIp": "master",
   "FunctionThreshold": 6,
   "FunctionConnectTime": "30s",
-  "ServerlessScaleToZeroTime": "90s",
-  "ServelessIP": "8081"
+  "ServerlessScaleToZeroTime": "30s",
+  "ServelessIP": "8081",
+
+  "HPAScaleInterval": "30s"
 }

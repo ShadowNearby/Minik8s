@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: service-pod
+  name: service-pod1
   namespace: default
   labels:
     app: deploy-1
@@ -16,7 +16,10 @@ spec:
       cmd:
         - "/http-echo"
         - "-listen=:8080"
-        - "-text=hello"
+        - "-text=hello from service1"
       ports:
         - containerPort: 8080
           name: p1
+    - name: test-container
+      image: docker.io/shadownearby/ubuntu:latest
+      imagePullPolicy: IfNotPresent

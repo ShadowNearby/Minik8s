@@ -88,7 +88,13 @@ func getHandler(cmd *cobra.Command, args []string) {
 				pods = append(pods, pod)
 			}
 			for _, pod := range pods {
-				t.AppendRow(table.Row{pod.MetaData.Name, pod.Status.Condition, time.Since(pod.Status.StartTime).Round(time.Second), pod.Status.PodIP, pod.Status.HostIP})
+				age := ""
+				if pod.Status.StartTime.IsZero() {
+					age = ""
+				} else {
+					age = time.Since(pod.Status.StartTime).Round(time.Second).String()
+				}
+				t.AppendRow(table.Row{pod.MetaData.Name, pod.Status.Phase, age, pod.Status.PodIP, pod.Status.HostIP})
 			}
 		}
 	case core.ObjNode:
@@ -165,7 +171,7 @@ func getHandler(cmd *cobra.Command, args []string) {
 				for k, v := range service.Spec.Selector.MatchLabels {
 					selector = append(selector, fmt.Sprintf("%s=%s", k, v))
 				}
-				t.AppendRow(table.Row{service.MetaData.Name, service.Spec.Type, strings.Join(selector, ","), service.Spec.ClusterIP, strings.Join(portStrs, " ")})
+				t.AppendRow(table.Row{service.MetaData.Name, service.Spec.Type, strings.Join(selector, ", "), service.Spec.ClusterIP, strings.Join(portStrs, " ")})
 			}
 		}
 	case core.ObjJob:
@@ -189,8 +195,12 @@ func getHandler(cmd *cobra.Command, args []string) {
 				hpalist = append(hpalist, hpa)
 			}
 			for _, hpa := range hpalist {
-				target := ""
-				t.AppendRow(table.Row{hpa.MetaData.Name, fmt.Sprintf("%s/%s", hpa.Spec.ScaleTargetRef.Kind, hpa.Spec.ScaleTargetRef.Name), target, hpa.Spec.MinReplicas, hpa.Spec.MaxReplicas})
+				targets := []string{}
+				for _, resource := range hpa.Spec.Metrics.Resources {
+					target := fmt.Sprintf("%s/%s:%d", resource.Name, resource.Target.Type, resource.Target.AverageUtilization)
+					targets = append(targets, target)
+				}
+				t.AppendRow(table.Row{hpa.MetaData.Name, fmt.Sprintf("%s/%s", hpa.Spec.ScaleTargetRef.Kind, hpa.Spec.ScaleTargetRef.Name), strings.Join(targets, "\n"), hpa.Spec.MinReplicas, hpa.Spec.MaxReplicas})
 			}
 		}
 	case core.ObjFunction:
@@ -253,15 +263,15 @@ func getHandler(cmd *cobra.Command, args []string) {
 				endpoints = append(endpoints, endpoint)
 			}
 			for _, endpoint := range endpoints {
-				targets := ""
+				targets := []string{}
 				for _, bind := range endpoint.Binds {
 					dests := []string{}
 					for _, dest := range bind.Destinations {
 						dests = append(dests, fmt.Sprintf("%s:%d", dest.IP, dest.Port))
 					}
-					targets = fmt.Sprintf("%s:%d -> %s", endpoint.ServiceClusterIP, bind.ServicePort, strings.Join(dests, ","))
+					targets = append(targets, fmt.Sprintf("%s:%d -> %s", endpoint.ServiceClusterIP, bind.ServicePort, strings.Join(dests, ", ")))
 				}
-				t.AppendRow(table.Row{endpoint.MetaData.Name, targets})
+				t.AppendRow(table.Row{endpoint.MetaData.Name, strings.Join(targets, "\n")})
 			}
 		}
 	case core.ObjDNS:
@@ -284,7 +294,7 @@ func getHandler(cmd *cobra.Command, args []string) {
 			for _, dns := range dnslist {
 				paths := []string{}
 				for _, path := range dns.Paths {
-					paths = append(paths, fmt.Sprintf("%s/%s:%d", path.Service, path.IP, path.Port))
+					paths = append(paths, fmt.Sprintf("/%s -> %s:%d", path.Service, path.IP, path.Port))
 				}
 				t.AppendRow(table.Row{dns.MetaData.Name, dns.Host, strings.Join(paths, "\n")})
 			}

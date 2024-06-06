@@ -13,6 +13,7 @@ Also notice that when abs(desiredReplicas - currentReplicas) < 0.1, we do not re
 import (
 	"fmt"
 	"math"
+	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/constants"
 	"minik8s/utils"
@@ -25,9 +26,11 @@ type HPAController struct {
 }
 
 func (h *HPAController) StartBackground() {
-	ticker := time.NewTicker(5 * time.Minute)
+	ticker := time.NewTicker(config.HPAScaleInterval)
 	defer ticker.Stop()
+
 	for range ticker.C {
+		logger.Info("hpa background")
 		h.BackgroundWork()
 	}
 }
@@ -100,7 +103,7 @@ func (h *HPAController) Apply(autoscaler core.HorizontalPodAutoscaler) error {
 		return err
 	}
 	// change pods managed by rs owner_reference to hpa
-	pods, err := utils.FindRSPods(rs.MetaData.Name)
+	pods, err := utils.FindRSPods(false, rs.MetaData.Name)
 	if err != nil {
 		logger.Errorf("cannot find rs pods: %s", err.Error())
 		return err
@@ -150,7 +153,7 @@ func (h *HPAController) Update(autoscaler core.HorizontalPodAutoscaler) error {
 		return nil
 	}
 	// get all pods managed by hpa
-	pods, err := utils.FindHPAPods(autoscaler.MetaData.Name)
+	pods, err := utils.FindHPAPods(true, autoscaler.MetaData.Name)
 	if err != nil {
 		logger.Errorf("get hpa pods error: %s", err.Error())
 		return err
@@ -161,7 +164,7 @@ func (h *HPAController) Update(autoscaler core.HorizontalPodAutoscaler) error {
 	logger.Infof("desired replica number: %d, real number: %d", desiredInt, len(pods))
 	if desiredInt == len(pods) {
 		return nil
-	} else if desiredInt < len(pods) {
+	} else if desiredInt > len(pods) {
 		if len(pods) == 0 {
 			// get replica first
 			var rs core.ReplicaSet
@@ -195,7 +198,7 @@ func (h *HPAController) Delete(autoscaler core.HorizontalPodAutoscaler) error {
 	// get replicaset and delete
 	utils.DeleteObject(core.ObjReplicaSet, "default", autoscaler.Spec.ScaleTargetRef.Name)
 	// get pods and delete
-	pods, err := utils.FindHPAPods(autoscaler.MetaData.Name)
+	pods, err := utils.FindHPAPods(false, autoscaler.MetaData.Name)
 	if err != nil {
 		logger.Error("cannot find hpa pods: ", err.Error())
 		return err
@@ -224,11 +227,8 @@ func getRealDesired(desired float64, len int, autoscaler core.HorizontalPodAutos
 
 // check whether the time interval is enough for reschedule
 func canRescale(lastScale time.Time) bool {
-	duration := time.Now().Sub(lastScale)
-	if duration < 5*time.Minute {
-		return false
-	}
-	return true
+	duration := time.Since(lastScale)
+	return duration >= (1 * time.Minute)
 }
 
 // update desired and last scale time
@@ -253,6 +253,7 @@ func setPodController(pod *core.Pod, autoscaler core.HorizontalPodAutoscaler) {
 
 // scaleDown should delete one or more pods
 func scaleDown(currentReplica, desiredReplica int, currentPods []core.Pod, hpa *core.HorizontalPodAutoscaler) error {
+	logger.Info("scale down")
 	left := currentReplica - desiredReplica
 	for i, pod := range currentPods {
 		if i >= left {
@@ -270,8 +271,10 @@ func scaleDown(currentReplica, desiredReplica int, currentPods []core.Pod, hpa *
 
 // scaleUp should create one or more pods
 func scaleUp(currentReplica, desiredReplica int, template core.Pod, hpa *core.HorizontalPodAutoscaler) error {
+	logger.Info("scale up")
 	left := desiredReplica - currentReplica
 	setPodController(&template, *hpa)
+	template.Status = core.PodStatus{}
 	for i := 0; i < left; i++ {
 		newTemplate := template
 		newTemplate.MetaData.UUID = utils.GenerateUUID()
@@ -316,7 +319,7 @@ func checkAndUpdateMetrics(pods []core.Pod, autoscaler *core.HorizontalPodAutosc
 	var retVal float64 = 0
 	var metricsNum = 0
 	// we use the average desired pod number as return value
-	if needCpu == true {
+	if needCpu {
 		var currentUtilization = 0
 		var currentValue uint64 = 0
 		var skipped = 0
@@ -345,21 +348,21 @@ func checkAndUpdateMetrics(pods []core.Pod, autoscaler *core.HorizontalPodAutosc
 		}
 		//return float64(len(pods)) * (float64(currentUtilization) / float64(desiredAvgCpu))
 	}
-	if needMem == true {
-		var currentUtilization = 0
-		var currentVal uint64 = 0
+	if needMem {
+		var currentUtilization float64 = 0
+		var currentVal float64 = 0
 		var skipped = 0
 		for _, metric := range allMetrics {
 			if len(metric.Resources) < 2 {
 				skipped += 1
 			} else {
-				currentVal += metric.Resources[1].Target.Value
-				currentUtilization += metric.Resources[1].Target.AverageUtilization
+				currentVal += float64(metric.Resources[1].Target.Value)
+				currentUtilization += float64(metric.Resources[1].Target.AverageUtilization)
 			}
 		}
 		length := len(pods) - skipped
-		currentUtilization /= length
-		currentVal /= uint64(length)
+		currentUtilization /= float64(length)
+		currentVal /= float64(length)
 		if desiredValMem != 0 {
 			retVal += float64(length) * float64(currentVal) / float64(desiredValMem)
 			metricsNum++
@@ -395,4 +398,8 @@ func getPodMetrics(pod core.Pod) core.Metrics {
 	var metrics core.Metrics
 	utils.JsonUnMarshal(info.Data, &metrics)
 	return metrics
+}
+
+func clearPodStatus(pod *core.Pod) {
+	pod.Status = core.PodStatus{}
 }

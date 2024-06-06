@@ -112,7 +112,7 @@ func getAvailablePods(name string) ([]string, error) {
 		log.Errorf("cannot find serverless replicaset: %s", err.Error())
 		return nil, err
 	}
-	pods, err := utils.FindRSPods(replicaSet.MetaData.Name, replicaSet.MetaData.Namespace)
+	pods, err := utils.FindRSPods(true, replicaSet.MetaData.Name, replicaSet.MetaData.Namespace)
 	if err != nil {
 		log.Errorf("cannot find rs's pods: %s", err.Error())
 	}
@@ -132,7 +132,7 @@ func getAvailablePods(name string) ([]string, error) {
 		record.Replicas = len(podIps)
 		autoscaler.RecordMap[name] = record
 	}
-	if record.CallCount > replicaSet.Status.RealReplicas && record.CallCount < config.FunctionThreshold {
+	if record.CallCount > replicaSet.Status.RealReplicas && record.CallCount < int(config.FunctionThreshold) {
 		replicaSet.Spec.Replicas = record.CallCount
 		log.Infof("scale up %s to %d", name, replicaSet.Spec.Replicas)
 		err = utils.SetObject(core.ObjReplicaSet, replicaSet.MetaData.Namespace, replicaSet.MetaData.Name, replicaSet)
@@ -152,7 +152,7 @@ func getAvailablePods(name string) ([]string, error) {
 	var podsIp []string
 	for i := 0; i < config.FunctionRetryTimes; i++ {
 		log.Info("[CheckPrepare] get the current pod ip list and return")
-		pods, err = utils.FindRSPods(replicaSet.MetaData.Name, "default")
+		pods, err = utils.FindRSPods(true, replicaSet.MetaData.Name, "default")
 		if err != nil {
 			log.Errorf("find rs pods failed %s", err.Error())
 			return nil, err
@@ -174,8 +174,8 @@ func getPodIpList(pods *[]core.Pod) []string {
 		return result
 	}
 	for _, pod := range *pods {
-		log.Infof("phase: %s, podIP: %s", pod.Status.Condition, pod.Status.PodIP)
-		if pod.Status.Condition == core.CondRunning && pod.Status.PodIP != "" {
+		log.Infof("phase: %s, podIP: %s", pod.Status.Phase, pod.Status.PodIP)
+		if pod.Status.Phase == core.PodPhaseRunning && pod.Status.PodIP != "" {
 			result = append(result, pod.Status.PodIP)
 		}
 	}

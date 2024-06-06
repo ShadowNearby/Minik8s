@@ -6,7 +6,7 @@ for program in "${PROGRAMS[@]}"; do
     getpid $program
     if [ "$pid" != "" ]; then
         echo "${program} is running (pid: ${pid})! kill it first"
-        exit 1
+        # exit 1
     fi
 done
 

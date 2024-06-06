@@ -30,41 +30,50 @@ type PodStatus struct {
 	StartTime        time.Time         `yaml:"startTime"`
 	OldStatus        []Status          `json:"oldStatus"`
 	ContainersStatus []ContainerStatus `json:"containersStatus"`
-	Condition        Condition         `json:"condition"`
+	Phase            PodPhase          `json:"phase"`
 }
 
 type ContainerStatus struct {
-	ID           string         `json:"ID"`
-	Name         string         `json:"name"`
-	Image        string         `json:"image"`
-	State        ContainerState `json:"state"`
-	RestartCount int32          `json:"restartCount"`
-	Environment  []EnvConfig    `json:"environment"`
+	ID             string                  `json:"ID"`
+	Name           string                  `json:"name"`
+	Image          string                  `json:"image"`
+	State          ContainerState          `json:"state"`
+	RestartCount   int32                   `json:"restartCount"`
+	Environment    []EnvConfig             `json:"environment"`
+	TerminateState ContainerTerminateState `json:"terminatedState"`
 	//Mounts       []VolumeMountConfig `json:"mounts,omitempty"`
 }
 
 type ContainerState string
 
 const (
-	ContainerWaiting    ContainerState = "waiting"
-	ContainerRunning    ContainerState = "running"
-	ContainerTerminated ContainerState = "terminated"
+	ContainerWaiting    ContainerState = "Waiting"
+	ContainerRunning    ContainerState = "Running"
+	ContainerTerminated ContainerState = "Terminated"
+)
+
+type ContainerTerminateState string
+
+const (
+	ContainerTerminateSuccess ContainerTerminateState = "success"
+	ContainerTerminateFail    ContainerTerminateState = "fail"
 )
 
 type Status struct {
 	Reason   string    `json:"reason"`
-	ExitCode uint32    `json:"exit_code"`
+	ExitCode uint32    `json:"exitcode"`
 	Started  time.Time `json:"started"`
 	Finished time.Time `json:"finished"`
 }
 
-type Condition string
+type PodPhase string
 
 const (
-	CondPending   Condition = "Pending"
-	CondRunning   Condition = "Running"
-	CondSucceeded Condition = "Succeeded"
-	CondFailed    Condition = "Failed"
+	PodPhasePending   PodPhase = "Pending"
+	PodPhaseRunning   PodPhase = "Running"
+	PodPhaseSucceeded PodPhase = "Succeeded"
+	PodPhaseFailed    PodPhase = "Failed"
+	PodPhaseUnknown   PodPhase = "Unknown"
 )
 
 const PauseContainerName string = "pause-container"
