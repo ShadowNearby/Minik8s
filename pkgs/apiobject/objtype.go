@@ -19,8 +19,8 @@ const (
 	ObjDNS        ObjType = "dns"
 	ObjVolume     ObjType = "volumes"
 	ObjCsiVolume  ObjType = "csivolumes"
-	ObjTask       ObjType = "tasks" // ticktok, PingSource
-	ObjTrigger    ObjType = "triggers"
+	ObjTask       ObjType = "tasks"    // ticktok, PingSource
+	ObjTrigger    ObjType = "triggers" // only request
 )
 
 var ObjTypeAll = []string{
@@ -37,7 +37,7 @@ var ObjTypeAll = []string{
 	"dns",
 	"volumes",
 	"tasks",
-	"trigger",
+	"triggers",
 }
 
 var ObjTypeToCoreObjMap = map[ObjType]reflect.Type{
