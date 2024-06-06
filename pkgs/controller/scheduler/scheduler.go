@@ -38,20 +38,6 @@ func (sched *Scheduler) Run(policy string) {
 			}
 		}
 	}()
-	//go func() {
-	//	for message := range sched.podDelChannel {
-	//		msg := message.Payload
-	//		var pod core.Pod
-	//		utils.JsonUnMarshal(msg, pod)
-	//		if pod.Status.HostIP != "" {
-	//			pod.Status.HostIP = "127.0.0.1" // TODO: should delete
-	//			utils.SendRequest("DELETE",
-	//				fmt.Sprintf("http://%s:10250/pod/stop/%s/%s",
-	//					pod.Status.HostIP, pod.GetNamespace(), pod.MetaData.Name),
-	//				nil)
-	//		}
-	//	}
-	//}()
 	select {}
 }
 
@@ -67,6 +53,7 @@ func (sched *Scheduler) Schedule(pod core.Pod) (string, error) {
 	var nodes []core.Node
 	utils.JsonUnMarshal(nodesTxt, &nodes)
 	var nodeCandidate = make(map[string]core.NodeMetrics)
+	logger.Infof("node count: %d", len(nodes))
 	for _, node := range nodes {
 		nodeLabels, metrics, err := requestNodeInfos(node)
 		if err != nil {

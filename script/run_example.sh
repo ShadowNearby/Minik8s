@@ -116,6 +116,12 @@ stress --vm 2 --vm-bytes 1600M --vm-keep
 ./bin/kubectl get pod
 ./bin/kubectl delete pod monitor-pod
 
+# test serverless basic
+./bin/kubectl apply -f ./example/volume/volume.yaml
+./bin/kubectl apply -f ./example/serverless/common/getsum.yaml
+./bin/kubectl trigger functions -f ./example/serverless/common/trigger_functions.yaml
+./bin/kubectl result functions 5fdf
+./bin/kubectl apply -f ./example/serverless/common/getsum.yaml -u getsum
 
 # test workflow
 ./bin/kubectl apply -f ./example/serverless/application/infer.yaml

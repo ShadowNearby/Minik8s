@@ -90,7 +90,8 @@ func DeleteFunctionHandler(c *gin.Context) {
 func UpdateFunctionHandler(c *gin.Context) {
 	name := c.Param("name")
 	var oldFunc, newFunc core.Function
-	key := fmt.Sprintf("/functions/obejct/%s", name)
+	key := fmt.Sprintf("/functions/object/%s", name)
+	logger.Infof(key)
 	err := storage.Get(key, &oldFunc)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "create before update"})
@@ -240,10 +241,10 @@ func GetAllTaskHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(tasks)})
 }
 
-// GetTriggerResult /api/v1/functions/result/:name "GET"
+// GetTriggerResult /api/v1/functions/result/:id "GET"
 // will delete result after get once
 func GetTriggerResult(c *gin.Context) {
-	id := c.Param("name")
+	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "trigger id should not be null"})
 		return

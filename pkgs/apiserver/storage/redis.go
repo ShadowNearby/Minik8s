@@ -89,11 +89,11 @@ func (r *Redis) redisDel(keys ...string) error {
 
 func (r *Redis) redisRangeOp(prefix string, op string) ([]any, error) {
 	logger.Debugf("in redis range op")
-	var cursor uint64 = 0
+	// var cursor uint64 = 0
 	var keys []string
 	var vals []any
 	var err error
-	keys, _, err = r.Client.Scan(ctx, cursor, prefix+"*", 0).Result()
+	keys, err = r.Client.Keys(ctx, prefix+"*").Result()
 	if err != nil {
 		logger.Errorf("Error scanning keys: %s", err)
 		return nil, errors.New("cannot scanning keys")
