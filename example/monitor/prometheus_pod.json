@@ -2,7 +2,7 @@
   "apiVersion": "v1",
   "kind": "Pod",
   "metadata": {
-      "name": "example-pod1",
+      "name": "monitot-pod",
       "namespace": "default",
       "labels": {
           "app": "deploy-1",
@@ -12,7 +12,7 @@
   "spec": {
       "containers": [
           {
-              "name": "example-container",
+              "name": "monitor-container",
               "image": "docker.io/shadownearby/promethues_example_py:latest",
               "imagePullPolicy": "IfNotPresent"
           }

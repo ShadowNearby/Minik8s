@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
-	"minik8s/pkgs/constants"
 	"minik8s/utils"
 
 	log "github.com/sirupsen/logrus"
@@ -97,7 +96,7 @@ func CreateEndpointObject(service *core.Service) error {
 			})
 		}
 	} else if service.Spec.Type == core.ServiceTypeNodePort {
-		NodeIP := constants.AllIP
+		NodeIP := utils.GetIP()
 		endpoint = core.Endpoint{
 			MetaData: core.MetaData{
 				Name:      service.MetaData.Name,
