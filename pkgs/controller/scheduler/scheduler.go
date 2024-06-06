@@ -38,20 +38,6 @@ func (sched *Scheduler) Run(policy string) {
 			}
 		}
 	}()
-	//go func() {
-	//	for message := range sched.podDelChannel {
-	//		msg := message.Payload
-	//		var pod core.Pod
-	//		utils.JsonUnMarshal(msg, pod)
-	//		if pod.Status.HostIP != "" {
-	//			pod.Status.HostIP = "127.0.0.1" // TODO: should delete
-	//			utils.SendRequest("DELETE",
-	//				fmt.Sprintf("http://%s:10250/pod/stop/%s/%s",
-	//					pod.Status.HostIP, pod.GetNamespace(), pod.MetaData.Name),
-	//				nil)
-	//		}
-	//	}
-	//}()
 	select {}
 }
 
@@ -88,7 +74,7 @@ func (sched *Scheduler) Schedule(pod core.Pod) (string, error) {
 	if len(nodeCandidate) == 0 {
 		return "", errors.New("cannot schedule the pod: node candidate == 0")
 	}
-	selectedIP := sched.dispatch(nodeCandidate, nodes...)
+	selectedIP := sched.dispatch(nodeCandidate)
 	pod.Status.HostIP = selectedIP
 	// select node over, send message to node
 	response, err := sendCreatePod(selectedIP, pod)
@@ -105,7 +91,7 @@ func (sched *Scheduler) Schedule(pod core.Pod) (string, error) {
 	return selectedIP, nil
 }
 
-func (sched *Scheduler) dispatch(candidates map[string]core.NodeMetrics, nodes ...core.Node) string {
+func (sched *Scheduler) dispatch(candidates map[string]core.NodeMetrics) string {
 	switch sched.Policy {
 	case constants.PolicyCPU:
 		{
@@ -122,16 +108,12 @@ func (sched *Scheduler) dispatch(candidates map[string]core.NodeMetrics, nodes .
 	default:
 		{
 			// use roundRobin
-			// candidatesList := make([]string, 0)
-			// for key := range candidates {
-			// 	candidatesList = append(candidatesList, key)
-			// }
-			candidateList := make([]string, 0)
-			for _, node := range nodes {
-				candidateList = append(candidateList, node.Spec.NodeIP)
+			candidatesList := make([]string, 0)
+			for key := range candidates {
+				candidatesList = append(candidatesList, key)
 			}
 			sched.rrIdx++
-			return roundRobinPolicy(sched.rrIdx, candidateList...)
+			return roundRobinPolicy(sched.rrIdx, candidatesList...)
 		}
 
 	}

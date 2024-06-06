@@ -110,14 +110,14 @@ func TriggerFunc(name string, params []byte) (string, error) {
 }
 
 func getAvailablePods(name string) ([]string, error) {
-	replicaSet, err := utils.FindFunctionRs(name)
-	if err != nil {
-		log.Errorf("cannot find serverless replicaset: %s", err.Error())
-		return nil, err
-	}
 
 	for i := 0; i < config.FunctionRetryTimes; i++ {
 		autoscaler.RecordMutex.Lock()
+		replicaSet, err := utils.FindFunctionRs(name)
+		if err != nil {
+			log.Errorf("cannot find serverless replicaset: %s", err.Error())
+			return nil, err
+		}
 		pods, err := utils.FindRSPods(true, replicaSet.MetaData.Name, replicaSet.MetaData.Namespace)
 		if err != nil {
 			log.Errorf("cannot find rs's pods: %s", err.Error())
@@ -137,12 +137,16 @@ func getAvailablePods(name string) ([]string, error) {
 		} else {
 			log.Infof("call count: %d", record.CallCount)
 			record.CallCount++
-			record.Replicas = len(podIps)
+			// record.Replicas = len(podIps)
 			record.LastCallTime = time.Now()
 			autoscaler.RecordMap[name] = record
 		}
-		if (record.CallCount+9)/10 > len(podIps) && record.CallCount < int(config.FunctionThreshold) {
-			replicaSet.Spec.Replicas = (record.CallCount + 9) / 10
+		expectReplica := (record.CallCount + 9) / 10
+		log.Infof("expect replica: %d, replica: %d", expectReplica, record.Replicas)
+		if expectReplica > record.Replicas && record.Replicas < config.FunctionThreshold {
+			replicaSet.Spec.Replicas = expectReplica
+			record.Replicas = expectReplica
+			autoscaler.RecordMap[name] = record
 			log.Infof("call count: %d, real replica: %d, scale up %s to %d", record.CallCount, replicaSet.Status.RealReplicas, name, replicaSet.Spec.Replicas)
 			err = utils.SetObject(core.ObjReplicaSet, replicaSet.MetaData.Namespace, replicaSet.MetaData.Name, replicaSet)
 			if err != nil {
