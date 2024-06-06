@@ -129,7 +129,7 @@ func TriggerFunctionHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "expect trigger message type"})
 		return
 	}
-	triggerMsg.ID = utils.GenerateUUID(10)
+	triggerMsg.ID = utils.GenerateUUID(4)
 	storage.RedisInstance.PublishMessage(constants.ChannelFunctionTrigger, utils.JsonMarshal(triggerMsg))
 	c.JSON(http.StatusOK, gin.H{"data": triggerMsg.ID})
 }
