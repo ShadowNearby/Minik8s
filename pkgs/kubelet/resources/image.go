@@ -6,6 +6,7 @@ import (
 	core "minik8s/pkgs/apiobject"
 
 	"github.com/containerd/containerd"
+	"github.com/containerd/containerd/remotes/docker"
 	logger "github.com/sirupsen/logrus"
 )
 
@@ -16,9 +17,12 @@ func (c ImageController) CreateImage(client *containerd.Client, imageName string
 		return nil, errors.New("no Client available")
 	}
 	ctx := context.Background()
+	resolver := docker.NewResolver(docker.ResolverOptions{
+		PlainHTTP: true,
+	})
 	switch pullPolicy {
 	case core.PullAlways:
-		image, err := client.Pull(ctx, imageName, containerd.WithPullUnpack)
+		image, err := client.Pull(ctx, imageName, containerd.WithPullUnpack, containerd.WithResolver(resolver))
 		if err != nil {
 			logger.Errorf("pull image error: %s", err.Error())
 		}
@@ -30,11 +34,10 @@ func (c ImageController) CreateImage(client *containerd.Client, imageName string
 		if err == nil {
 			return containerd.NewImage(client, image), nil
 		}
-		containerdImage, err := client.Pull(ctx, imageName, containerd.WithPullUnpack)
+		containerdImage, err := client.Pull(ctx, imageName, containerd.WithPullUnpack, containerd.WithResolver(resolver))
 		if err != nil {
 			logger.Errorf("pull image error: %s", err.Error())
 		}
-		logger.Infof("pulled image: %v", containerdImage)
 		return containerdImage, nil
 
 	case core.PullNever:

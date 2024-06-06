@@ -62,8 +62,6 @@ func (t *TaskController) HandleCreate(message string) error {
 	funcName := pingSource.Spec.Sink.Ref.Name
 	params := pingSource.Spec.JsonData
 
-	logger.Info("add func")
-
 	entryID, err := t.cronManager.AddFunc(pingSource.Spec.Schedule, func() {
 		_, err := activator.TriggerFunc(funcName, []byte(params))
 		if err != nil {

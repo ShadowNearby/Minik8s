@@ -27,3 +27,4 @@ config/nginx.conf
 go.sum
 /vendor
 /data/
+config/prometheus

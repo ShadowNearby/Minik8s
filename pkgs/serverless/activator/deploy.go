@@ -36,15 +36,15 @@ func InitFunction(name string, path string) error {
 		CallCount: 0,
 	}
 	autoscaler.RecordMutex.Unlock()
-	log.Info("[InitFunction] create the record successfully")
-	err = utils.CreateObject(core.ObjReplicaSet, replicaSet.MetaData.Namespace, replicaSet)
+	log.Infof("create replicaset %s", replicaSet.MetaData.Name)
+	err = utils.CreateObject(core.ObjReplicaSet, "default", replicaSet)
 	if err != nil {
-		log.Error("[InitFunction] create record error: ", err)
+		log.Errorf("create rs failed: %s", err.Error())
 	}
 	return nil
 }
 
-// DeleteFunc delete the function
+// DeleteFunc delete the function, including replicaset, record and docker image
 func DeleteFunc(name string) error {
 	// 1. delete the replicaset
 	err := utils.DeleteObject(core.ObjReplicaSet, "default", name)
@@ -68,7 +68,6 @@ func DeleteFunc(name string) error {
 		log.Error("[DeleteFunc] delete image error: ", err)
 		return err
 	}
-
 	return nil
 }
 

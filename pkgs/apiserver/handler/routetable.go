@@ -67,6 +67,8 @@ var RouteTable = [...]Route{
 	{Path: "/api/v1/functions/tasks", Method: "GET", Handler: GetAllTaskHandler},
 	{Path: "/api/v1/functions/tasks/:name", Method: "POST", Handler: UpdateTaskHandler},
 	{Path: "/api/v1/functions/tasks/:name", Method: "DELETE", Handler: DeleteTaskHandler},
+	{Path: "/api/v1/functions/result/:id", Method: "GET", Handler: GetTriggerResult},
+	{Path: "/api/v1/functions/result", Method: "POST", Handler: SetTriggerResult},
 
 	{Path: "/api/v1/namespaces/:namespace/hpa", Method: "POST", Handler: CreateHpaHandler},                   // POST, create a hpa
 	{Path: "/api/v1/namespaces/:namespace/hpa/:name", Method: "GET", Handler: GetHpaHandler},                 // GET, get a hpa
@@ -82,6 +84,8 @@ var RouteTable = [...]Route{
 	{Path: "/api/v1/workflows/:name", Method: "DELETE", Handler: DeleteWorkflowHandler},        // DELETE, delete a workflow
 	{Path: "/api/v1/workflows/:name", Method: "PUT", Handler: UpdateWorkflowHandler},           // PUT, update a workflow
 	{Path: "/api/v1/workflows/:name/trigger", Method: "POST", Handler: TriggerWorkflowHandler}, // POST, trigger a workflow
+	{Path: "/api/v1/workflows/result/:id", Method: "GET", Handler: GetTriggerWorkflowResult},   // GET, get trigger result
+	{Path: "/api/v1/workflows/result", Method: "POST", Handler: SetTriggerWorkflowResult},      // POST, set trigger result
 
 	{Path: "/api/v1/volumes", Method: "POST", Handler: CreateVolumeHandler},         // POST, create a volume
 	{Path: "/api/v1/volumes/:name", Method: "GET", Handler: GetVolumeHandler},       // GET, get a volume

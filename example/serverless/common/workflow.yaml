@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: workflow
+name: workflow-example
+startAt: get-sum
+comment: An example of basic workflow.
+states:
+  get-sum:
+    type: TaskState
+    inputPath: "$.x,$.y"
+    outputPath: "$.z"
+    next: judgesum
+  judgesum:
+    type: ChoiceState
+    choices:
+    - variable: "$.z"
+      NumericGreaterThan: 5
+      next: print-sum
+    - variable: "$.z"
+      NumericLessThan: 5
+      next: print-sum
+    default: printerror
+  print-sum:
+    type: TaskState
+    inputPath: "$.z"
+    resultPath: "$.str"
+    end: true
+  printerror:
+    type: FailState
+    error: DefaultStateError
+    cause: No Matches!

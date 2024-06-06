@@ -82,7 +82,7 @@ func DeleteFunctionHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot delete function"})
 		return
 	}
-	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelFunction, constants.ChannelDelete), utils.JsonMarshal(function))
+	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelFunction, constants.ChannelDelete), function.Name)
 	c.JSON(http.StatusOK, gin.H{"data": "ok"})
 }
 
@@ -112,6 +112,7 @@ func UpdateFunctionHandler(c *gin.Context) {
 }
 
 // TriggerFunctionHandler POST /api/v1/functions/:name/trigger
+// create an ID to identify the result, client will use this id to ask for result
 func TriggerFunctionHandler(c *gin.Context) {
 	name := c.Param("name")
 	functionName := FunctionKeyPrefix(name)
@@ -128,10 +129,9 @@ func TriggerFunctionHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "expect trigger message type"})
 		return
 	}
-
+	triggerMsg.ID = utils.GenerateUUID(10)
 	storage.RedisInstance.PublishMessage(constants.ChannelFunctionTrigger, utils.JsonMarshal(triggerMsg))
-	// TODO: should it be sync or async
-	c.JSON(http.StatusOK, gin.H{"data": "ok"})
+	c.JSON(http.StatusOK, gin.H{"data": triggerMsg.ID})
 }
 
 // GetAllFunctionsHandler GET /api/v1/functions
@@ -238,4 +238,41 @@ func GetAllTaskHandler(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": utils.JsonMarshal(tasks)})
+}
+
+// GetTriggerResult /api/v1/functions/result/:name "GET"
+// will delete result after get once
+func GetTriggerResult(c *gin.Context) {
+	id := c.Param("name")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "trigger id should not be null"})
+		return
+	}
+	key := fmt.Sprintf("/functions/result/%s", id)
+	var result core.TriggerResult
+	err := storage.Get(key, &result)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "function trigger has not done yet"})
+		return
+	}
+	// to reduce redundant keys, we delete data
+	storage.Del(key)
+	c.JSON(http.StatusOK, gin.H{"data": result.Result})
+}
+
+// SetTriggerResult /api/v1/functions/result "POST"
+func SetTriggerResult(c *gin.Context) {
+	var result core.TriggerResult
+	err := c.Bind(&result)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "expect result type"})
+		return
+	}
+	key := fmt.Sprintf("/functions/result/%s", result.ID)
+	err = storage.Put(key, result)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "error put result"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": "ok"})
 }

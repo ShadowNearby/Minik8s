@@ -15,6 +15,7 @@ type TriggerRequest struct {
 type TriggerMessage struct {
 	Name   string `yaml:"name" json:"name"`
 	Params string `yaml:"params" json:"params"`
+	ID     string `yaml:"id" json:"id"`
 }
 
 type PingSource struct {
@@ -49,4 +50,9 @@ type SinkRef struct {
 	ApiVersion string `yaml:"apiVersion" json:"apiVersion"`
 	Kind       string `json:"kind" yaml:"kind"`
 	Name       string `json:"name" yaml:"name"`
+}
+
+type TriggerResult struct {
+	ID     string `json:"id"`
+	Result string `json:"result"`
 }

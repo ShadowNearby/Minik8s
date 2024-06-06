@@ -39,7 +39,7 @@ func (w *WorkFlowController) HandleDelete(message string) error {
 }
 
 func (w *WorkFlowController) HandleTrigger(message string) error {
-	var request core.WorkFlowTriggerRequest
+	var request core.TriggerMessage
 	err := utils.JsonUnMarshal(message, &request)
 	if err != nil {
 		logger.Error("error parse trigger request")
@@ -60,5 +60,10 @@ func (w *WorkFlowController) HandleTrigger(message string) error {
 		return nil
 	}
 	logger.Infof("workflow execute result: %s", string(result))
+	triggerResult := core.TriggerResult{
+		ID:     request.ID,
+		Result: result,
+	}
+	utils.SaveTriggerResult(core.ObjWorkflow, triggerResult)
 	return nil
 }

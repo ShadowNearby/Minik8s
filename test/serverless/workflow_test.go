@@ -99,12 +99,12 @@ func TestCreateWorkflow(t *testing.T) {
 
 func TestTriggerWorkflow(t *testing.T) {
 	url := fmt.Sprintf("http://%s:8090/api/v1/workflows/%s/trigger", config.ClusterMasterIP, "app-yolo")
-	file, err := os.ReadFile(fmt.Sprintf("%s/%s", utils.ExamplePath, "serverless/application/trigger_workflow.json"))
+	file, err := os.ReadFile(fmt.Sprintf("%s/%s", utils.ExamplePath, "serverless/common/trigger.json"))
 	if err != nil {
 		t.Errorf("read file error")
 		return
 	}
-	var trigger core.WorkFlowTriggerRequest
+	var trigger core.TriggerMessage
 	_ = utils.JsonUnMarshal(string(file), &trigger)
 	code, info, err := utils.SendRequest("POST", url, file)
 	if err != nil || code != 200 {

@@ -108,7 +108,7 @@ func LoadBalance(name string, podIps []string) (string, error) {
 	record.PodIps[chosenPodIp]++
 
 	RecordMutex.Lock()
-	RecordMap[name] = record
+	SetRecord(name, record)
 	RecordMutex.Unlock()
 
 	return chosenPodIp, nil
