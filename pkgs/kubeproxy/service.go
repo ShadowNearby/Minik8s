@@ -89,7 +89,7 @@ func (sc *ServiceController) HandleCreate(message string) error {
 		}
 	} else if service.Spec.Type == core.ServiceTypeNodePort {
 		for _, port := range service.Spec.Ports {
-			CreateService(constants.AllIP, port.NodePort)
+			CreateService(utils.GetIP(), port.NodePort)
 		}
 	}
 
@@ -149,7 +149,7 @@ func (sc *ServiceController) HandleDelete(message string) error {
 		FreeUsedIP(service.MetaData.Namespace, service.MetaData.Name)
 	} else if service.Spec.Type == core.ServiceTypeNodePort {
 		for _, port := range service.Spec.Ports {
-			err = DeleteService(constants.AllIP, uint32(port.NodePort))
+			err = DeleteService(utils.GetIP(), uint32(port.NodePort))
 			if err != nil {
 				log.Errorf("error in DeleteService err: %s", err.Error())
 			}
