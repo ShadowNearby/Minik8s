@@ -20,8 +20,11 @@
 bin/
 *.log
 *.pyc
+*.pt
 build
 
 config/nginx.conf
 go.sum
 /vendor
+/data/
+config/prometheus

@@ -105,13 +105,45 @@ func TriggerWorkflowHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "expect name"})
 		return
 	}
-	var request core.WorkFlowTriggerRequest
+	var request core.TriggerMessage
 	err := c.Bind(&request)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "expect workflow reqeust type"})
 		return
 	}
 	logger.Infof("request name: %s, params: %s", request.Name, request.Params)
+	request.ID = utils.GenerateUUID(10)
 	storage.RedisInstance.PublishMessage(constants.ChannelWorkflowTrigger, utils.JsonMarshal(request))
+	c.JSON(http.StatusOK, gin.H{"data": request.ID})
+}
+
+// GetTriggerWorkflowResult GET /api/v1/workflows/result/:id
+func GetTriggerWorkflowResult(c *gin.Context) {
+	id := c.Param("id")
+	key := fmt.Sprintf("/workflows/result/%s", id)
+	var result core.TriggerResult
+	err := storage.Get(key, &result)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "workflow hasn't finished yet"})
+		return
+	}
+	storage.Del(key)
+	c.JSON(http.StatusOK, gin.H{"data": result.Result})
+}
+
+// SetTriggerWorkflowResult POST /api/v1/workflows/result
+func SetTriggerWorkflowResult(c *gin.Context) {
+	var result core.TriggerResult
+	err := c.Bind(&result)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "expect result type"})
+		return
+	}
+	key := fmt.Sprintf("/workflows/result/%s", result.ID)
+	err = storage.Put(key, result)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "error put result"})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"data": "ok"})
 }

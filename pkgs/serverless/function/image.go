@@ -2,16 +2,17 @@ package function
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"minik8s/config"
 	"minik8s/utils"
 	"os"
 	"os/exec"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
-const ImagePath = "shadownearby"
+var ImagePath = fmt.Sprintf("%s:5000", config.ClusterMasterIP)
 
 // CreateImage build image for function
 func CreateImage(path string, name string) error {
@@ -80,17 +81,6 @@ func saveImage(name string) error {
 	return nil
 }
 
-func PullImage(name string) error {
-	registryImgName := fmt.Sprintf("%s/%s:v1", config.ClusterMasterIP, name)
-	nerdCmd := exec.Command("nerdctl", "pull", registryImgName)
-	nerdCmd.Stdout = os.Stdout
-	nerdCmd.Stdin = os.Stdin
-	if err := nerdCmd.Run(); err != nil {
-		log.Errorf("nerdctl pull image image error: %s", err.Error())
-	}
-	return nil
-}
-
 // FindImage  find the image
 func FindImage(name string) bool {
 	cmd := exec.Command("docker", "images", name)
@@ -103,12 +93,14 @@ func FindImage(name string) bool {
 	}
 
 	result := strings.TrimSpace(string(output))
+	result = strings.Replace(result, " ", "", -1)
 	log.Info("[FindImage] the result is: ", result)
 
 	if strings.Contains(result, name) {
 		return true
 	} else {
-		return false
+		name = strings.Replace(name, ":v", "v", 1)
+		return strings.Contains(result, name)
 	}
 }
 
@@ -117,29 +109,22 @@ func DeleteImage(name string) error {
 	// if the image not exist, just ignore
 	imageName := fmt.Sprintf("%s/%s:v1", ImagePath, name)
 	if FindImage(imageName) {
-		cmd := exec.Command("docker", "rmi", imageName)
+		cmd := exec.Command("docker", "image", "rmi", imageName)
 		err := cmd.Run()
 		if err != nil {
 			log.Error("[DeleteImage] delete first image error: ", err)
 			return err
 		}
 	}
-	return nil
-}
-
-/*RunImage to run image for function*/
-// we don't need docker interface to run image
-func RunImage(name string) error {
-	imageName := fmt.Sprintf("%s/%s:v1", ImagePath, name)
-	// 1. run the image
-	cmd := exec.Command("docker", "run", "-d", "--name", name, imageName)
-
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	if err != nil {
-		log.Error("[RunImage] run image error: ", err)
-		return err
+	rawName := fmt.Sprintf("%s:v1", name)
+	if FindImage(rawName) {
+		log.Info("find image")
+		cmd := exec.Command("docker", "image", "rmi", rawName)
+		err := cmd.Run()
+		if err != nil {
+			log.Error("[DeleteImage] delete first image error: ", err)
+			return err
+		}
 	}
 	return nil
 }

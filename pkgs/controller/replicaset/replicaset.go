@@ -18,7 +18,7 @@ func (rsc *ReplicaSetController) GetChannel() string {
 }
 
 func (rsc *ReplicaSetController) BackGroundTask() {
-	ticker := time.NewTicker(1 * time.Minute)
+	ticker := time.NewTicker(3 * time.Minute)
 	defer ticker.Stop()
 	for range ticker.C {
 		var replicas []core.ReplicaSet

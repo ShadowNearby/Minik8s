@@ -3,15 +3,15 @@
   "ApiServerPort": "8090",
   "EtcdServerPort": "2380",
   "ClusterMode": true,
-  "ClusterMasterIP": "172.31.184.139",
+  "ClusterMasterIP": "192.168.1.12",
   "PodCIDR": "10.244.0.0/16",
   "NodePort": "10250",
   "DefaultEtcdEndpoints": ["localhost:2380"],
   "HeartbeatInterval": "30s",
 
   "DNSPathPrefix": "/dnspath",
-  "NginxListenIP": "172.31.184.139",
-  "NginxListenAddr": "172.31.184.139:80",
+  "NginxListenIP": "192.168.1.12",
+  "NginxListenAddr": "192.168.1.12:80",
   "NginxStarted": false,
   "ContainerResolvPath": "/etc/resolv.conf",
   "TempResolvPath": "/tmp/resolv.conf",
@@ -21,7 +21,7 @@
   "CsiSockAddr": "/run/csi/csi.sock",
   "CsiStagingTargetPath": "/mnt/staging",
   "CsiMntPath": "/mnt/minik8s",
-  "CsiServerIP": "172.31.184.139",
+  "CsiServerIP": "192.168.1.12",
   "CsiStorageClassName": "nfs-csi",
 
   "PrometheusNodeFilePath": "prometheus/sd_node.json",
@@ -32,6 +32,6 @@
   "FunctionServerIp": "master",
   "FunctionThreshold": 6,
   "FunctionConnectTime": "30s",
-  "ServerlessScaleToZeroTime": "30s",
+  "ServerlessScaleToZeroTime": "90s",
   "ServelessIP": "8081"
 }

@@ -32,7 +32,6 @@ func Run() {
 	go replicaSet.BackGroundTask()
 	var hpa autoscaler.HPAController
 	go controller.StartController(&hpa)
-	// start hpa background work
 	go hpa.StartBackground()
 	var functionController function.FuncController
 	go controller.StartController(&functionController)
@@ -73,5 +72,5 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "/home/k8s/ly/minik8s/config/config.json", "config file (default is ./config/config.json)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "./config/config.json", "config file (default is ./config/config.json)")
 }

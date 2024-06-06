@@ -1,6 +1,8 @@
-def run(z):
-    return {"str": str(z)}
+def run(x,y):
+   z = x+y
+   return {"z":z} 
 
 def main(userparams):
-    z = userparams.get('z')
-    return run(z)
+    x =userparams.get('x')
+    y = userparams.get('y')
+    return run(x,y)

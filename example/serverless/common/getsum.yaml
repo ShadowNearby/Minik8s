@@ -1,0 +1,4 @@
+kind: functions
+apiVersion: v1
+name: get-sum
+path: /root/ly/minik8s/example/serverless/common/getsum.py
