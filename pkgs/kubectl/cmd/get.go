@@ -175,7 +175,26 @@ func getHandler(cmd *cobra.Command, args []string) {
 			}
 		}
 	case core.ObjJob:
-		t.AppendHeader(table.Row{"NAME", "POD", "STATUS"})
+		t.AppendHeader(table.Row{"NAME", "POD", "STATUS", "HOST"})
+		var jobs []core.Job
+		if resp != "" {
+			if name == "" {
+				err := utils.JsonUnMarshal(resp, &jobs)
+				if err != nil {
+					fmt.Printf("error in unmarshal %s\n", err.Error())
+				}
+			} else {
+				job := core.Job{}
+				err := utils.JsonUnMarshal(resp, &job)
+				if err != nil {
+					fmt.Printf("error in unmarshal %s\n", err.Error())
+				}
+				jobs = append(jobs, job)
+			}
+			for _, job := range jobs {
+				t.AppendRow(table.Row{job.MetaData.Name, job.Status.PodIP, job.Status.Phase, job.Status.HostIP})
+			}
+		}
 
 	case core.ObjHpa:
 		t.AppendHeader(table.Row{"NAME", "REFERENCE", "TARGETS", "MINPODS", "MAXPODS"})
