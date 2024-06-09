@@ -20,24 +20,19 @@ func (r *JobController) GetChannel() string {
 
 func (r *JobController) HandleCreate(message string) error {
 	var job core.Job
-	_ = utils.JsonUnMarshal(message, job)
-
+	_ = utils.JsonUnMarshal(message, &job)
 	createPodforJob(job)
-	job.Status.Phase = core.PodPhasePending
-
-	_ = utils.SetObject(core.ObjJob, job.MetaData.Namespace, job.MetaData.Name, job)
-
-	log.Info("[job controller] Create job. Name:", job.MetaData.Name)
+	job.Status.Phase = core.PodPhaseRunning
+	_ = utils.SetObject(core.ObjJob, job.GetNamespace(), job.MetaData.Name, job)
+	log.Info("[job controller] Create job. Name: ", job.MetaData.Name)
 	return nil
 }
 
 func (r *JobController) HandleDelete(message string) error {
 	var job core.Job
 	_ = utils.JsonUnMarshal(message, job)
-
 	deletePodforJob(job)
 	_ = utils.DeleteObject(core.ObjJob, job.MetaData.Namespace, job.MetaData.Name)
-
 	log.Info("[job controller] Delete job. Name:", job.MetaData.Name)
 	return nil
 }
@@ -105,5 +100,4 @@ func createPodforJob(job core.Job) {
 }
 func deletePodforJob(job core.Job) {
 	_ = utils.DeleteObject(core.ObjPod, job.MetaData.Namespace, job.MetaData.Name)
-
 }

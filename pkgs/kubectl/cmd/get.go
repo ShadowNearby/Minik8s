@@ -27,7 +27,22 @@ func getHandler(cmd *cobra.Command, args []string) {
 	var objType core.ObjType
 	logrus.Debugln(args)
 	wrongType := true
-	if len(args) == 2 {
+	if strings.ToLower(args[0]) == "gpu" {
+
+		kind = strings.ToLower(args[1])
+		fmt.Printf("gpu type %s ", kind)
+		namespace = "gpu"
+		for _, ty := range core.ObjTypeAll {
+			if !strings.Contains(ty, kind) {
+				continue
+			}
+			objType = core.ObjType(ty)
+			wrongType = false
+		}
+		if len(args) == 3 {
+			name = args[2]
+		}
+	} else if len(args) == 2 {
 		kind = strings.ToLower(args[0])
 		name = strings.ToLower(args[1])
 		for _, ty := range core.ObjTypeAll {
@@ -52,12 +67,12 @@ func getHandler(cmd *cobra.Command, args []string) {
 	}
 
 	if wrongType {
-		fmt.Printf("wrong type")
+		fmt.Printf("wrong type %s ", kind)
 	}
 
 	haveNamespace, ok := core.ObjTypeNamespace[objType]
 	if !ok {
-		fmt.Printf("wrong type %s", objType)
+		fmt.Printf("No namespace %s", objType)
 	}
 	var resp string
 	if haveNamespace {

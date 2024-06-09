@@ -39,8 +39,8 @@ spec:
 type Job struct {
 	ApiVersion string    `json:"apiVersion" yaml:"apiVersion"`
 	MetaData   MetaData  `json:"metadata" yaml:"metadata"`
-	Spec       JobSpec   `json:"spec,omitempty"`
-	Status     PodStatus `json:"status,omitempty"`
+	Spec       JobSpec   `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Status     PodStatus `json:"status,omitempty" yaml:"status,omitempty"`
 }
 
 type JobSpec struct {
