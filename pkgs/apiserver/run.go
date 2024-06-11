@@ -9,6 +9,7 @@ import (
 	"minik8s/pkgs/controller"
 	"minik8s/pkgs/controller/autoscaler"
 	"minik8s/pkgs/controller/function"
+	"minik8s/pkgs/controller/gpujob"
 	"minik8s/pkgs/controller/podcontroller"
 	rsc "minik8s/pkgs/controller/replicaset"
 	scheduler "minik8s/pkgs/controller/scheduler"
@@ -43,6 +44,8 @@ func Run() {
 	go controller.StartController(&workFlowController)
 	go workFlowController.StartController()
 	go autoscaler.RecordBackGroundCheck()
+	var jobController gpujob.JobController
+	go controller.StartController(&jobController)
 	// start heartbeat
 	go heartbeat.Run()
 	select {}

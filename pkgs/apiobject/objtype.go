@@ -53,17 +53,18 @@ var ObjTypeToCoreObjMap = map[ObjType]reflect.Type{
 	ObjVolume:     reflect.TypeOf(&PersistentVolume{}).Elem(),
 	ObjTrigger:    reflect.TypeOf(&TriggerMessage{}).Elem(),
 	ObjTask:       reflect.TypeOf(&PingSource{}).Elem(),
+	ObjJob:        reflect.TypeOf(&Job{}).Elem(),
 }
 
 var ObjTypeNamespace = map[ObjType]bool{
-	ObjNode:      false,
-	ObjFunction:  false,
-	ObjWorkflow:  false,
-	ObjVolume:    false,
-	ObjCsiVolume: false,
-	ObjTask:      false,
-	ObjTrigger:   false,
-
+	ObjNode:       false,
+	ObjFunction:   false,
+	ObjWorkflow:   false,
+	ObjVolume:     false,
+	ObjCsiVolume:  false,
+	ObjTask:       false,
+	ObjTrigger:    false,
+	ObjJob:        true,
 	ObjPod:        true,
 	ObjReplicaSet: true,
 	ObjService:    true,
@@ -96,3 +97,4 @@ func (s *DNSRecord) GetNamespace() string {
 func (s *Service) GetNamespace() string {
 	return s.MetaData.Namespace
 }
+func (s *Job) GetNamespace() string { return s.MetaData.Namespace }

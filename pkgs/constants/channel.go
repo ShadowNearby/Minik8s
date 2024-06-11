@@ -12,6 +12,7 @@ const (
 	ChannelEndpoint string = "ENDPOINT"
 	ChannelTask     string = "TASK"
 	ChannelWorkflow string = "WORKFLOW"
+	ChannelJob      string = "JOB"
 )
 
 const (
@@ -20,7 +21,7 @@ const (
 	ChannelDelete string = "DELETE"
 )
 
-var Channels = []string{ChannelNode, ChannelPod, ChannelService, ChannelReplica, ChannelHPA, ChannelFunction, ChannelTask, ChannelWorkflow}
+var Channels = []string{ChannelNode, ChannelPod, ChannelService, ChannelReplica, ChannelHPA, ChannelFunction, ChannelTask, ChannelWorkflow, ChannelJob}
 var Operations = []string{ChannelCreate, ChannelUpdate, ChannelDelete}
 var OtherChannels = []string{ChannelPodSchedule, ChannelFunctionTrigger, ChannelWorkflowTrigger}
 

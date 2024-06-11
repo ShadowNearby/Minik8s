@@ -30,14 +30,3 @@ func GetObjTypeFromYamlFile(fileContent []byte) (core.ObjType, error) {
 	}
 	return objType, nil
 }
-
-func ParseApiObjectFromYamlFile(fileContent []byte, obj interface{}) error {
-	log.Debugln(fileContent)
-	err := yaml.Unmarshal(fileContent, &obj)
-	if err != nil {
-		log.Debug("Kubectl", "GetApiKindObjectFromYamlFile: Unmarshal object failed "+err.Error())
-		return err
-	}
-	log.Debugln(obj)
-	return err
-}

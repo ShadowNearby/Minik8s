@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Job
+metadata:
+  name: matrix-add
+  labels:
+    app : add-job
+spec:
+  containers:
+    - name: gpu-container
+      image: 192.168.1.12:5000/gpu-server:v1
+      imagePullPolicy: IfNotPresent
+      command:
+        - "./job.py"
+      env:
+        - name: source-path
+          value: /matrix-add
+        - name: job-name
+          value: matrix-add
+        - name: partition
+          value: dgx2
+        - name: "N"
+          value: "1"
+        - name: ntasks-per-node
+          value: "1"
+        - name: cpus-per-task
+          value: "6"
+        - name: gres
+          value: gpu:16
+      volumeMounts:
+        - name: share-data
+          containerPath: "/matrix-add"
+  volumes:
+    - name: share-data
+      nfs:
+        server: 192.168.1.12
+        share: "/mnt/ShareFolder"
+
