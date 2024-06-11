@@ -1,0 +1,3 @@
+kind: triggers
+name: app-yolo
+params: '{"path": "notexist.jpeg"}'

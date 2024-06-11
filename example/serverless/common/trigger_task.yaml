@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: tasks
+metaData:
+  name: task-example
+spec:
+  schedule: "*/1 * * * *"
+  jsonData: '{"x": 3, "y": 5}'
+  sink:
+    ref:
+      apiVersion: v1
+      kind: functions
+      name: get-sum
