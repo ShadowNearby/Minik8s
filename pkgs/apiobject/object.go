@@ -17,10 +17,3 @@ type OwnerReference struct {
 	Name       string  `json:"name"`
 	Controller bool    `yaml:"controller"`
 }
-type VersionLabel string
-
-const (
-	DELETE VersionLabel = "delete"
-	UPDATE VersionLabel = "update"
-	CREATE VersionLabel = "create"
-)

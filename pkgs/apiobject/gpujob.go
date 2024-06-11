@@ -44,9 +44,9 @@ type Job struct {
 }
 
 type JobSpec struct {
-	NodeSelector            map[string]string `json:"nodeSelector,omitempty"`
-	Containers              []Container       `json:"containers"`
-	Volumes                 []Volume          `json:"volumes,omitempty"`
-	BackoffLimit            int               `json:"backoffLimit"`
-	TtlSecondsAfterFinished int               `json:"ttlSecondsAfterFinished"`
+	NodeSelector            map[string]string `json:"nodeSelector,omitempty" yaml:"nodeSelector,omitempty"`
+	Containers              []Container       `json:"containers,omitempty" yaml:"containers,omitempty"`
+	Volumes                 []Volume          `json:"volumes,omitempty" yaml:"volumes,omitempty"`
+	BackoffLimit            int               `json:"backoffLimit,omitempty" yaml:"backoffLimit,omitempty"`
+	TtlSecondsAfterFinished int               `json:"ttlSecondsAfterFinished" yaml:"ttlSecondsAfterFinished"`
 }

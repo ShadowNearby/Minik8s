@@ -29,7 +29,7 @@ func CreateJobHandler(c *gin.Context) {
 		job.MetaData.Namespace = "default"
 	}
 	key := fmt.Sprintf("/jobs/%s/%s", job.MetaData.Namespace, job.MetaData.Name)
-	job.Status = core.PodStatus{Phase: core.PodPhasePending}
+	job.Status = core.PodStatus{Phase: core.PodPhaseRunning}
 	err = storage.Put(key, job)
 	if err != nil {
 		logger.Errorf("put error: %s", err.Error())
@@ -37,7 +37,6 @@ func CreateJobHandler(c *gin.Context) {
 		return
 	}
 	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelJob, constants.ChannelCreate), utils.JsonMarshal(job))
-	logger.Info("[create jod successfully]")
 	c.JSON(http.StatusOK, gin.H{"data": "create job success"})
 }
 
@@ -94,6 +93,9 @@ func UpdateJobHandler(c *gin.Context) {
 	err := c.Bind(&newJob)
 	key := fmt.Sprintf("/jobs/%s/%s", newJob.MetaData.Namespace, newJob.MetaData.Name)
 	err = storage.Get(key, &oldJob)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot get function"})
+	}
 	err = storage.Put(key, newJob)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot set object"})

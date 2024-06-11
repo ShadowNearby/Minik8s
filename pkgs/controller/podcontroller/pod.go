@@ -6,7 +6,9 @@ import (
 	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/constants"
+	"minik8s/pkgs/controller/tools"
 	"minik8s/utils"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -22,6 +24,39 @@ func (pc *PodController) HandleCreate(message string) error {
 }
 
 func (pc *PodController) HandleUpdate(message string) error {
+	var pod core.Pod
+	_ = utils.JsonUnMarshal(message, pod)
+	if pod.MetaData.OwnerReference.ObjType == core.ObjJob {
+		log.Info("[job controller] handle pdate")
+		info := utils.GetObject(core.ObjJob, pod.MetaData.Namespace, pod.MetaData.OwnerReference.Name)
+		var job core.Job
+		_ = utils.JsonUnMarshal(info, job)
+
+		job.Status.Phase = pod.Status.Phase
+		switch pod.Status.Phase {
+		case core.PodPhaseFailed:
+			{
+				job.Spec.BackoffLimit -= 1
+				if job.Spec.BackoffLimit > 0 {
+					go func(job core.Job) {
+						tools.DeletePodforJob(job)
+						time.Sleep(time.Second * 5)
+						tools.CreatePodforJob(job)
+					}(job)
+				}
+			}
+		case core.PodPhaseSucceeded:
+			{
+				waitToDelete := func(t int, job core.Job) {
+					time.Sleep(time.Second * time.Duration(t))
+					tools.DeletePodforJob(job)
+				}
+				go waitToDelete(job.Spec.TtlSecondsAfterFinished, job)
+			}
+		}
+		log.Info("[job controller] update phase:", job.Status.Phase)
+		_ = utils.SetObject(core.ObjJob, job.MetaData.Namespace, pod.MetaData.Name, job)
+	}
 	return nil
 }
 

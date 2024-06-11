@@ -30,7 +30,6 @@ func getHandler(cmd *cobra.Command, args []string) {
 	if strings.ToLower(args[0]) == "gpu" {
 
 		kind = strings.ToLower(args[1])
-		fmt.Printf("gpu type %s ", kind)
 		namespace = "gpu"
 		for _, ty := range core.ObjTypeAll {
 			if !strings.Contains(ty, kind) {

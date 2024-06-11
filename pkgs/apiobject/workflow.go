@@ -58,11 +58,11 @@ const (
 )
 
 type Workflow struct {
-	APIVersion string       `json:"apiVersion" yaml:"apiVersion"`
-	Kind       string       `json:"kind" yaml:"kind"`
-	Name       string       `json:"name" yaml:"name"`
-	Status     VersionLabel `json:"status,omitempty" yaml:"status,omitempty"`
-	StartAt    string       `json:"startAt" yaml:"startAt"`
+	APIVersion string `json:"apiVersion" yaml:"apiVersion"`
+	Kind       string `json:"kind" yaml:"kind"`
+	Name       string `json:"name" yaml:"name"`
+	Status     string `json:"status,omitempty" yaml:"status,omitempty"`
+	StartAt    string `json:"startAt" yaml:"startAt"`
 
 	States map[string]WorkState `json:"states" yaml:"states"`
 

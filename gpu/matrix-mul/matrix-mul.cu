@@ -31,33 +31,6 @@ __global__ void matrixMulGlobalKernel(double * pfMatrixA, double * pfMatrixB, do
     }
     pfMatrixC[nRow * w + nCol] = fCVal;
 }
-__global__ void matrixMulSharedKernel_op1(double * fpMatrixA, double * fpMatrixB,double * fpMatrixC, int w){
-    int nRow = blockIdx.y * blockDim.y + threadIdx.y;
-    int nCol = blockIdx.x * blockDim.x + threadIdx.x;
-    double fCVal = 0.0f;
-
-    __shared__ double shTileA[BLOCK_SIZE][BLOCK_SIZE];
-    __shared__ double shTileB[BLOCK_SIZE][BLOCK_SIZE];
-
-    int nIter = (w + BLOCK_SIZE - 1) / BLOCK_SIZE;
-    for(int i = 0; i < nIter; i++)
-    {
-        // load data from global memory to shared memory
-        shTileA[threadIdx.y][threadIdx.x] = fpMatrixA[nRow * w + i * BLOCK_SIZE + threadIdx.x];
-        shTileB[threadIdx.y][threadIdx.x] = fpMatrixB[(i * BLOCK_SIZE + threadIdx.y) * w + nCol];
-        // sync to wait for all threads in one block to finish loading datas
-        __syncthreads();
-        // sub-matrix multiply
-        for(int l = 0; l < BLOCK_SIZE; l++)
-        {
-            fCVal += shTileA[threadIdx.y][l] * shTileB[l][threadIdx.x];
-        }
-        // sync to wait for all threads in one block to finish compute
-        __syncthreads();
-    }
-    // store results into global memory
-    fpMatrixC[nRow * w + nCol] = fCVal;
-}
 void matrixMulCPU(double * A, double * B, double* C, int w) {
     for (int i = 0; i < w; ++i) {
         for (int j = 0; j < w; ++j) {
