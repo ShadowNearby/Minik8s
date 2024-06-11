@@ -46,7 +46,7 @@ func triggerHandler(cmd *cobra.Command, args []string) {
 		fmt.Printf("error: expect only one resource")
 		return
 	}
-	if resourceType != core.ObjFunction && resourceType != core.ObjWorkflow {
+	if resourceType != core.ObjFunction && resourceType != core.ObjWorkflow && resourceType != core.ObjTask {
 		fmt.Printf("error: only support functions type or workflows type")
 		return
 	}
@@ -71,6 +71,35 @@ func triggerHandler(cmd *cobra.Command, args []string) {
 		return
 	}
 	logrus.Infof("type: %s", objType)
+	if core.ObjTask == objType {
+		logrus.Infof("event trigger")
+		taskMessage := core.PingSource{}
+		err = yaml.Unmarshal(fileContent, &taskMessage)
+		if err != nil {
+			logrus.Fatal("cannot unmarshal file")
+			return
+		}
+		url := fmt.Sprintf("http://%s:%s/api/v1/tasks", config.ClusterMasterIP, config.ApiServerPort)
+		code, info, err := utils.SendRequest("POST", url, []byte(utils.JsonMarshal(taskMessage)))
+		if err != nil {
+			logrus.Errorf("send request failed; %s", err.Error())
+			return
+		}
+		infoType := core.InfoType{}
+		utils.JsonUnMarshal(info, &infoType)
+		if code != http.StatusOK {
+			fmt.Printf("code: %d, error: %s\n", code, infoType.Error)
+			return
+		} else {
+			fmt.Printf("%s\n", infoType.Data)
+			triggerResult := core.TriggerResult{
+				ID:     taskMessage.ID,
+				Result: infoType.Data,
+			}
+			utils.SaveTriggerResult(core.ObjFunction, triggerResult)
+		}
+		return
+	}
 	if core.ObjTrigger != objType {
 		logrus.Fatal("expect trigger file, please set kind to trigger")
 		return
@@ -122,15 +151,15 @@ func resultHandler(cmd *cobra.Command, args []string) {
 		fmt.Printf("error: expect [resource] [id] format")
 		return
 	}
-	if resourceType != core.ObjFunction && resourceType != core.ObjWorkflow {
+	if resourceType != core.ObjFunction && resourceType != core.ObjWorkflow && resourceType != core.ObjTask {
 		fmt.Printf("error: only support functions type or workflows type")
 		return
 	}
 	// send request to get result
 	var url string
-	if resourceType == core.ObjFunction {
+	if resourceType == core.ObjFunction || resourceType == core.ObjTask {
 		url = fmt.Sprintf("http://%s:%s/api/v1/functions/result/%s", config.ClusterMasterIP, config.ApiServerPort, resultId)
-	} else {
+	} else if resourceType == core.ObjWorkflow {
 		url = fmt.Sprintf("http://%s:%s/api/v1/workflows/result/%s", config.ClusterMasterIP, config.ApiServerPort, resultId)
 	}
 	code, info, err := utils.SendRequest("GET", url, nil)

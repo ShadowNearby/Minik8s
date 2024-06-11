@@ -3,6 +3,7 @@ package activator
 import (
 	"errors"
 	"fmt"
+	"math"
 	"minik8s/config"
 	core "minik8s/pkgs/apiobject"
 	"minik8s/pkgs/controller/autoscaler"
@@ -143,6 +144,7 @@ func getAvailablePods(name string) ([]string, error) {
 		}
 		expectReplica := (record.CallCount + 9) / 10
 		log.Infof("expect replica: %d, replica: %d", expectReplica, record.Replicas)
+		record.Replicas = int(math.Min(float64(len(pods)), float64(record.Replicas)))
 		if expectReplica > record.Replicas && record.Replicas < config.FunctionThreshold {
 			replicaSet.Spec.Replicas = expectReplica
 			record.Replicas = expectReplica

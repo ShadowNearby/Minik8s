@@ -24,6 +24,7 @@ type PingSource struct {
 	ApiVersion string         `yaml:"apiVersion" json:"apiVersion"`
 	Kind       string         `yaml:"kind" json:"kind"`
 	MetaData   MetaData       `json:"metaData" yaml:"metaData"`
+	ID         string         `json:"id,omitempty" yaml:"id,omitempty"`
 	Spec       PingSourceSpec `yaml:"spec" json:"spec"`
 }
 

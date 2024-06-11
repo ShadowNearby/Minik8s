@@ -168,8 +168,9 @@ func CreateTaskHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot save task"})
 		return
 	}
+	task.ID = utils.GenerateUUID(4)
 	storage.RedisInstance.PublishMessage(constants.GenerateChannelName(constants.ChannelTask, constants.ChannelCreate), utils.JsonMarshal(task))
-	c.JSON(http.StatusOK, gin.H{"data": "ok"})
+	c.JSON(http.StatusOK, gin.H{"data": task.ID})
 
 }
 

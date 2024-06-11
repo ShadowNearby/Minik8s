@@ -63,11 +63,16 @@ func (t *TaskController) HandleCreate(message string) error {
 	params := pingSource.Spec.JsonData
 
 	entryID, err := t.cronManager.AddFunc(pingSource.Spec.Schedule, func() {
-		_, err := activator.TriggerFunc(funcName, []byte(params))
+		result, err := activator.TriggerFunc(funcName, []byte(params))
 		if err != nil {
 			logger.Errorf("trigger function %s error", funcName)
 			return
 		}
+		triggerResult := core.TriggerResult{
+			ID:     pingSource.ID,
+			Result: result,
+		}
+		utils.SaveTriggerResult(core.ObjFunction, triggerResult)
 	})
 	if err != nil {
 		logger.Errorf("register task error: %s", err.Error())
