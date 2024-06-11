@@ -26,11 +26,14 @@ curl :7070/memory
 ./bin/kubectl get volume
 ./bin/kubectl delete volume test-pv
 ./bin/kubectl apply -f ./example/pod/pod_with_volume.yaml
+./bin/kubectl apply -f ./example/pod/pod_with_volume_worker.yaml
 ./bin/kubectl get pod
 nerdctl exec -it pod-volume-test1 touch /test_mount/pod-pv/hello.txt
 nerdctl exec -it pod-volume-test2 ls /test_mount/pod-pv/hello.txt
+nerdctl exec -it pod-volume-worker-test1 ls /test_mount/pod-pv/hello.txt
 nerdctl exec -it pod-volume-test2 rm /test_mount/pod-pv/hello.txt
 ./bin/kubectl delete pod pod-volume
+./bin/kubectl delete pod pod-volume-worker
 
 # service test
 ./bin/kubectl apply -f ./example/service/service_pod.yaml
@@ -137,3 +140,14 @@ echo $(RESULT_ID)
 RESULT_ID = ./bin/kubectl trigger functions -f ./example/serverless/applications/trigger_workflow.yaml
 echo $(RESULT_ID)
 ./bin/kubectl result functions $(RESULT_ID)
+
+# test fault torrence
+./bin/kubectl apply -f ./example/service/service_pod.yaml
+./bin/kubectl get pod 
+./bin/kubectl apply -f ./example/service/service_clusterip.yaml
+./bin/kubectl get service
+./bin/kubectl get endpoint
+./script/stop.sh
+./script/start.sh
+./bin/kubectl delete service service-clusterip
+./bin/kubectl delete pod service-pod

@@ -19,5 +19,5 @@ nohup ./bin/apiserver > $LOGDIR/apiserver.log 2>&1 &
 sleep 3
 nohup ./bin/kubelet > $LOGDIR/kubelet.log 2>&1 &
 nohup ./bin/kubeproxy > $LOGDIR/kubeproxy.log 2>&1 &
-nohup prometheus --config.file $CONFDIR/prometheus/prometheus.yml > $LOGDIR/prometheus.log 2>&1 & 
+nohup prometheus --config.file $CONFDIR/prometheus/prometheus.yml --web.listen-address="0.0.0.0:9090" > $LOGDIR/prometheus.log 2>&1 & 
 nohup ./bin/kmonitor > $LOGDIR/kmonitor.log 2>&1 &

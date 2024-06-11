@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-volume-worker
+  namespace: default
+  labels:
+    app: deploy-1
+spec:
+  selector:
+    matchLabels:
+      host: k8s-2
+  volumes:
+    - name: pod-pv
+      nfs:
+        server: 192.168.1.12
+        share: "/mnt/ShareFolder"
+  containers:
+    - name: test1
+      image: docker.io/shadownearby/ubuntu:latest
+      imagePullPolicy: IfNotPresent
+      volumeMounts:
+        - name: pod-pv
+          containerPath: "/test_mount"
